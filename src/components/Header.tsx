@@ -1,7 +1,7 @@
 import React from 'react'
 import vectorLogo from '../assets/vector_logo_white.png'
 
-const Header: React.FC = () => {
+const Header = () => {
   return (
     <header className="bg-black text-white px-6 py-3 flex items-center justify-between border-b border-gray-800 shadow-lg relative">
 

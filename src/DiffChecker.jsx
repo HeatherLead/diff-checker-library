@@ -313,15 +313,22 @@ const SAMPLE_DATATABLES_CONFIG_SITE2 = [
 export const DiffChecker = ({
   backend_url = "https://tms-next-be.wcms.cloud",
   backend_url_2 = "https://dev-sutradhar-be.wcms.cloud",
-  synced_by = "ayush"
+  synced_by = "ayush",
+  initialOption = 'datatables',
+  initialOptionLabel = 'DataTables'
 }) => {
   // Navigation & Config State
-  const [activeOption, setActiveOption] = useState('datatables');
-  const [activeOptionLabel, setActiveOptionLabel] = useState('DataTables');
+  const [activeOption, setActiveOption] = useState(initialOption);
+  const [activeOptionLabel, setActiveOptionLabel] = useState(initialOptionLabel);
   const [baseUrl1, setBaseUrl1] = useState(backend_url);
   const [baseUrl2, setBaseUrl2] = useState(backend_url_2);
   const [isLoading, setIsLoading] = useState(false);
   const [notification, setNotification] = useState(null);
+
+  useEffect(() => {
+    if (initialOption) setActiveOption(initialOption);
+    if (initialOptionLabel) setActiveOptionLabel(initialOptionLabel);
+  }, [initialOption, initialOptionLabel]);
 
   // Filters State
   const [showDataDiffFilters, setShowDataDiffFilters] = useState(true);
@@ -888,10 +895,10 @@ export const DiffChecker = ({
             <div className="w-1/3 flex justify-end">
               <button
                 onClick={() => setShowDataDiffFilters(!showDataDiffFilters)}
-                className="text-xs text-gray-500 hover:text-gray-700 flex items-center space-x-1 cursor-pointer"
+                className="text-xs text-gray-500 hover:text-gray-700 flex items-center space-x-1 cursor-pointer transition-colors duration-150 select-none"
               >
                 <span>{showDataDiffFilters ? 'Hide filters' : 'Show filters'}</span>
-                <span>{showDataDiffFilters ? '▲' : '▼'}</span>
+                <span className={`inline-block text-[10px] transform transition-transform duration-300 ease-in-out ${showDataDiffFilters ? 'rotate-0' : 'rotate-180'}`}>▲</span>
               </button>
             </div>
           </div>
@@ -943,10 +950,10 @@ export const DiffChecker = ({
             <div className="w-1/3 flex justify-end">
               <button
                 onClick={() => setShowVersionFilters(!showVersionFilters)}
-                className="text-xs text-gray-500 hover:text-gray-700 flex items-center space-x-1 cursor-pointer"
+                className="text-xs text-gray-500 hover:text-gray-700 flex items-center space-x-1 cursor-pointer transition-colors duration-150 select-none"
               >
                 <span>{showVersionFilters ? 'Hide filters' : 'Show filters'}</span>
-                <span>{showVersionFilters ? '▲' : '▼'}</span>
+                <span className={`inline-block text-[10px] transform transition-transform duration-300 ease-in-out ${showVersionFilters ? 'rotate-0' : 'rotate-180'}`}>▲</span>
               </button>
             </div>
           </div>
@@ -1011,10 +1018,10 @@ export const DiffChecker = ({
               <div className="w-1/4 flex justify-end">
                 <button
                   onClick={() => setShowSite1Filters(!showSite1Filters)}
-                  className="text-xs text-gray-500 hover:text-gray-700 flex items-center space-x-1 cursor-pointer"
+                  className="text-xs text-gray-500 hover:text-gray-700 flex items-center space-x-1 cursor-pointer transition-colors duration-150 select-none"
                 >
                   <span>{showSite1Filters ? 'Hide filters' : 'Show filters'}</span>
-                  <span>{showSite1Filters ? '▲' : '▼'}</span>
+                  <span className={`inline-block text-[10px] transform transition-transform duration-300 ease-in-out ${showSite1Filters ? 'rotate-0' : 'rotate-180'}`}>▲</span>
                 </button>
               </div>
             </div>
@@ -1053,10 +1060,10 @@ export const DiffChecker = ({
               <div className="w-1/4 flex justify-end">
                 <button
                   onClick={() => setShowSite2Filters(!showSite2Filters)}
-                  className="text-xs text-gray-500 hover:text-gray-700 flex items-center space-x-1 cursor-pointer"
+                  className="text-xs text-gray-500 hover:text-gray-700 flex items-center space-x-1 cursor-pointer transition-colors duration-150 select-none"
                 >
                   <span>{showSite2Filters ? 'Hide filters' : 'Show filters'}</span>
-                  <span>{showSite2Filters ? '▲' : '▼'}</span>
+                  <span className={`inline-block text-[10px] transform transition-transform duration-300 ease-in-out ${showSite2Filters ? 'rotate-0' : 'rotate-180'}`}>▲</span>
                 </button>
               </div>
             </div>

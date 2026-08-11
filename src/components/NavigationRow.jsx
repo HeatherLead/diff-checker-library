@@ -1,4 +1,5 @@
-import React, { useState, useRef, useEffect, useLayoutEffect } from 'react';
+import React, { useState, useRef, useEffect, useLayoutEffect, useMemo } from 'react';
+import { useNavigate, useLocation } from 'react-router-dom';
 
 const TABS = [
   {
@@ -6,15 +7,16 @@ const TABS = [
     type: 'single',
     title: 'DataTables',
     optionId: 'datatables',
+    path: '/',
   },
   {
     id: 'entities_forms',
     type: 'dropdown',
     title: 'Entities & Forms',
     items: [
-      { id: 'task_entity', label: 'Task Entity' },
-      { id: 'subtask_master', label: 'SubTask Master' },
-      { id: 'custom_form', label: 'Custom Form' },
+      { id: 'task_entity', label: 'Task Entity', path: '/task-entity' },
+      { id: 'subtask_master', label: 'SubTask Master', path: '/subtask-master' },
+      { id: 'custom_form', label: 'Custom Form', path: '/custom-form' },
     ]
   },
   {
@@ -22,11 +24,11 @@ const TABS = [
     type: 'dropdown',
     title: 'Configurations',
     items: [
-      { id: 'master_config', label: 'Master Config' },
-      { id: 'site_config', label: 'Site Config' },
-      { id: 'dropdown_config', label: 'Dropdown Config' },
-      { id: 'permission_config', label: 'Permission Config' },
-      { id: 'workflow_config', label: 'WorkFlow Config' },
+      { id: 'master_config', label: 'Master Config', path: '/master-config' },
+      { id: 'site_config', label: 'Site Config', path: '/site-config' },
+      { id: 'dropdown_config', label: 'Dropdown Config', path: '/dropdown-config' },
+      { id: 'permission_config', label: 'Permission Config', path: '/permission-config' },
+      { id: 'workflow_config', label: 'WorkFlow Config', path: '/workflow-config' },
     ]
   },
   {
@@ -34,11 +36,11 @@ const TABS = [
     type: 'dropdown',
     title: 'System & Roles',
     items: [
-      { id: 'attachment_tag_list', label: 'Attachment Tag List' },
-      { id: 'role_department_list', label: 'Role Department List' },
-      { id: 'drupal_roles', label: 'Drupal Roles' },
-      { id: 'react_menus', label: 'React Menus' },
-      { id: 'templates', label: 'Templates' },
+      { id: 'attachment_tag_list', label: 'Attachment Tag List', path: '/attachment-tag-list' },
+      { id: 'role_department_list', label: 'Role Department List', path: '/role-department-list' },
+      { id: 'drupal_roles', label: 'Drupal Roles', path: '/drupal-roles' },
+      { id: 'react_menus', label: 'React Menus', path: '/react-menus' },
+      { id: 'templates', label: 'Templates', path: '/templates' },
     ]
   }
 ];
@@ -54,12 +56,28 @@ const getActiveTabId = (activeOption) => {
 };
 
 const NavigationRow = ({ activeOption, onSelectOption }) => {
+  const navigate = useNavigate();
+  const location = useLocation();
   const [openDropdownId, setOpenDropdownId] = useState(null);
   const tabRefs = useRef({});
   const navContainerRef = useRef(null);
   const [indicatorStyle, setIndicatorStyle] = useState({ left: 0, width: 0, opacity: 0 });
 
-  const activeTabId = getActiveTabId(activeOption);
+  const currentActiveOption = useMemo(() => {
+    if (location.pathname === '/') return 'datatables';
+    for (const tab of TABS) {
+      if (tab.type === 'single' && tab.path === location.pathname) {
+        return tab.optionId;
+      }
+      if (tab.type === 'dropdown') {
+        const found = tab.items.find(item => item.path === location.pathname);
+        if (found) return found.id;
+      }
+    }
+    return activeOption || 'datatables';
+  }, [location.pathname, activeOption]);
+
+  const activeTabId = getActiveTabId(currentActiveOption);
 
   const updateIndicator = () => {
     const container = navContainerRef.current;
@@ -77,7 +95,7 @@ const NavigationRow = ({ activeOption, onSelectOption }) => {
 
   useLayoutEffect(() => {
     updateIndicator();
-  }, [activeOption, activeTabId]);
+  }, [currentActiveOption, activeTabId]);
 
   useEffect(() => {
     window.addEventListener('resize', updateIndicator);
@@ -88,7 +106,7 @@ const NavigationRow = ({ activeOption, onSelectOption }) => {
       cancelAnimationFrame(animId);
       clearTimeout(timer);
     };
-  }, [activeOption, activeTabId]);
+  }, [currentActiveOption, activeTabId]);
 
   // Close dropdown on outside click
   useEffect(() => {
@@ -103,7 +121,8 @@ const NavigationRow = ({ activeOption, onSelectOption }) => {
 
   const handleTabClick = (tab) => {
     if (tab.type === 'single') {
-      onSelectOption(tab.optionId, tab.title);
+      if (onSelectOption) onSelectOption(tab.optionId, tab.title);
+      if (tab.path) navigate(tab.path);
       setOpenDropdownId(null);
     } else {
       setOpenDropdownId(prev => (prev === tab.id ? null : tab.id));
@@ -111,7 +130,8 @@ const NavigationRow = ({ activeOption, onSelectOption }) => {
   };
 
   const handleSelectItem = (item) => {
-    onSelectOption(item.id, item.label);
+    if (onSelectOption) onSelectOption(item.id, item.label);
+    if (item.path) navigate(item.path);
     setOpenDropdownId(null);
   };
 
@@ -170,7 +190,7 @@ const NavigationRow = ({ activeOption, onSelectOption }) => {
                 {isOpen && (
                   <div className="absolute left-0 top-full mt-0 w-60 bg-white border border-gray-100 rounded-lg shadow-xl py-1 z-50 animate-in fade-in zoom-in-95 duration-150 overflow-hidden">
                     {tab.items.map((item) => {
-                      const isOptionSelected = activeOption === item.id;
+                      const isOptionSelected = currentActiveOption === item.id;
                       return (
                         <button
                           key={item.id}
