@@ -1,0 +1,164 @@
+@import url('https://fonts.googleapis.com/css2?family=Roboto:ital,wght@0,300;0,400;0,500;0,700;1,300;1,400;1,500;1,700&display=swap');
+@import 'ag-grid-community/styles/ag-grid.css';
+@import 'ag-grid-community/styles/ag-theme-alpine.css';
+@import 'ag-grid-community/styles/ag-theme-quartz.css';
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  font-family: 'Roboto', -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+  color-scheme: light;
+  color: #333333;
+  background-color: #f8f9fa;
+}
+
+body {
+  font-family: 'Roboto', sans-serif;
+  margin: 0;
+  padding: 0;
+  min-height: 100vh;
+  background-color: #fafafa;
+}
+
+/* Custom AG Grid Styles to match exact screenshot design */
+.ag-theme-alpine {
+  --ag-header-background-color: #f1f3f8;
+  --ag-header-foreground-color: #374151;
+  --ag-header-cell-hover-background-color: #e2e8f0;
+  --ag-header-column-separator-display: block;
+  --ag-header-column-separator-color: #cbd5e1;
+  --ag-row-border-color: #f0f0f0;
+  --ag-border-color: #e2e8f0;
+  --ag-font-size: 13px;
+  --ag-grid-size: 6px;
+  --ag-font-family: 'Roboto', sans-serif;
+  --ag-selected-row-background-color: #fdf2f8;
+  --ag-row-hover-color: #f8fafc;
+  --ag-checkbox-checked-color: #881337;
+  --ag-checkbox-unchecked-color: #881337;
+}
+
+.ag-theme-alpine .ag-header-cell-label {
+  font-weight: 500;
+  font-size: 11.5px;
+  letter-spacing: 0.03em;
+  color: #374151;
+  text-transform: none;
+}
+
+/* Floating Filter Inputs - Hide Filter Icon on Column Filter */
+.ag-theme-alpine .ag-floating-filter-button,
+.ag-theme-alpine .ag-floating-filter-button-button {
+  display: none !important;
+}
+
+.ag-theme-alpine .ag-floating-filter-body {
+  width: 100% !important;
+}
+
+.ag-theme-alpine .ag-input-field-input {
+  border-radius: 4px !important;
+  border-color: #cbd5e1 !important;
+  font-size: 12px !important;
+  font-weight: 400 !important;
+  padding: 2px 6px !important;
+}
+
+.ag-theme-alpine .ag-input-field-input:focus {
+  border-color: #881337 !important;
+  box-shadow: 0 0 0 1px #881337 !important;
+}
+
+/* Custom Checkbox Styling to match maroon outline */
+.ag-theme-alpine .ag-checkbox-input-wrapper {
+  border-color: #881337 !important;
+  border-radius: 3px !important;
+}
+
+.ag-theme-alpine .ag-checkbox-input-wrapper.ag-checked {
+  background-color: #881337 !important;
+  border-color: #881337 !important;
+}
+
+/* Context Menu / Column Popover Menu */
+.ag-custom-menu-popup {
+  position: absolute;
+  z-index: 100;
+  background-color: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 6px;
+  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
+  min-width: 190px;
+  padding: 4px 0;
+  font-size: 12px;
+  color: #334155;
+  animation: fadeIn 0.15s ease-out;
+}
+
+.ag-custom-menu-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 14px;
+  cursor: pointer;
+  transition: background-color 0.12s ease, color 0.12s ease;
+  font-weight: 400;
+}
+
+.ag-custom-menu-item:hover,
+.ag-custom-menu-item.active {
+  background-color: #fde6f7;
+  color: #881337;
+}
+
+.ag-custom-menu-item .menu-icon {
+  width: 18px;
+  display: inline-block;
+  text-align: center;
+  font-size: 13px;
+  margin-right: 6px;
+}
+
+/* Badges & Buttons */
+.badge-black-delayed {
+  background-color: #000000;
+  color: #ffffff;
+  font-weight: 500;
+  font-size: 10px;
+  padding: 2px 8px;
+  border-radius: 4px;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  display: inline-block;
+  line-height: 1.4;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+}
+
+.btn-maroon-outline {
+  @apply px-3.5 py-0.5 text-xs font-normal text-[#881337] border border-[#881337] rounded hover:bg-[#881337] hover:text-white transition-colors duration-150 shadow-sm bg-white cursor-pointer inline-flex items-center justify-center;
+}
+
+.btn-maroon-solid {
+  @apply px-3 py-1 text-xs font-normal text-white bg-[#7a1c4b] border border-[#7a1c4b] rounded hover:bg-[#61143a] transition-colors duration-150 shadow-sm cursor-pointer inline-flex items-center justify-center;
+}
+
+.btn-gray-outline {
+  @apply px-3 py-1 text-xs font-normal text-gray-600 border border-gray-300 rounded hover:bg-gray-100 transition-colors duration-150 bg-white cursor-pointer inline-flex items-center justify-center;
+}
+
+.ag-blue-link {
+  color: #2563eb;
+  font-weight: 400;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.ag-blue-link:hover {
+  text-decoration: underline;
+}
+
+.ag-blue-link:hover {
+  text-decoration: underline;
+}
