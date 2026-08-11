@@ -32,12 +32,19 @@ const TABS = [
     ]
   },
   {
-    id: 'system_roles',
+    id: 'list',
     type: 'dropdown',
-    title: 'System & Roles',
+    title: 'List',
     items: [
       { id: 'attachment_tag_list', label: 'Attachment Tag List', path: '/attachment-tag-list' },
       { id: 'role_department_list', label: 'Role Department List', path: '/role-department-list' },
+    ]
+  },
+  {
+    id: 'templates_menus',
+    type: 'dropdown',
+    title: 'Template & Menus',
+    items: [
       { id: 'drupal_roles', label: 'Drupal Roles', path: '/drupal-roles' },
       { id: 'react_menus', label: 'React Menus', path: '/react-menus' },
       { id: 'templates', label: 'Templates', path: '/templates' },
@@ -151,11 +158,10 @@ const NavigationRow = ({ activeOption, onSelectOption }) => {
                   key={tab.id}
                   ref={(el) => (tabRefs.current[tab.id] = el)}
                   onClick={() => handleTabClick(tab)}
-                  className={`py-3.5 text-[13px] font-semibold transition-colors duration-200 cursor-pointer outline-none ${
-                    isTabActive
-                      ? 'text-[#820f4c]'
-                      : 'text-gray-700 hover:text-[#820f4c]'
-                  }`}
+                  className={`py-3.5 text-[13px] font-semibold transition-colors duration-200 cursor-pointer outline-none ${isTabActive
+                    ? 'text-[#820f4c]'
+                    : 'text-gray-700 hover:text-gray-900'
+                    }`}
                 >
                   {tab.title}
                 </button>
@@ -167,17 +173,15 @@ const NavigationRow = ({ activeOption, onSelectOption }) => {
                 <button
                   ref={(el) => (tabRefs.current[tab.id] = el)}
                   onClick={() => handleTabClick(tab)}
-                  className={`py-3.5 text-[13px] font-semibold flex items-center space-x-1.5 transition-colors duration-200 cursor-pointer outline-none ${
-                    isTabActive
-                      ? 'text-[#820f4c]'
-                      : 'text-gray-700 hover:text-[#820f4c]'
-                  }`}
+                  className={`py-3.5 text-[13px] font-semibold flex items-center space-x-1.5 transition-colors duration-200 cursor-pointer outline-none ${isTabActive
+                    ? 'text-[#820f4c]'
+                    : 'text-gray-700 hover:text-gray-900'
+                    }`}
                 >
                   <span>{tab.title}</span>
                   <svg
-                    className={`w-4 h-4 transition-transform duration-200 ${
-                      isOpen ? 'transform rotate-180 text-[#820f4c]' : 'text-gray-400'
-                    }`}
+                    className={`w-4 h-4 transition-transform duration-200 ${isOpen ? 'transform rotate-180 text-[#820f4c]' : 'text-gray-400'
+                      }`}
                     fill="none"
                     stroke="currentColor"
                     viewBox="0 0 24 24"
@@ -188,18 +192,17 @@ const NavigationRow = ({ activeOption, onSelectOption }) => {
 
                 {/* DROPDOWN MENU CARD */}
                 {isOpen && (
-                  <div className="absolute left-0 top-full mt-0 w-60 bg-white border border-gray-100 rounded-lg shadow-xl py-1 z-50 animate-in fade-in zoom-in-95 duration-150 overflow-hidden">
+                  <div className="absolute max-w-40 left-0 top-full mt-0 w-60 bg-white border border-gray-100 rounded-lg shadow-xl py-1 z-50 animate-in fade-in zoom-in-95 duration-150 overflow-hidden">
                     {tab.items.map((item) => {
                       const isOptionSelected = currentActiveOption === item.id;
                       return (
                         <button
                           key={item.id}
                           onClick={() => handleSelectItem(item)}
-                          className={`w-full text-left px-5 py-2.5 text-[13px] transition-colors duration-150 cursor-pointer ${
-                            isOptionSelected
-                              ? 'bg-[#820f4c] text-white font-medium'
-                              : 'text-gray-700 hover:bg-[#820f4c] hover:text-white font-medium'
-                          }`}
+                          className={`w-full text-left px-2 py-1 text-[13px] transition-colors duration-150 cursor-pointer ${isOptionSelected
+                            ? 'bg-[#820f4c] text-white font-medium'
+                            : 'text-gray-700 hover:bg-gray-100 hover:text-gray-900 font-medium'
+                            }`}
                         >
                           {item.label}
                         </button>

@@ -8,8 +8,8 @@
   --ag-header-background-color: #f1f3f8;
   --ag-header-foreground-color: #374151;
   --ag-header-cell-hover-background-color: #e2e8f0;
-  --ag-header-column-separator-display: block;
-  --ag-header-column-separator-color: #cbd5e1;
+  --ag-header-column-separator-display: none;
+  --ag-header-column-separator-color: transparent;
   --ag-row-border-color: #f0f0f0;
   --ag-border-color: #e2e8f0;
   --ag-font-size: 13px;
@@ -81,6 +81,14 @@
   text-transform: none;
 }
 
+/* Hide Header Hamburger Menu Button & Right-Side Resize Lines */
+.ag-theme-alpine .ag-header-cell-menu-button,
+.ag-theme-alpine .ag-header-icon.ag-header-cell-menu-button,
+.ag-theme-alpine .ag-header-cell-resize::after,
+.ag-theme-alpine .ag-header-column-separator {
+  display: none !important;
+}
+
 /* Floating Filter Inputs - Hide Filter Icon on Column Filter */
 .ag-theme-alpine .ag-floating-filter-button,
 .ag-theme-alpine .ag-floating-filter-button-button {
@@ -117,8 +125,8 @@
 .ag-theme-alpine .ag-body-viewport,
 .ag-theme-alpine .ag-center-cols-clipper {
   transition: height 0.3s cubic-bezier(0.4, 0, 0.2, 1),
-              min-height 0.3s cubic-bezier(0.4, 0, 0.2, 1),
-              top 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+    min-height 0.3s cubic-bezier(0.4, 0, 0.2, 1),
+    top 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
 }
 
 .ag-theme-alpine .ag-header-row-floating-filter {
@@ -130,12 +138,12 @@
   transform-origin: top center !important;
   visibility: visible !important;
   transition: height 0.3s cubic-bezier(0.4, 0, 0.2, 1),
-              min-height 0.3s cubic-bezier(0.4, 0, 0.2, 1),
-              max-height 0.3s cubic-bezier(0.4, 0, 0.2, 1),
-              opacity 0.25s cubic-bezier(0.4, 0, 0.2, 1),
-              transform 0.3s cubic-bezier(0.4, 0, 0.2, 1),
-              visibility 0.3s cubic-bezier(0.4, 0, 0.2, 1),
-              border-color 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+    min-height 0.3s cubic-bezier(0.4, 0, 0.2, 1),
+    max-height 0.3s cubic-bezier(0.4, 0, 0.2, 1),
+    opacity 0.25s cubic-bezier(0.4, 0, 0.2, 1),
+    transform 0.3s cubic-bezier(0.4, 0, 0.2, 1),
+    visibility 0.3s cubic-bezier(0.4, 0, 0.2, 1),
+    border-color 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
   overflow: hidden !important;
 }
 

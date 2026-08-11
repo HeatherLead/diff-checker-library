@@ -363,19 +363,21 @@ export const AgGridGenerator = ({
 
   // Main menu items popup configuration matching screenshot exactly
   const getMainMenuItems = useCallback((params) => {
+    const api = params.api || params.columnApi;
+    const colId = params.column.getColId();
     return [
       {
         name: "Sort Ascending",
-        action: () => params.columnApi.applyColumnState({
-          state: [{ colId: params.column.getColId(), sort: "asc" }],
+        action: () => api.applyColumnState({
+          state: [{ colId, sort: "asc" }],
           defaultState: { sort: null }
         }),
         icon: '<span style="font-size: 14px; font-weight: normal;">↑</span>'
       },
       {
         name: "Sort Descending",
-        action: () => params.columnApi.applyColumnState({
-          state: [{ colId: params.column.getColId(), sort: "desc" }],
+        action: () => api.applyColumnState({
+          state: [{ colId, sort: "desc" }],
           defaultState: { sort: null }
         }),
         icon: '<span style="font-size: 14px; font-weight: normal;">↓</span>'
@@ -394,6 +396,7 @@ export const AgGridGenerator = ({
       resizable: true,
       filter: "agTextColumnFilter",
       floatingFilter: true,
+      menuTabs: ["generalMenuTab", "filterMenuTab"],
       flex: 1,
       minWidth: 110,
       headerClass: "font-normal text-gray-700",
@@ -423,6 +426,58 @@ export const AgGridGenerator = ({
     [externalOnGridReady, derivedColumnDefs]
   );
 
+  const [headerContextMenu, setHeaderContextMenu] = useState(null);
+
+  const gridContainerRef = useRef(null);
+
+  useEffect(() => {
+    const container = gridContainerRef.current;
+    if (!container) return;
+
+    const handleContextMenuCapture = (e) => {
+      const headerCell = e.target.closest(".ag-header-cell");
+      if (!headerCell) return;
+
+      const colId = headerCell.getAttribute("col-id");
+      if (!colId || colId === "ag-Grid-Selection") return;
+
+      e.preventDefault();
+      e.stopPropagation();
+
+      const api = gridRef.current?.api;
+      const col = api?.getColumn?.(colId);
+      const colDef = col?.getColDef?.();
+      const colName = colDef?.headerName || colDef?.field || colId;
+
+      const x = Math.min(e.clientX, window.innerWidth - 210);
+      const y = Math.min(e.clientY, window.innerHeight - 250);
+
+      setHeaderContextMenu({
+        x,
+        y,
+        colId,
+        colName,
+        pinned: col?.getPinned?.() || null,
+      });
+    };
+
+    container.addEventListener("contextmenu", handleContextMenuCapture, true);
+    return () => {
+      container.removeEventListener("contextmenu", handleContextMenuCapture, true);
+    };
+  }, [derivedColumnDefs]);
+
+  useEffect(() => {
+    if (!headerContextMenu) return;
+    const handleClose = () => setHeaderContextMenu(null);
+    window.addEventListener("click", handleClose);
+    window.addEventListener("scroll", handleClose, true);
+    return () => {
+      window.removeEventListener("click", handleClose);
+      window.removeEventListener("scroll", handleClose, true);
+    };
+  }, [headerContextMenu]);
+
   useEffect(() => {
     if (gridRef.current?.api && derivedColumnDefs.length > 0) {
       applyColumnAutoSize(gridRef.current.api, derivedColumnDefs);
@@ -436,13 +491,14 @@ export const AgGridGenerator = ({
   }, [tableData, effectiveRowData]);
 
   return (
-    <div className="w-full flex flex-col gap-2">
+    <div className="w-full flex flex-col gap-2 relative">
       {enableTotalRowCount && totalRowCount > 0 && (
         <div className="flex justify-between items-center px-1 text-xs text-gray-500 font-normal">
           <span>Total Records: <span className="text-gray-800 font-normal">{totalRowCount}</span></span>
         </div>
       )}
       <div
+        ref={gridContainerRef}
         className={`${themeClass} ${isFilterVisible ? 'ag-floating-filter-visible' : 'ag-floating-filter-hidden'} w-full shadow-sm border border-gray-200 rounded-md overflow-hidden bg-white text-xs`}
         style={{ height }}
       >
@@ -465,6 +521,76 @@ export const AgGridGenerator = ({
           {...props}
         />
       </div>
+
+      {headerContextMenu && (
+        <div
+          className="fixed z-50 bg-white border border-gray-200 rounded-md shadow-xl text-xs py-1 w-48 text-gray-700 font-normal select-none"
+          style={{ top: headerContextMenu.y, left: headerContextMenu.x }}
+          onClick={(e) => e.stopPropagation()}
+        >
+          <div className="px-3 py-1.5 font-semibold text-[11px] text-gray-400 uppercase tracking-wider border-b border-gray-100 bg-gray-50/50 truncate">
+            {headerContextMenu.colName}
+          </div>
+
+          <div className="py-1 border-b border-gray-100">
+            <button
+              type="button"
+              className={`w-full text-left px-3 py-1.5 hover:bg-[#fde6f7] hover:text-[#881337] flex items-center justify-between transition-colors cursor-pointer ${headerContextMenu.pinned === "left" ? "font-semibold text-[#881337] bg-[#fde6f7]/50" : ""
+                }`}
+              onClick={() => {
+                gridRef.current?.api?.applyColumnState({
+                  state: [{ colId: headerContextMenu.colId, pinned: headerContextMenu.pinned === "left" ? null : "left" }],
+                });
+                setHeaderContextMenu(null);
+              }}
+            >
+              <span>Pin Left</span>
+              {headerContextMenu.pinned === "left" && <span>✓</span>}
+            </button>
+            <button
+              type="button"
+              className={`w-full text-left px-3 py-1.5 hover:bg-[#fde6f7] hover:text-[#881337] flex items-center justify-between transition-colors cursor-pointer ${headerContextMenu.pinned === "right" ? "font-semibold text-[#881337] bg-[#fde6f7]/50" : ""
+                }`}
+              onClick={() => {
+                gridRef.current?.api?.applyColumnState({
+                  state: [{ colId: headerContextMenu.colId, pinned: headerContextMenu.pinned === "right" ? null : "right" }],
+                });
+                setHeaderContextMenu(null);
+              }}
+            >
+              <span>Pin Right</span>
+              {headerContextMenu.pinned === "right" && <span>✓</span>}
+            </button>
+          </div>
+
+          <button
+            type="button"
+            className="w-full text-left px-3 py-1.5 hover:bg-[#fde6f7] hover:text-[#881337] flex items-center gap-2 transition-colors cursor-pointer"
+            onClick={() => {
+              if (gridRef.current?.api) {
+                gridRef.current.api.autoSizeColumns([headerContextMenu.colId], false);
+                clampColumnWidths(gridRef.current.api, [headerContextMenu.colId]);
+              }
+              setHeaderContextMenu(null);
+            }}
+          >
+            <span>Autosize This Column</span>
+          </button>
+
+          <button
+            type="button"
+            className="w-full text-left px-3 py-1.5 hover:bg-[#fde6f7] hover:text-[#881337] flex items-center gap-2 transition-colors cursor-pointer"
+            onClick={() => {
+              if (gridRef.current?.api) {
+                applyColumnAutoSize(gridRef.current.api, derivedColumnDefs);
+              }
+              setHeaderContextMenu(null);
+            }}
+          >
+            <span>Autosize All Columns</span>
+          </button>
+        </div>
+      )}
     </div>
   );
 };
