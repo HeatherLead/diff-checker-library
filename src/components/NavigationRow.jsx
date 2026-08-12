@@ -10,14 +10,11 @@ const TABS = [
     path: '/',
   },
   {
-    id: 'entities_forms',
-    type: 'dropdown',
-    title: 'Entities & Forms',
-    items: [
-      { id: 'task_entity', label: 'Task Entity', path: '/task-entity' },
-      { id: 'subtask_master', label: 'SubTask Master', path: '/subtask-master' },
-      { id: 'custom_form', label: 'Custom Form', path: '/custom-form' },
-    ]
+    id: 'task_entity',
+    type: 'single',
+    title: 'Task Entity',
+    path: '/task-entity',
+    optionId: 'task_entity'
   },
   {
     id: 'configurations',
@@ -28,33 +25,50 @@ const TABS = [
       { id: 'site_config', label: 'Site Config', path: '/site-config' },
       { id: 'dropdown_config', label: 'Dropdown Config', path: '/dropdown-config' },
       { id: 'permission_config', label: 'Permission Config', path: '/permission-config' },
-      { id: 'workflow_config', label: 'WorkFlow Config', path: '/workflow-config' },
     ]
   },
   {
-    id: 'list',
+    id: 'workflow_config',
+    type: 'single',
+    title: 'WorkFlow Config',
+    path: '/workflow-config',
+    optionId: 'workflow_config'
+  },
+  {
+    id: 'attachment_tag_list',
+    type: 'single',
+    title: 'Attachment Tag List',
+    path: '/attachment-tag-list',
+    optionId: 'attachment_tag_list'
+  },
+  {
+    id: 'templates',
+    type: 'single',
+    title: 'Templates',
+    path: '/templates',
+    optionId: 'templates'
+  },
+  {
+    id: 'entities_forms_menus',
     type: 'dropdown',
-    title: 'List',
+    title: 'Forms & Menus',
     items: [
-      { id: 'attachment_tag_list', label: 'Attachment Tag List', path: '/attachment-tag-list' },
+      { id: 'subtask_master', label: 'SubTask Master', path: '/subtask-master' },
+      { id: 'custom_form', label: 'Custom Form', path: '/custom-form' },
       { id: 'role_department_list', label: 'Role Department List', path: '/role-department-list' },
-    ]
-  },
-  {
-    id: 'templates_menus',
-    type: 'dropdown',
-    title: 'Template & Menus',
-    items: [
       { id: 'drupal_roles', label: 'Drupal Roles', path: '/drupal-roles' },
       { id: 'react_menus', label: 'React Menus', path: '/react-menus' },
-      { id: 'templates', label: 'Templates', path: '/templates' },
     ]
-  }
+  },
+
 ];
 
 const getActiveTabId = (activeOption) => {
   if (activeOption === 'datatables') return 'datatables';
   for (const tab of TABS) {
+    if (tab.type === 'single' && (tab.optionId === activeOption || tab.id === activeOption)) {
+      return tab.id;
+    }
     if (tab.type === 'dropdown' && tab.items.some(item => item.id === activeOption)) {
       return tab.id;
     }
@@ -192,7 +206,7 @@ const NavigationRow = ({ activeOption, onSelectOption }) => {
 
                 {/* DROPDOWN MENU CARD */}
                 {isOpen && (
-                  <div className="absolute max-w-40 left-0 top-full mt-0 w-60 bg-white border border-gray-100 rounded-lg shadow-xl py-1 z-50 animate-in fade-in zoom-in-95 duration-150 overflow-hidden">
+                  <div className="absolute left-0 top-full mt-0 w-52 min-w-[180px] bg-white border border-gray-100 rounded-lg shadow-xl py-1 z-50 animate-in fade-in zoom-in-95 duration-150 overflow-hidden">
                     {tab.items.map((item) => {
                       const isOptionSelected = currentActiveOption === item.id;
                       return (

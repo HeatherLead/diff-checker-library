@@ -86,7 +86,8 @@ export const OnlySiteTable = ({
               rowData={filteredSite1Rows}
               columnDefs={site1ColDefs}
               showFloatingFilter={showSite1Filters}
-              height="240px"
+              minHeight="250px"
+              maxHeight="440px"
             />
           </div>
 
@@ -133,7 +134,8 @@ export const OnlySiteTable = ({
             rowData={filteredSite1Rows}
             columnDefs={site1ColDefs}
             showFloatingFilter={showSite1Filters}
-            height="240px"
+            minHeight="250px"
+            maxHeight="440px"
           />
         </div>
 
@@ -175,7 +177,8 @@ export const OnlySiteTable = ({
             rowData={filteredSite2Rows}
             columnDefs={site2ColDefs}
             showFloatingFilter={showSite2Filters}
-            height="240px"
+            minHeight="250px"
+            maxHeight="440px"
           />
         </div>
 

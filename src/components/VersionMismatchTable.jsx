@@ -101,7 +101,8 @@ export const VersionMismatchTable = ({
         rowData={filteredVersionMismatchRows}
         columnDefs={versionMismatchColDefs}
         showFloatingFilter={showVersionFilters}
-        height="260px"
+        minHeight="250px"
+        maxHeight="460px"
       />
 
       <div className="mt-2 text-xs italic text-red-600 font-normal">

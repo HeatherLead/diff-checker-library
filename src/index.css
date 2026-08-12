@@ -21,6 +21,13 @@ body {
 }
 
 /* React Toastify Overrides */
+:root {
+  --toastify-color-progress-light: #00c853 !important;
+  --toastify-color-progress-success: #00c853 !important;
+  --toastify-color-progress-error: #ef4444 !important;
+  --toastify-color-progress-bgs: #ffffff !important;
+}
+
 .Toastify__toast-container {
   width: 400px !important;
   max-width: 90vw !important;
@@ -30,7 +37,7 @@ body {
 .Toastify__toast {
   background-color: #ffffff !important;
   border-radius: 10px !important;
-  box-shadow: 0 4px 20px rgba(0,0,0,0.08) !important;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08) !important;
   border: 1px solid #f3f4f6 !important;
   padding: 16px 20px !important;
   min-height: auto !important;
@@ -43,9 +50,30 @@ body {
   margin: 0 !important;
 }
 
+/* Progress Bar Track (area behind shrinking line) */
+.Toastify__progress-bar--wrp {
+  background: #ffffff !important;
+  background-image: none !important;
+}
+
+/* Active Shrinking Progress Line (Solid Color, No Gradient) */
 .Toastify__progress-bar {
-  background: #00c853 !important;
   height: 5px !important;
+  opacity: 1 !important;
+  background-image: none !important;
+}
+
+.Toastify__progress-bar--success,
+.Toastify__progress-bar-theme--light {
+  background: #00c853 !important;
+  background-color: #00c853 !important;
+  background-image: none !important;
+}
+
+.Toastify__progress-bar--error {
+  background: #ef4444 !important;
+  background-color: #ef4444 !important;
+  background-image: none !important;
 }
 
 .Toastify__close-button {

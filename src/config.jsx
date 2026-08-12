@@ -2,11 +2,31 @@ import React from 'react';
 
 // Common helper to trim and show tooltip for AG-Grid cells
 const renderTrimTooltip = (val, maxChar = 27) => {
-  if (!val) return '';
-  if (val.length <= maxChar) return val;
+  if (val === null || val === undefined || val === '') return '';
+  let str = '';
+  if (typeof val === 'object') {
+    if (typeof val.tag === 'string') {
+      str = val.tag;
+    } else if (typeof val.label === 'string') {
+      str = val.label;
+    } else if (typeof val.name === 'string') {
+      str = val.name;
+    } else {
+      try {
+        str = JSON.stringify(val);
+      } catch {
+        str = String(val);
+      }
+    }
+  } else {
+    str = String(val);
+  }
+
+  if (!str) return '';
+  if (str.length <= maxChar) return str;
   return (
-    <span title={val}>
-      {val.substring(0, maxChar)}...
+    <span title={str}>
+      {str.substring(0, maxChar)}...
     </span>
   );
 };
@@ -72,7 +92,8 @@ export const CONFIGS = {
       map2.forEach((item2, tag) => {
         if (!map1.has(tag)) {
           onlySite2.push({
-            tag: item2.version || '1.0',
+            tag: item2.tag || tag,
+            version: item2.version || '1.0',
             id: item2.id,
             raw: item2
           });
@@ -81,7 +102,7 @@ export const CONFIGS = {
 
       return { dataDiff, versionMismatch, onlySite1, onlySite2 };
     },
-    getColumns: ({ openDiffViewer, openDataViewer, handleSyncConfiguration, showToast, baseUrl1, baseUrl2 }) => {
+    getColumns: ({ openDiffViewer, openDataViewer, handleSyncConfiguration, handleCloneConfiguration, showToast, baseUrl1, baseUrl2 }) => {
       return {
         dataDiffColDefs: [
           { field: 'tag', headerName: 'TAG', flex: 1.5, cellClass: 'font-normal text-gray-700', cellRenderer: (params) => renderTrimTooltip(params.value, 35) },
@@ -91,7 +112,7 @@ export const CONFIGS = {
             headerName: 'DATATABLE DIFF',
             flex: 1.2,
             cellRenderer: (params) => params.value === 'View Diff' ? (
-              <button onClick={() => openDiffViewer(params, 'structure')} className="btn-maroon-outline">View Diff</button>
+              <button onClick={() => openDiffViewer(params, 'structure')} className="btn-gray">View Diff</button>
             ) : <span className="text-gray-500 font-normal">{params.value}</span>
           },
           {
@@ -99,7 +120,7 @@ export const CONFIGS = {
             headerName: 'QUERY DIFF',
             flex: 1.2,
             cellRenderer: (params) => params.value === 'View Diff' ? (
-              <button onClick={() => openDiffViewer(params, 'query')} className="btn-maroon-outline">View Diff</button>
+              <button onClick={() => openDiffViewer(params, 'query')} className="btn-gray">View Diff</button>
             ) : <span className="text-gray-500 font-normal">{params.value}</span>
           },
           {
@@ -107,7 +128,7 @@ export const CONFIGS = {
             headerName: 'OTHER DIFF',
             flex: 1,
             cellRenderer: (params) => (
-              <button onClick={() => openDiffViewer(params, 'other')} className="btn-gray-outline">Other</button>
+              <button onClick={() => openDiffViewer(params, 'other')} className="btn-gray">Other</button>
             )
           },
           {
@@ -115,7 +136,7 @@ export const CONFIGS = {
             headerName: 'SITE 1 CONFIG',
             flex: 1,
             cellRenderer: (params) => (
-              <button onClick={() => showToast(`Opening config editor for ${params.data.tag}`)} className="btn-maroon-outline">Edit</button>
+              <button onClick={() => showToast(`Opening config editor for ${params.data.tag}`)} className="btn-purple">Edit</button>
             )
           },
           {
@@ -123,7 +144,7 @@ export const CONFIGS = {
             headerName: 'SITE 2 CONFIG',
             flex: 1,
             cellRenderer: (params) => (
-              <button onClick={() => showToast(`Opening config editor for ${params.data.tag}`)} className="btn-maroon-outline">Edit</button>
+              <button onClick={() => showToast(`Opening config editor for ${params.data.tag}`)} className="btn-purple">Edit</button>
             )
           },
           {
@@ -131,7 +152,7 @@ export const CONFIGS = {
             headerName: '',
             flex: 1.2,
             cellRenderer: (params) => (
-              <button onClick={() => handleSyncConfiguration(params.data.raw1 || params.data, baseUrl2)} className="btn-maroon-outline">Sync Data</button>
+              <button onClick={() => handleSyncConfiguration(params.data, baseUrl2)} className="btn-purple">Sync Data</button>
             )
           }
         ],
@@ -144,7 +165,7 @@ export const CONFIGS = {
             headerName: 'DATATABLE DIFF',
             flex: 1.5,
             cellRenderer: (params) => params.value === 'View Diff' ? (
-              <button onClick={() => openDiffViewer(params, 'structure')} className="btn-maroon-outline">View Diff</button>
+              <button onClick={() => openDiffViewer(params, 'structure')} className="btn-gray">View Diff</button>
             ) : <span className="text-gray-500 font-normal">{params.value}</span>
           },
           {
@@ -152,7 +173,7 @@ export const CONFIGS = {
             headerName: 'QUERY DIFF',
             flex: 1.5,
             cellRenderer: (params) => params.value === 'View Diff' ? (
-              <button onClick={() => openDiffViewer(params, 'query')} className="btn-maroon-outline">View Diff</button>
+              <button onClick={() => openDiffViewer(params, 'query')} className="btn-gray">View Diff</button>
             ) : <span className="text-gray-500 font-normal">{params.value}</span>
           }
         ],
@@ -163,7 +184,15 @@ export const CONFIGS = {
             headerName: 'VIEW DATA',
             flex: 1.2,
             cellRenderer: (params) => (
-              <button onClick={() => openDataViewer(params)} className="btn-maroon-outline">View Data</button>
+              <button onClick={() => openDataViewer(params)} className="btn-gray">View Data</button>
+            )
+          },
+          {
+            field: 'syncData',
+            headerName: '',
+            flex: 1.2,
+            cellRenderer: (params) => (
+              <button onClick={() => handleCloneConfiguration(params.data.raw, baseUrl2, 'to_right')} className="btn-gray">Copy to Right</button>
             )
           }
         ],
@@ -174,7 +203,15 @@ export const CONFIGS = {
             headerName: 'VIEW DATA',
             flex: 1.2,
             cellRenderer: (params) => (
-              <button onClick={() => openDataViewer(params)} className="btn-maroon-outline">View Data</button>
+              <button onClick={() => openDataViewer(params)} className="btn-gray">View Data</button>
+            )
+          },
+          {
+            field: 'syncData',
+            headerName: '',
+            flex: 1.2,
+            cellRenderer: (params) => (
+              <button onClick={() => handleCloneConfiguration(params.data.raw, baseUrl1, 'to_left')} className="btn-gray">Copy to Left</button>
             )
           }
         ]
@@ -267,7 +304,7 @@ export const CONFIGS = {
             headerName: 'DISPLAY MSG',
             flex: 1.2,
             cellRenderer: (params) => params.value === 'View Diff' ? (
-              <button onClick={() => openDiffViewer(params, 'other')} className="btn-maroon-outline">View Diff</button>
+              <button onClick={() => openDiffViewer(params, 'other')} className="btn-gray">View Diff</button>
             ) : <span className="text-gray-500 font-normal">{params.value}</span>
           },
           {
@@ -275,7 +312,7 @@ export const CONFIGS = {
             headerName: '',
             flex: 1.2,
             cellRenderer: (params) => (
-              <button onClick={() => handleSyncConfiguration(params.data.raw1 || params.data, baseUrl2)} className="btn-maroon-outline">Sync Data</button>
+              <button onClick={() => handleSyncConfiguration(params.data, baseUrl2)} className="btn-purple">Sync Data</button>
             )
           }
         ],
@@ -288,7 +325,7 @@ export const CONFIGS = {
             headerName: 'VIEW DATA',
             flex: 1.2,
             cellRenderer: (params) => (
-              <button onClick={() => openDataViewer(params)} className="btn-maroon-outline">View Data</button>
+              <button onClick={() => openDataViewer(params)} className="btn-gray">View Data</button>
             )
           },
           {
@@ -296,7 +333,7 @@ export const CONFIGS = {
             headerName: '',
             flex: 1.2,
             cellRenderer: (params) => (
-              <button onClick={() => handleCloneConfiguration(params.data.raw, baseUrl2, 'to_right')} className="btn-maroon-outline">Copy to Right</button>
+              <button onClick={() => handleCloneConfiguration(params.data.raw, baseUrl2, 'to_right')} className="btn-gray">Copy to Right</button>
             )
           }
         ],
@@ -309,7 +346,7 @@ export const CONFIGS = {
             headerName: 'VIEW DATA',
             flex: 1.2,
             cellRenderer: (params) => (
-              <button onClick={() => openDataViewer(params)} className="btn-maroon-outline">View Data</button>
+              <button onClick={() => openDataViewer(params)} className="btn-gray">View Data</button>
             )
           },
           {
@@ -317,7 +354,7 @@ export const CONFIGS = {
             headerName: '',
             flex: 1.2,
             cellRenderer: (params) => (
-              <button onClick={() => handleCloneConfiguration(params.data.raw, baseUrl1, 'to_left')} className="btn-maroon-outline">Copy to Left</button>
+              <button onClick={() => handleCloneConfiguration(params.data.raw, baseUrl1, 'to_left')} className="btn-gray">Copy to Left</button>
             )
           }
         ]
@@ -442,7 +479,7 @@ export const CONFIGS = {
             headerName: 'CUSTOM FORM DIFF',
             flex: 1.2,
             cellRenderer: (params) => params.value === 'View Diff' ? (
-              <button onClick={() => openDiffViewer(params, 'structure')} className="btn-maroon-outline">View Diff</button>
+              <button onClick={() => openDiffViewer(params, 'structure')} className="btn-gray">View Diff</button>
             ) : <span className="text-gray-500 font-normal">{params.value}</span>
           },
           { field: 'other_diff', headerName: 'OTHER DIFF STATUS', flex: 1.2 },
@@ -451,7 +488,7 @@ export const CONFIGS = {
             headerName: 'OTHER DIFF',
             flex: 1,
             cellRenderer: (params) => params.value === 'View Diff' ? (
-              <button onClick={() => openDiffViewer(params, 'other')} className="btn-maroon-outline">Other</button>
+              <button onClick={() => openDiffViewer(params, 'other')} className="btn-gray">Other</button>
             ) : <span className="text-gray-500 font-normal">{params.value}</span>
           },
           {
@@ -471,7 +508,7 @@ export const CONFIGS = {
             headerName: '',
             flex: 1.2,
             cellRenderer: (params) => (
-              <button onClick={() => handleSyncConfiguration(params.data.raw1 || params.data, baseUrl2)} className="btn-maroon-outline">Sync Data</button>
+              <button onClick={() => handleSyncConfiguration(params.data, baseUrl2)} className="btn-purple">Sync Data</button>
             )
           }
         ],
@@ -495,7 +532,7 @@ export const CONFIGS = {
             headerName: 'CUSTOM FORM DIFF',
             flex: 1.5,
             cellRenderer: (params) => params.value === 'View Diff' ? (
-              <button onClick={() => openDiffViewer(params, 'structure')} className="btn-maroon-outline">View Diff</button>
+              <button onClick={() => openDiffViewer(params, 'structure')} className="btn-gray">View Diff</button>
             ) : <span className="text-gray-500 font-normal">{params.value}</span>
           }
         ],
@@ -512,7 +549,7 @@ export const CONFIGS = {
             headerName: 'VIEW DATA',
             flex: 1.2,
             cellRenderer: (params) => (
-              <button onClick={() => openDataViewer(params)} className="btn-maroon-outline">View Data</button>
+              <button onClick={() => openDataViewer(params)} className="btn-gray">View Data</button>
             )
           },
           {
@@ -520,7 +557,7 @@ export const CONFIGS = {
             headerName: '',
             flex: 1.2,
             cellRenderer: (params) => (
-              <button onClick={() => handleCloneConfiguration(params.data.raw, baseUrl2, 'to_right')} className="btn-maroon-outline">Copy to Right</button>
+              <button onClick={() => handleCloneConfiguration(params.data.raw, baseUrl2, 'to_right')} className="btn-gray">Copy to Right</button>
             )
           }
         ],
@@ -537,7 +574,7 @@ export const CONFIGS = {
             headerName: 'VIEW DATA',
             flex: 1.2,
             cellRenderer: (params) => (
-              <button onClick={() => openDataViewer(params)} className="btn-maroon-outline">View Data</button>
+              <button onClick={() => openDataViewer(params)} className="btn-gray">View Data</button>
             )
           },
           {
@@ -545,7 +582,7 @@ export const CONFIGS = {
             headerName: '',
             flex: 1.2,
             cellRenderer: (params) => (
-              <button onClick={() => handleCloneConfiguration(params.data.raw, baseUrl1, 'to_left')} className="btn-maroon-outline">Copy to Left</button>
+              <button onClick={() => handleCloneConfiguration(params.data.raw, baseUrl1, 'to_left')} className="btn-gray">Copy to Left</button>
             )
           }
         ]
@@ -609,7 +646,7 @@ export const CONFIGS = {
             headerName: '',
             flex: 1.2,
             cellRenderer: (params) => (
-              <button onClick={() => handleCloneConfiguration(params.data.raw, baseUrl2, 'to_right')} className="btn-maroon-outline">Copy to Right</button>
+              <button onClick={() => handleCloneConfiguration(params.data.raw, baseUrl2, 'to_right')} className="btn-gray">Copy to Right</button>
             )
           }
         ],
@@ -620,7 +657,7 @@ export const CONFIGS = {
             headerName: '',
             flex: 1.2,
             cellRenderer: (params) => (
-              <button onClick={() => handleCloneConfiguration(params.data.raw, baseUrl1, 'to_left')} className="btn-maroon-outline">Copy to Left</button>
+              <button onClick={() => handleCloneConfiguration(params.data.raw, baseUrl1, 'to_left')} className="btn-gray">Copy to Left</button>
             )
           }
         ]
@@ -698,7 +735,7 @@ export const CONFIGS = {
             headerName: 'OTHER DIFF',
             flex: 1.2,
             cellRenderer: (params) => params.value === 'View Diff' ? (
-              <button onClick={() => openDiffViewer(params, 'other')} className="btn-maroon-outline">Other</button>
+              <button onClick={() => openDiffViewer(params, 'other')} className="btn-gray">Other</button>
             ) : <span className="text-gray-500 font-normal">{params.value}</span>
           }
         ],
@@ -709,7 +746,7 @@ export const CONFIGS = {
             headerName: 'VIEW DATA',
             flex: 1.2,
             cellRenderer: (params) => (
-              <button onClick={() => openDataViewer(params)} className="btn-maroon-outline">View Data</button>
+              <button onClick={() => openDataViewer(params)} className="btn-gray">View Data</button>
             )
           },
           {
@@ -717,7 +754,7 @@ export const CONFIGS = {
             headerName: '',
             flex: 1.2,
             cellRenderer: (params) => (
-              <button onClick={() => handleCloneConfiguration(params.data.raw, baseUrl2, 'to_right')} className="btn-maroon-outline">Copy to Right</button>
+              <button onClick={() => handleCloneConfiguration(params.data.raw, baseUrl2, 'to_right')} className="btn-gray">Copy to Right</button>
             )
           }
         ],
@@ -728,7 +765,7 @@ export const CONFIGS = {
             headerName: 'VIEW DATA',
             flex: 1.2,
             cellRenderer: (params) => (
-              <button onClick={() => openDataViewer(params)} className="btn-maroon-outline">View Data</button>
+              <button onClick={() => openDataViewer(params)} className="btn-gray">View Data</button>
             )
           },
           {
@@ -736,7 +773,7 @@ export const CONFIGS = {
             headerName: '',
             flex: 1.2,
             cellRenderer: (params) => (
-              <button onClick={() => handleCloneConfiguration(params.data.raw, baseUrl1, 'to_left')} className="btn-maroon-outline">Copy to Left</button>
+              <button onClick={() => handleCloneConfiguration(params.data.raw, baseUrl1, 'to_left')} className="btn-gray">Copy to Left</button>
             )
           }
         ]
@@ -811,7 +848,7 @@ export const CONFIGS = {
             headerName: 'MASTER CONFIG DIFF',
             flex: 1.2,
             cellRenderer: (params) => params.value === 'View Diff' ? (
-              <button onClick={() => openDiffViewer(params, 'other')} className="btn-maroon-outline">View Diff</button>
+              <button onClick={() => openDiffViewer(params, 'other')} className="btn-gray">View Diff</button>
             ) : <span className="text-gray-500 font-normal">{params.value}</span>
           },
           { field: 'site1count', headerName: 'SITE 1 COUNT', flex: 1 },
@@ -826,7 +863,7 @@ export const CONFIGS = {
             headerName: '',
             flex: 1.2,
             cellRenderer: (params) => (
-              <button onClick={() => handleCloneConfiguration(params.data.raw, baseUrl2, 'to_right')} className="btn-maroon-outline">Copy to Right</button>
+              <button onClick={() => handleCloneConfiguration(params.data.raw, baseUrl2, 'to_right')} className="btn-gray">Copy to Right</button>
             )
           }
         ],
@@ -839,7 +876,7 @@ export const CONFIGS = {
             headerName: '',
             flex: 1.2,
             cellRenderer: (params) => (
-              <button onClick={() => handleCloneConfiguration(params.data.raw, baseUrl1, 'to_left')} className="btn-maroon-outline">Copy to Left</button>
+              <button onClick={() => handleCloneConfiguration(params.data.raw, baseUrl1, 'to_left')} className="btn-gray">Copy to Left</button>
             )
           }
         ]
@@ -927,7 +964,7 @@ export const CONFIGS = {
             headerName: 'ROLE DIFF',
             flex: 1.2,
             cellRenderer: (params) => params.value === 'View Diff' ? (
-              <button onClick={() => openDiffViewer(params, 'other')} className="btn-maroon-outline">Show Diff</button>
+              <button onClick={() => openDiffViewer(params, 'other')} className="btn-gray">Show Diff</button>
             ) : <span className="text-gray-500 font-normal">{params.value}</span>
           }
         ],
@@ -939,7 +976,7 @@ export const CONFIGS = {
             headerName: 'VIEW DATA',
             flex: 1.2,
             cellRenderer: (params) => (
-              <button onClick={() => openDataViewer(params)} className="btn-maroon-outline">View Data</button>
+              <button onClick={() => openDataViewer(params)} className="btn-gray">View Data</button>
             )
           }
         ],
@@ -951,7 +988,7 @@ export const CONFIGS = {
             headerName: 'VIEW DATA',
             flex: 1.2,
             cellRenderer: (params) => (
-              <button onClick={() => openDataViewer(params)} className="btn-maroon-outline">View Data</button>
+              <button onClick={() => openDataViewer(params)} className="btn-gray">View Data</button>
             )
           }
         ]
@@ -1076,7 +1113,7 @@ export const CONFIGS = {
             headerName: 'TASK ENTITY DIFF',
             flex: 1.2,
             cellRenderer: (params) => params.value === 'View Diff' ? (
-              <button onClick={() => openDiffViewer(params, 'structure')} className="btn-maroon-outline">View Diff</button>
+              <button onClick={() => openDiffViewer(params, 'structure')} className="btn-gray">View Diff</button>
             ) : <span className="text-gray-500 font-normal">{params.value}</span>
           },
           { field: 'other_diff', headerName: 'OTHER DIFF STATUS', flex: 1.2 },
@@ -1085,7 +1122,7 @@ export const CONFIGS = {
             headerName: 'OTHER DIFF',
             flex: 1,
             cellRenderer: (params) => params.value === 'View Diff' ? (
-              <button onClick={() => openDiffViewer(params, 'other')} className="btn-maroon-outline">Other</button>
+              <button onClick={() => openDiffViewer(params, 'other')} className="btn-gray">Other</button>
             ) : <span className="text-gray-500 font-normal">{params.value}</span>
           },
           {
@@ -1105,7 +1142,7 @@ export const CONFIGS = {
             headerName: '',
             flex: 1.2,
             cellRenderer: (params) => (
-              <button onClick={() => handleSyncConfiguration(params.data.raw1 || params.data, baseUrl2)} className="btn-maroon-outline">Sync Data</button>
+              <button onClick={() => handleSyncConfiguration(params.data, baseUrl2)} className="btn-purple">Sync Data</button>
             )
           }
         ],
@@ -1129,7 +1166,7 @@ export const CONFIGS = {
             headerName: 'TASK ENTITY DIFF',
             flex: 1.5,
             cellRenderer: (params) => params.value === 'View Diff' ? (
-              <button onClick={() => openDiffViewer(params, 'structure')} className="btn-maroon-outline">View Diff</button>
+              <button onClick={() => openDiffViewer(params, 'structure')} className="btn-gray">View Diff</button>
             ) : <span className="text-gray-500 font-normal">{params.value}</span>
           }
         ],
@@ -1146,7 +1183,7 @@ export const CONFIGS = {
             headerName: 'VIEW DATA',
             flex: 1.2,
             cellRenderer: (params) => (
-              <button onClick={() => openDataViewer(params)} className="btn-maroon-outline">View Data</button>
+              <button onClick={() => openDataViewer(params)} className="btn-gray">View Data</button>
             )
           },
           {
@@ -1154,7 +1191,7 @@ export const CONFIGS = {
             headerName: '',
             flex: 1.2,
             cellRenderer: (params) => (
-              <button onClick={() => handleCloneConfiguration(params.data.raw, baseUrl2, 'to_right')} className="btn-maroon-outline">Copy to Right</button>
+              <button onClick={() => handleCloneConfiguration(params.data.raw, baseUrl2, 'to_right')} className="btn-gray">Copy to Right</button>
             )
           }
         ],
@@ -1171,7 +1208,7 @@ export const CONFIGS = {
             headerName: 'VIEW DATA',
             flex: 1.2,
             cellRenderer: (params) => (
-              <button onClick={() => openDataViewer(params)} className="btn-maroon-outline">View Data</button>
+              <button onClick={() => openDataViewer(params)} className="btn-gray">View Data</button>
             )
           },
           {
@@ -1179,7 +1216,7 @@ export const CONFIGS = {
             headerName: '',
             flex: 1.2,
             cellRenderer: (params) => (
-              <button onClick={() => handleCloneConfiguration(params.data.raw, baseUrl1, 'to_left')} className="btn-maroon-outline">Copy to Left</button>
+              <button onClick={() => handleCloneConfiguration(params.data.raw, baseUrl1, 'to_left')} className="btn-gray">Copy to Left</button>
             )
           }
         ]
@@ -1312,7 +1349,7 @@ export const CONFIGS = {
             headerName: 'QUERY DIFF',
             flex: 1.2,
             cellRenderer: (params) => params.data.query_status === 'Diff Changes' ? (
-              <button onClick={() => openDiffViewer(params, 'structure')} className="btn-maroon-outline">View Diff</button>
+              <button onClick={() => openDiffViewer(params, 'structure')} className="btn-gray">View Diff</button>
             ) : <span className="text-gray-500 font-normal">{params.data.query_status === 'No change' ? 'No diff' : ''}</span>
           }
         ],
@@ -1324,7 +1361,7 @@ export const CONFIGS = {
             headerName: 'VIEW QUERY',
             flex: 1.2,
             cellRenderer: (params) => (
-              <button onClick={() => openDataViewer({ data: { tag: params.data.tag, raw: { query: params.data.query } } })} className="btn-maroon-outline">View</button>
+              <button onClick={() => openDataViewer({ data: { tag: params.data.tag, raw: { query: params.data.query } } })} className="btn-gray">View</button>
             )
           }
         ],
@@ -1391,7 +1428,7 @@ export const CONFIGS = {
             headerName: 'VIEW ROLE DIFF',
             flex: 1.2,
             cellRenderer: (params) => params.value === 'View Diff' ? (
-              <button onClick={() => openDiffViewer(params, 'other')} className="btn-maroon-outline">View Diff</button>
+              <button onClick={() => openDiffViewer(params, 'other')} className="btn-gray">View Diff</button>
             ) : <span className="text-gray-500 font-normal">{params.value}</span>
           }
         ],
@@ -1402,7 +1439,7 @@ export const CONFIGS = {
             headerName: 'VIEW DATA',
             flex: 1.2,
             cellRenderer: (params) => (
-              <button onClick={() => openDataViewer(params)} className="btn-maroon-outline">View Data</button>
+              <button onClick={() => openDataViewer(params)} className="btn-gray">View Data</button>
             )
           },
           {
@@ -1410,7 +1447,7 @@ export const CONFIGS = {
             headerName: '',
             flex: 1.2,
             cellRenderer: (params) => (
-              <button onClick={() => handleCloneConfiguration(params.data.raw, baseUrl2, 'to_right')} className="btn-maroon-outline">Copy to Right</button>
+              <button onClick={() => handleCloneConfiguration(params.data.raw, baseUrl2, 'to_right')} className="btn-gray">Copy to Right</button>
             )
           }
         ],
@@ -1421,7 +1458,7 @@ export const CONFIGS = {
             headerName: 'VIEW DATA',
             flex: 1.2,
             cellRenderer: (params) => (
-              <button onClick={() => openDataViewer(params)} className="btn-maroon-outline">View Data</button>
+              <button onClick={() => openDataViewer(params)} className="btn-gray">View Data</button>
             )
           },
           {
@@ -1429,7 +1466,7 @@ export const CONFIGS = {
             headerName: '',
             flex: 1.2,
             cellRenderer: (params) => (
-              <button onClick={() => handleCloneConfiguration(params.data.raw, baseUrl1, 'to_left')} className="btn-maroon-outline">Copy to Left</button>
+              <button onClick={() => handleCloneConfiguration(params.data.raw, baseUrl1, 'to_left')} className="btn-gray">Copy to Left</button>
             )
           }
         ]
@@ -1515,7 +1552,7 @@ export const CONFIGS = {
             headerName: 'MASTER CONFIG DIFF',
             flex: 1.2,
             cellRenderer: (params) => params.value === 'View Diff' ? (
-              <button onClick={() => openDiffViewer(params, 'structure')} className="btn-maroon-outline">View Diff</button>
+              <button onClick={() => openDiffViewer(params, 'structure')} className="btn-gray">View Diff</button>
             ) : <span className="text-gray-500 font-normal">{params.value}</span>
           },
           {
@@ -1544,7 +1581,7 @@ export const CONFIGS = {
             headerName: 'VIEW DATA',
             flex: 1.2,
             cellRenderer: (params) => (
-              <button onClick={() => openDataViewer({ data: { tag: params.data.tag, raw: JSON.parse(params.data.raw.wf_json || '{}') } })} className="btn-maroon-outline">View Data</button>
+              <button onClick={() => openDataViewer({ data: { tag: params.data.tag, raw: JSON.parse(params.data.raw.wf_json || '{}') } })} className="btn-gray">View Data</button>
             )
           }
         ],
@@ -1561,7 +1598,7 @@ export const CONFIGS = {
             headerName: 'VIEW DATA',
             flex: 1.2,
             cellRenderer: (params) => (
-              <button onClick={() => openDataViewer({ data: { tag: params.data.tag, raw: JSON.parse(params.data.raw.wf_json || '{}') } })} className="btn-maroon-outline">View Data</button>
+              <button onClick={() => openDataViewer({ data: { tag: params.data.tag, raw: JSON.parse(params.data.raw.wf_json || '{}') } })} className="btn-gray">View Data</button>
             )
           }
         ]
@@ -1705,7 +1742,7 @@ export const CONFIGS = {
             headerName: 'EXCEL DIFF',
             flex: 1.2,
             cellRenderer: (params) => params.value === 'View Diff' ? (
-              <button onClick={() => openDiffViewer(params, 'excel')} className="btn-maroon-outline">View Diff</button>
+              <button onClick={() => openDiffViewer(params, 'excel')} className="btn-gray">View Diff</button>
             ) : <span className="text-gray-500 font-normal">{params.value}</span>
           },
           {
@@ -1713,7 +1750,7 @@ export const CONFIGS = {
             headerName: 'VALIDATOR DIFF',
             flex: 1.2,
             cellRenderer: (params) => params.value === 'View Diff' ? (
-              <button onClick={() => openDiffViewer(params, 'validator')} className="btn-maroon-outline">View Diff</button>
+              <button onClick={() => openDiffViewer(params, 'validator')} className="btn-gray">View Diff</button>
             ) : <span className="text-gray-500 font-normal">{params.value}</span>
           },
           {
@@ -1721,7 +1758,7 @@ export const CONFIGS = {
             headerName: '',
             flex: 1.2,
             cellRenderer: (params) => (
-              <button onClick={() => handleSyncConfiguration(params.data.raw1 || params.data, baseUrl2)} className="btn-maroon-outline">Sync Data</button>
+              <button onClick={() => handleSyncConfiguration(params.data, baseUrl2)} className="btn-purple">Sync Data</button>
             )
           }
         ],
@@ -1734,7 +1771,7 @@ export const CONFIGS = {
             headerName: 'VIEW DATA',
             flex: 1.2,
             cellRenderer: (params) => (
-              <button onClick={() => openDataViewer(params)} className="btn-maroon-outline">View Data</button>
+              <button onClick={() => openDataViewer(params)} className="btn-gray">View Data</button>
             )
           },
           {
@@ -1742,7 +1779,7 @@ export const CONFIGS = {
             headerName: '',
             flex: 1.2,
             cellRenderer: (params) => (
-              <button onClick={() => handleCloneConfiguration(params.data.raw, baseUrl2, 'to_right')} className="btn-maroon-outline">Copy to Right</button>
+              <button onClick={() => handleCloneConfiguration(params.data.raw, baseUrl2, 'to_right')} className="btn-gray">Copy to Right</button>
             )
           }
         ],
@@ -1755,7 +1792,7 @@ export const CONFIGS = {
             headerName: 'VIEW DATA',
             flex: 1.2,
             cellRenderer: (params) => (
-              <button onClick={() => openDataViewer(params)} className="btn-maroon-outline">View Data</button>
+              <button onClick={() => openDataViewer(params)} className="btn-gray">View Data</button>
             )
           },
           {
@@ -1763,7 +1800,7 @@ export const CONFIGS = {
             headerName: '',
             flex: 1.2,
             cellRenderer: (params) => (
-              <button onClick={() => handleCloneConfiguration(params.data.raw, baseUrl1, 'to_left')} className="btn-maroon-outline">Copy to Left</button>
+              <button onClick={() => handleCloneConfiguration(params.data.raw, baseUrl1, 'to_left')} className="btn-gray">Copy to Left</button>
             )
           }
         ]

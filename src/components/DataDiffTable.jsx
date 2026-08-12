@@ -104,7 +104,8 @@ export const DataDiffTable = ({
         rowData={filteredDataDiffRows}
         columnDefs={dataDiffColDefs}
         showFloatingFilter={showDataDiffFilters}
-        height="260px"
+        minHeight="250px"
+        maxHeight="460px"
       />
 
       <div className="mt-2 text-xs italic text-red-600 font-normal">

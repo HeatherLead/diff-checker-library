@@ -1,25 +1,70 @@
 import React from 'react';
 import ReactDiffViewer from 'react-diff-viewer-continued';
 import JsonViewer from './JsonViewer';
+import { Copy } from 'lucide-react';
 
 /**
- * Format stringified JSON or plain text for optimal side-by-side diff display
+ * Recursively parses stringified JSON inside objects, arrays, or strings
+ * so that any nested JSON strings (e.g. datatable_structure, entity_config, params_structure)
+ * are expanded into actual JavaScript objects/arrays.
  */
-const formatDiffContent = (val) => {
-  if (!val) return '';
-  if (typeof val === 'object') {
-    return JSON.stringify(val, null, 2);
-  }
+export const parseNestedJsonStrings = (val) => {
+  if (val === null || val === undefined) return val;
+
   if (typeof val === 'string') {
-    if ((val.startsWith('{') && val.endsWith('}')) || (val.startsWith('[') && val.endsWith(']'))) {
+    const trimmed = val.trim();
+    if (
+      (trimmed.startsWith('{') && trimmed.endsWith('}')) ||
+      (trimmed.startsWith('[') && trimmed.endsWith(']'))
+    ) {
       try {
-        const parsed = JSON.parse(val);
-        return JSON.stringify(parsed, null, 2);
+        const parsed = JSON.parse(trimmed);
+        return parseNestedJsonStrings(parsed);
       } catch (e) {
         return val;
       }
     }
+    return val;
   }
+
+  if (Array.isArray(val)) {
+    return val.map((item) => parseNestedJsonStrings(item));
+  }
+
+  if (typeof val === 'object') {
+    const res = {};
+    for (const [k, v] of Object.entries(val)) {
+      res[k] = parseNestedJsonStrings(v);
+    }
+    return res;
+  }
+
+  return val;
+};
+
+/**
+ * Format stringified JSON or plain text for optimal side-by-side diff display
+ */
+export const formatDiffContent = (val) => {
+  if (val === null || val === undefined) return '';
+
+  let parsedVal = val;
+  if (typeof val === 'string') {
+    const trimmed = val.trim();
+    if ((trimmed.startsWith('{') && trimmed.endsWith('}')) || (trimmed.startsWith('[') && trimmed.endsWith(']'))) {
+      try {
+        parsedVal = JSON.parse(trimmed);
+      } catch (e) {
+        parsedVal = val;
+      }
+    }
+  }
+
+  if (typeof parsedVal === 'object' && parsedVal !== null) {
+    const expandedVal = parseNestedJsonStrings(parsedVal);
+    return JSON.stringify(expandedVal, null, 2);
+  }
+
   return String(val);
 };
 
@@ -44,10 +89,10 @@ export const DiffViewerModal = ({
   return (
     /* Modal Backdrop: Blurred background (backdrop-blur-md) with dark overlay */
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-md p-4 transition-all duration-300">
-      
+
       {/* Modal Dialog Box: 80% width and 70% height */}
       <div className="w-[80vw] h-[70vh] max-w-[80vw] max-h-[70vh] bg-white rounded-xl shadow-2xl flex flex-col overflow-hidden border border-gray-200 relative animate-in fade-in zoom-in-95 duration-200">
-        
+
         {/* Modal Header */}
         {type === 'diff' ? (
           <div className="px-6 py-3 border-b border-gray-200 bg-white flex items-center justify-between shadow-sm">
@@ -141,7 +186,7 @@ export const DiffViewerModal = ({
               />
             </div>
           ) : (
-            <JsonViewer data={jsonData || leftData} rootKey={tag || 'data'} />
+            <JsonViewer data={parseNestedJsonStrings(jsonData || leftData)} rootKey={tag || 'data'} />
           )}
         </div>
 
@@ -159,7 +204,8 @@ export const DiffViewerModal = ({
                 }}
                 className="btn-gray-outline py-1 px-3 text-xs"
               >
-                Copy Content
+                Copy
+                <Copy className='ml-3' width={16} height={16} />
               </button>
             )}
             <button

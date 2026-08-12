@@ -99,9 +99,10 @@ export const JsonViewer = ({ data, rootKey = 'data' }) => {
     if (typeof val === 'string') {
       // Check if string contains stringified JSON (e.g. datatable_structure or entity_config)
       let parsedJson = null;
-      if ((val.startsWith('{') && val.endsWith('}')) || (val.startsWith('[') && val.endsWith(']'))) {
+      const trimmed = val.trim();
+      if ((trimmed.startsWith('{') && trimmed.endsWith('}')) || (trimmed.startsWith('[') && trimmed.endsWith(']'))) {
         try {
-          parsedJson = JSON.parse(val);
+          parsedJson = JSON.parse(trimmed);
         } catch (e) {
           parsedJson = null;
         }

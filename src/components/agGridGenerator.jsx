@@ -214,16 +214,124 @@ const DefaultCellRenderer = (params) => {
   return <span>{String(val)}</span>;
 };
 
-const NON_FILTERABLE_FIELDS = new Set([
-  "syncData",
-  "datatableDiff",
-  "queryDiff",
-  "otherDiff",
-  "viewData",
+const NON_FILTERABLE_EXACT_FIELDS = new Set([
+  "syncdata",
+  "synchdata",
+  "sync_data",
+  "sync",
+  "syncdatabtn",
+  "datatablediff",
+  "querydiff",
+  "otherdiff",
+  "other_diff",
+  "rolediff",
+  "role_diff",
+  "dtdiff",
+  "dt_diff",
+  "dfdiff",
+  "df_diff",
+  "customformdiff",
+  "diff",
+  "viewdata",
+  "view_data",
+  "view",
+  "viewbtn",
   "action",
-  "site1Config",
-  "site2Config",
+  "actions",
+  "edit",
+  "site1config",
+  "site2config",
+  "site1_config",
+  "site2_config",
+  "siteconfig",
+  "copyleft",
+  "copyright",
+  "copytoleft",
+  "copytoright",
+  "copy_left",
+  "copy_right",
+  "copy_to_left",
+  "copy_to_right",
 ]);
+
+const isNonFilterableCol = (field, colObj) => {
+  if (!colObj) colObj = {};
+  if (colObj.filter === false || colObj.floatingFilter === false || colObj.isButton || colObj.isAction) {
+    return true;
+  }
+
+  const strField = String(field || colObj.colId || colObj.field || "").toLowerCase().replace(/[^a-z0-9]/g, "");
+  const strHeader = String(colObj.header || colObj.headerName || "").toLowerCase().trim();
+
+  // If headerName is explicitly empty (often used for action/sync buttons like Copy to Left/Right)
+  if (colObj.headerName === "" || colObj.header === "") {
+    return true;
+  }
+
+  // Check exact field match
+  if (strField && NON_FILTERABLE_EXACT_FIELDS.has(strField)) {
+    return true;
+  }
+
+  // Check header text or field name for button-related keywords
+  // BUT exclude status fields like dt_status, df_status, role_diff_status, status
+  const isStatusField = strField.includes("status") || strHeader.includes("status");
+
+  if (!isStatusField) {
+    if (strHeader) {
+      if (
+        strHeader.includes("diff") ||
+        strHeader.includes("edit") ||
+        strHeader.includes("view") ||
+        strHeader.includes("copy") ||
+        strHeader.includes("sync") ||
+        strHeader.includes("action") ||
+        strHeader.includes("config")
+      ) {
+        return true;
+      }
+    }
+
+    if (strField) {
+      if (
+        strField.includes("diff") ||
+        strField.includes("edit") ||
+        strField.includes("view") ||
+        strField.includes("copy") ||
+        strField.includes("sync") ||
+        strField.includes("action")
+      ) {
+        return true;
+      }
+    }
+  }
+
+  // Check cellProps (if any)
+  if (
+    colObj.cellProps?.cellFun === "customeAPIBtn" ||
+    String(colObj.cellProps?.props?.className || "").includes("btn") ||
+    String(colObj.cellProps?.props?.className || "").includes("icon")
+  ) {
+    return true;
+  }
+
+  // Check cellRenderer function string representation
+  if (typeof colObj.cellRenderer === "function") {
+    const fnStr = colObj.cellRenderer.toString();
+    if (
+      fnStr.includes("<button") ||
+      fnStr.includes("btn-") ||
+      fnStr.includes("handleSync") ||
+      fnStr.includes("handleClone") ||
+      fnStr.includes("openDiffViewer") ||
+      fnStr.includes("openDataViewer")
+    ) {
+      return true;
+    }
+  }
+
+  return false;
+};
 
 /**
  * AgGridGenerator Component
@@ -240,10 +348,13 @@ export const AgGridGenerator = ({
   tableData,
   rowData: directRowData,
   columnDefs: directColumnDefs,
-  height = "320px",
+  height,
+  minHeight = "250px",
+  maxHeight = "460px",
   defaultColDef = {},
   gridOptions = {},
   onGridReady: externalOnGridReady,
+  onCellClicked: externalOnCellClicked,
   themeClass = "ag-theme-alpine",
   noRowsMessage = "No Records Found",
   enableTotalRowCount = true,
@@ -270,21 +381,16 @@ export const AgGridGenerator = ({
   const derivedColumnDefs = useMemo(() => {
     let cols = [];
 
-    const isNonFilterableCol = (field, colObj) => {
-      if (colObj?.filter === false || colObj?.floatingFilter === false) return true;
-      if (!field) return false;
-      const lower = String(field).toLowerCase();
-      return NON_FILTERABLE_FIELDS.has(field) || NON_FILTERABLE_FIELDS.has(lower);
-    };
-
     if (Array.isArray(directColumnDefs) && directColumnDefs.length > 0) {
       cols = directColumnDefs.map((col) => {
         const isNonFilterable = isNonFilterableCol(col.field, col);
         return {
           ...col,
+          cellStyle: isNonFilterable ? { display: 'flex', alignItems: 'center', justifyContent: 'center', ...(col.cellStyle || {}) } : col.cellStyle,
           cellRenderer: col.cellRenderer || DefaultCellRenderer,
           filter: isNonFilterable ? false : col.filter ?? "agTextColumnFilter",
           floatingFilter: isNonFilterable ? false : true,
+          menuTabs: isNonFilterable ? ["generalMenuTab"] : ["generalMenuTab", "filterMenuTab"],
           floatingFilterComponentParams: {
             suppressFilterButton: true,
           },
@@ -303,6 +409,7 @@ export const AgGridGenerator = ({
             sortable: true,
             filter: isNonFilterable ? false : "agTextColumnFilter",
             floatingFilter: isNonFilterable ? false : true,
+            menuTabs: isNonFilterable ? ["generalMenuTab"] : ["generalMenuTab", "filterMenuTab"],
             floatingFilterComponentParams: {
               suppressFilterButton: true,
             },
@@ -324,6 +431,7 @@ export const AgGridGenerator = ({
             sortable: true,
             filter: isNonFilterable ? false : "agTextColumnFilter",
             floatingFilter: isNonFilterable ? false : true,
+            menuTabs: isNonFilterable ? ["generalMenuTab"] : ["generalMenuTab", "filterMenuTab"],
             floatingFilterComponentParams: {
               suppressFilterButton: true,
             },
@@ -426,6 +534,17 @@ export const AgGridGenerator = ({
     [externalOnGridReady, derivedColumnDefs]
   );
 
+  const handleCellClicked = useCallback(
+    (params) => {
+      if (typeof externalOnCellClicked === "function") {
+        externalOnCellClicked(params);
+      } else if (typeof props.onCellClicked === "function") {
+        props.onCellClicked(params);
+      }
+    },
+    [externalOnCellClicked, props.onCellClicked]
+  );
+
   const [headerContextMenu, setHeaderContextMenu] = useState(null);
 
   const gridContainerRef = useRef(null);
@@ -490,6 +609,17 @@ export const AgGridGenerator = ({
     return effectiveRowData.length;
   }, [tableData, effectiveRowData]);
 
+  const containerHeight = useMemo(() => {
+    if (height && !minHeight && !maxHeight) return height;
+    const rows = effectiveRowData ? effectiveRowData.length : 0;
+    const headerH = isFilterVisible ? 72 : 38;
+    const contentH = headerH + Math.max(rows, 1) * 38 + 10;
+    const minH = parseInt(String(minHeight || "250"), 10);
+    const maxH = parseInt(String(maxHeight || "460"), 10);
+    const targetH = Math.min(Math.max(contentH, minH), maxH);
+    return `${targetH}px`;
+  }, [effectiveRowData, isFilterVisible, height, minHeight, maxHeight]);
+
   return (
     <div className="w-full flex flex-col gap-2 relative">
       {enableTotalRowCount && totalRowCount > 0 && (
@@ -500,7 +630,7 @@ export const AgGridGenerator = ({
       <div
         ref={gridContainerRef}
         className={`${themeClass} ${isFilterVisible ? 'ag-floating-filter-visible' : 'ag-floating-filter-hidden'} w-full shadow-sm border border-gray-200 rounded-md overflow-hidden bg-white text-xs`}
-        style={{ height }}
+        style={{ height: containerHeight, minHeight, maxHeight }}
       >
         <AgGridReact
           ref={gridRef}
@@ -508,6 +638,7 @@ export const AgGridGenerator = ({
           columnDefs={derivedColumnDefs}
           defaultColDef={standardDefaultColDef}
           onGridReady={handleGridReady}
+          onCellClicked={handleCellClicked}
           getRowId={getRowId}
           rowSelection={rowSelection}
           getMainMenuItems={getMainMenuItems}
@@ -515,6 +646,7 @@ export const AgGridGenerator = ({
           floatingFiltersHeight={34}
           rowHeight={38}
           suppressCellFocus={true}
+          suppressRowClickSelection={true}
           animateRows={true}
           overlayNoRowsTemplate={`<span class="text-sm font-normal text-gray-500">${noRowsMessage}</span>`}
           {...gridOptions}
