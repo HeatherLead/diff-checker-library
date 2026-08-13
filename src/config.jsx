@@ -31,6 +31,29 @@ const renderTrimTooltip = (val, maxChar = 27) => {
   );
 };
 
+const renderEditLink = (baseUrl, typeSlug, id, label = 'Edit') => {
+  if (!id) return <span className="btn-purple opacity-50 cursor-not-allowed">Edit</span>;
+  let cleanUrl = typeof baseUrl === 'string' ? baseUrl.trim() : '';
+  if (cleanUrl && !cleanUrl.startsWith('http://') && !cleanUrl.startsWith('https://')) {
+    cleanUrl = `https://${cleanUrl}`;
+  }
+  cleanUrl = cleanUrl.replace(/\/+$/, '');
+  const editUrl = `${cleanUrl}/${typeSlug}/edit/${id}`;
+  const isEdit = label === 'Edit' || label === 'edit';
+
+  return (
+    <a
+      href={editUrl}
+      target="_blank"
+      rel="noreferrer"
+      className={isEdit ? "btn-purple inline-flex items-center justify-center cursor-pointer" : "text-[#800040] hover:underline font-semibold"}
+      onClick={(e) => e.stopPropagation()}
+    >
+      {label}
+    </a>
+  );
+};
+
 export const CONFIGS = {
   datatables: {
     apiKey: 'datatables',
@@ -135,17 +158,19 @@ export const CONFIGS = {
             field: 'site1Config',
             headerName: 'SITE 1 CONFIG',
             flex: 1,
-            cellRenderer: (params) => (
-              <button onClick={() => showToast(`Opening config editor for ${params.data.tag}`)} className="btn-purple">Edit</button>
-            )
+            cellRenderer: (params) => {
+              const id = params.data.raw1?.id || params.data.rect1id || params.data.id || "38";
+              return renderEditLink(baseUrl1, 'datatables-config', id, 'Edit');
+            }
           },
           {
             field: 'site2Config',
             headerName: 'SITE 2 CONFIG',
             flex: 1,
-            cellRenderer: (params) => (
-              <button onClick={() => showToast(`Opening config editor for ${params.data.tag}`)} className="btn-purple">Edit</button>
-            )
+            cellRenderer: (params) => {
+              const id = params.data.raw2?.id || params.data.rect2id || params.data.id || "38";
+              return renderEditLink(baseUrl2, 'datatables-config', id, 'Edit');
+            }
           },
           {
             field: 'syncData',
@@ -457,12 +482,13 @@ export const CONFIGS = {
     getColumns: ({ openDiffViewer, openDataViewer, handleSyncConfiguration, handleCloneConfiguration, showToast, baseUrl1, baseUrl2 }) => {
       const renderEditLink = (url, id, label) => {
         if (!url || !id) return '';
+        const isEdit = label === 'Edit' || label === 'edit';
         return (
           <a
             href={`${url}/custom-form-config/edit/${id}`}
             target="_blank"
             rel="noreferrer"
-            className="text-[#800040] hover:underline font-semibold"
+            className={isEdit ? "btn-purple" : "text-[#800040] hover:underline font-semibold"}
           >
             {label}
           </a>
@@ -1091,12 +1117,13 @@ export const CONFIGS = {
     getColumns: ({ openDiffViewer, openDataViewer, handleSyncConfiguration, handleCloneConfiguration, showToast, baseUrl1, baseUrl2 }) => {
       const renderEditLink = (url, id, label) => {
         if (!url || !id) return '';
+        const isEdit = label === 'Edit' || label === 'edit';
         return (
           <a
             href={`${url}/task-entity-config/edit/${id}`}
             target="_blank"
             rel="noreferrer"
-            className="text-[#800040] hover:underline font-semibold"
+            className={isEdit ? "btn-purple" : "text-[#800040] hover:underline font-semibold"}
           >
             {label}
           </a>
@@ -1531,12 +1558,13 @@ export const CONFIGS = {
     getColumns: ({ openDiffViewer, openDataViewer, baseUrl1, baseUrl2 }) => {
       const renderEditLink = (url, id, label) => {
         if (!url || !id) return '';
+        const isEdit = label === 'Edit' || label === 'edit';
         return (
           <a
             href={`${url}/workflow-config/edit/${id}`}
             target="_blank"
             rel="noreferrer"
-            className="text-[#800040] hover:underline font-semibold"
+            className={isEdit ? "btn-purple" : "text-[#800040] hover:underline font-semibold"}
           >
             {label}
           </a>

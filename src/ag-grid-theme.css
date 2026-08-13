@@ -259,9 +259,15 @@
 .btn-gray-outline,
 .btn-purple,
 .btn-gray,
+.btn-edit,
 .ag-cell button,
+.ag-cell a.btn-purple,
+.ag-cell a.btn-edit,
+.ag-cell a.btn-maroon-outline,
 .ag-theme-alpine .ag-cell button,
-.ag-theme-quartz .ag-cell button {
+.ag-theme-quartz .ag-cell button,
+.ag-theme-alpine .ag-cell a.btn-purple,
+.ag-theme-quartz .ag-cell a.btn-purple {
   box-sizing: border-box !important;
   width: 7rem !important;
   min-width: 84px !important;
@@ -289,11 +295,13 @@
   outline: none !important;
   appearance: none !important;
   -webkit-appearance: none !important;
-  color: #747474 !important;
+  text-decoration: none !important;
 }
 
 .ag-cell button::before,
 .ag-cell button::after,
+.ag-cell a::before,
+.ag-cell a::after,
 .btn-purple::before,
 .btn-purple::after,
 .btn-gray::before,
@@ -303,6 +311,8 @@
 }
 
 .ag-cell button:hover,
+.ag-cell a.btn-purple:hover,
+.ag-cell a.btn-edit:hover,
 .btn-maroon-outline:hover,
 .btn-gray-outline:hover,
 .btn-purple:hover,
@@ -313,15 +323,29 @@
 
 /* Font color rules for AG Grid Cell Buttons */
 /* 1. Edit and Sync Data -> purple (#820f4c) */
+.ag-theme-alpine .ag-cell button.btn-purple,
+.ag-theme-quartz .ag-cell button.btn-purple,
+.ag-theme-alpine .ag-cell a.btn-purple,
+.ag-theme-quartz .ag-cell a.btn-purple,
 .ag-cell button.btn-purple,
+.ag-cell button.btn-maroon-outline,
+.ag-cell a.btn-purple,
+.ag-cell a.btn-edit,
+.ag-cell a.btn-maroon-outline,
 .btn-purple,
 .btn-edit,
+.btn-maroon-outline,
 .btn-sync {
   color: #820f4c !important;
 }
 
 /* 2. View Data, View Diff, and Other Diff -> #747474 */
+.ag-theme-alpine .ag-cell button.btn-gray,
+.ag-theme-quartz .ag-cell button.btn-gray,
+.ag-theme-alpine .ag-cell a.btn-gray,
+.ag-theme-quartz .ag-cell a.btn-gray,
 .ag-cell button.btn-gray,
+.ag-cell a.btn-gray,
 .btn-gray,
 .btn-view,
 .btn-diff {

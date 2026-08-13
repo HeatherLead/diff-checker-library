@@ -49,9 +49,9 @@ const TABS = [
     optionId: 'templates'
   },
   {
-    id: 'entities_forms_menus',
+    id: 'utilities_modules',
     type: 'dropdown',
-    title: 'Forms & Menus',
+    title: 'utilities & modules',
     items: [
       { id: 'subtask_master', label: 'SubTask Master', path: '/subtask-master' },
       { id: 'custom_form', label: 'Custom Form', path: '/custom-form' },

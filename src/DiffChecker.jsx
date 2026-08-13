@@ -600,10 +600,18 @@ export const DiffChecker = ({
 
     // Check if user passed baseurl host to fetch from real endpoint
     const rawProp = baseurl !== undefined ? baseurl : (baseUrl !== undefined ? baseUrl : base_url);
-    const targetHost = typeof rawProp === 'string' ? rawProp : (typeof rawProp === 'object' && rawProp?.base_url ? rawProp.base_url : '');
+    const targetHost = typeof rawProp === 'string'
+      ? rawProp
+      : (typeof rawProp === 'object' && rawProp
+        ? (rawProp.base_url || rawProp.src_url || rawProp.baseUrl)
+        : '');
 
     if (targetHost && targetHost.trim() && !targetHost.includes('localhost') && !targetHost.includes('127.0.0.1')) {
-      const cleanHost = targetHost.replace(/\/+$/, '');
+      let cleanHost = targetHost.trim();
+      if (!cleanHost.startsWith('http://') && !cleanHost.startsWith('https://')) {
+        cleanHost = `https://${cleanHost}`;
+      }
+      cleanHost = cleanHost.replace(/\/+$/, '');
       const getUrl = `${cleanHost}/api/get-configuration?diff_tag=${encodeURIComponent(apiTag)}`;
       try {
         const r = await fetch(getUrl);
@@ -640,7 +648,7 @@ export const DiffChecker = ({
       if (result && (result.status_code === 1 || result.status === 'success') && result.data) {
         const payloadData = result.data;
 
-        // Extract backend metadata (src_url is imported backend, target_url is current backend)
+        // Extract backend metadata (src_url is source backend, target_url is target backend)
         if (payloadData.src_url) {
           setBaseUrl1(payloadData.src_url);
         }
@@ -713,38 +721,50 @@ export const DiffChecker = ({
   const executeSync = async (item, targetSiteUrl, syncedBy) => {
     const config = getOptionConfig(activeOption);
     const apiTag = config.apiKey || activeOption;
+    const typeName = apiTag === 'datatables' ? 'datatables_config' : apiTag;
+
+    const rawItem = item.raw1 || item.raw2 || item.raw || item;
+    const itemTag = item.tag || rawItem.tag || rawItem.tag_name || rawItem.module || rawItem.entity_type || "";
+    const itemVersion = item.siteVersion || item.site1Version || item.version || rawItem.version || "1.0";
+    const itemBoType = item.bo_type || rawItem.bo_type || "";
+
+    const rawId = item.id || rawItem.id || backendMetadata.import_id || 12;
+    const numericImportId = typeof rawId === 'number' ? rawId : (parseInt(rawId, 10) || 12);
 
     const payload = {
-      type: apiTag === 'datatables' ? 'datatables_config' : apiTag,
+      type: typeName,
       unique_column: {
-        tag: item.tag || item.tag_name || item.module || item.entity_type || "",
-        version: item.version || item.siteVersion || item.rec1version || item.entity_version || "1.0",
-        bo_type: item.bo_type || "",
-        permission: item.permission || ""
+        tag: itemTag,
+        version: itemVersion,
+        bo_type: itemBoType
       },
-      import_id: item.id ? parseInt(item.id, 10) : 12,
-      synced_by: syncedBy
+      import_id: numericImportId,
+      synced_by: syncedBy || synced_by || "ayush"
     };
 
-    showToast(`Sending PATCH ${targetSiteUrl}/api/sync-configuration...`);
+    let cleanTargetUrl = targetSiteUrl || baseUrl2 || "";
+    if (cleanTargetUrl && !cleanTargetUrl.startsWith('http://') && !cleanTargetUrl.startsWith('https://')) {
+      cleanTargetUrl = `https://${cleanTargetUrl}`;
+    }
+    cleanTargetUrl = cleanTargetUrl.replace(/\/+$/, '');
+
+    showToast(`Sending PATCH ${cleanTargetUrl}/api/sync-configuration...`);
 
     try {
-      const response = await fetch(`${targetSiteUrl}/api/sync-configuration`, {
+      const response = await fetch(`${cleanTargetUrl}/api/sync-configuration`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload)
       }).catch(() => null);
 
-      const itemTag = item.tag || item.tag_name || item.module || item.entity_type || "";
       if (response && response.ok) {
-        const result = await response.json();
         showToast(`Synced tag="${itemTag}" successfully!`);
       } else {
         showToast(`PATCH /api/sync-configuration sent for "${itemTag}"`);
       }
     } catch (err) {
       console.error('Sync error:', err);
-      showToast(`Sync failed: ${err.message}`);
+      showToast(`Sync failed: ${err.message}`, true);
     }
   };
 
@@ -752,25 +772,38 @@ export const DiffChecker = ({
   const handleCloneConfiguration = async (item, targetSiteUrl, direction) => {
     const config = getOptionConfig(activeOption);
     const apiTag = config.apiKey || activeOption;
+    const typeName = apiTag === 'datatables' ? 'datatables_config' : apiTag;
 
-    const itemTag = item.tag || item.tag_name || item.module || item.entity_type || "";
+    const rawItem = item.raw || item;
+    const itemTag = item.tag || rawItem.tag || rawItem.tag_name || rawItem.module || rawItem.entity_type || "";
+    const itemVersion = item.version || rawItem.version || item.siteVersion || item.rec1version || item.entity_version || "1.0";
+    const itemBoType = item.bo_type || rawItem.bo_type || "";
+
+    const rawId = item.id || rawItem.id || backendMetadata.import_id || "12";
+    const stringImportId = String(rawId);
 
     const payload = {
-      type: apiTag === 'datatables' ? 'datatables_config' : apiTag,
+      type: typeName,
       unique_column: {
         tag: itemTag,
-        version: item.version || item.siteVersion || item.rec1version || item.entity_version || "1.0",
-        bo_type: item.bo_type || "",
-        permission: item.permission || ""
+        version: itemVersion,
+        bo_type: itemBoType
       },
-      import_id: String(item.id || "12"),
-      synced_by: synced_by
+      import_id: stringImportId,
+      synced_by: synced_by || "ayush"
     };
 
-    showToast(`Sending POST ${targetSiteUrl}/api/clone-configuration (${direction})...`);
+    // If copy to right -> target_url (baseUrl2), if copy to left -> source_url (baseUrl1)
+    let cleanTargetUrl = targetSiteUrl || (direction === 'to_left' ? baseUrl1 : baseUrl2) || "";
+    if (cleanTargetUrl && !cleanTargetUrl.startsWith('http://') && !cleanTargetUrl.startsWith('https://')) {
+      cleanTargetUrl = `https://${cleanTargetUrl}`;
+    }
+    cleanTargetUrl = cleanTargetUrl.replace(/\/+$/, '');
+
+    showToast(`Sending POST ${cleanTargetUrl}/api/clone-configuration (${direction === 'to_right' ? 'Copy to Right' : 'Copy to Left'})...`);
 
     try {
-      await fetch(`${targetSiteUrl}/api/clone-configuration`, {
+      await fetch(`${cleanTargetUrl}/api/clone-configuration`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload)
@@ -902,10 +935,9 @@ export const DiffChecker = ({
           </h2>
 
           <div className="flex flex-wrap items-center justify-center gap-4 text-xs font-normal text-gray-600">
-            {/* Imported Backend (src_url) */}
             <div className="flex flex-col space-y-1">
               <label className="flex items-center space-x-1 font-normal text-gray-700">
-                <span>Imported Backend</span>
+                <span>Source Backend</span>
                 <span className="text-red-500">*</span>
               </label>
               <div className="relative flex items-center">
@@ -921,17 +953,16 @@ export const DiffChecker = ({
                   target="_blank"
                   rel="noreferrer"
                   className="absolute right-2.5 text-gray-400 hover:text-gray-600 transition-colors flex items-center"
-                  title="Open Imported Backend"
+                  title="Open Source Backend"
                 >
                   <SquareArrowOutUpRight className="w-4 h-4" />
                 </a>
               </div>
             </div>
 
-            {/* Current Backend (target_url) */}
             <div className="flex flex-col space-y-1">
               <label className="flex items-center space-x-1 font-normal text-gray-700">
-                <span>Current Backend</span>
+                <span>Target Backend</span>
                 <span className="text-red-500">*</span>
               </label>
               <div className="relative flex items-center">
@@ -947,7 +978,7 @@ export const DiffChecker = ({
                   target="_blank"
                   rel="noreferrer"
                   className="absolute right-2.5 text-gray-400 hover:text-gray-600 transition-colors flex items-center"
-                  title="Open Current Backend"
+                  title="Open Target Backend"
                 >
                   <SquareArrowOutUpRight className="w-4 h-4" />
                 </a>

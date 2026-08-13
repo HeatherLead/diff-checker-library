@@ -130,6 +130,8 @@ const resolveGridRowKey = (row, rowSelectionId) => {
   if (!row) return null;
   const id =
     row.id ||
+    row.tag ||
+    row.tag_name ||
     row.issue_id ||
     row.issue_encoded_id ||
     row.task_id ||
@@ -137,6 +139,8 @@ const resolveGridRowKey = (row, rowSelectionId) => {
     row.initiative_id ||
     row.ticket_code ||
     row.user_id ||
+    row.module ||
+    row.entity_type ||
     (rowSelectionId && row[rowSelectionId]) ||
     row.uid;
   return id != null && id !== "" ? String(id) : null;
@@ -177,7 +181,7 @@ const DefaultCellRenderer = (params) => {
             params.colDef.onActionClick(params.data);
           }
         }}
-        className="btn-maroon-outline"
+        className="btn-purple"
       >
         Edit
       </button>
@@ -360,7 +364,7 @@ export const AgGridGenerator = ({
   enableTotalRowCount = true,
   rowSelection = "multiple",
   enableCheckboxSelection = false,
-  showFloatingFilter = true,
+  showFloatingFilter = false,
   showTableFilter,
   ...props
 }) => {
@@ -368,10 +372,10 @@ export const AgGridGenerator = ({
   const isFilterVisible = showTableFilter !== undefined ? showTableFilter : showFloatingFilter;
 
   const effectiveRowData = useMemo(() => {
-    if (Array.isArray(directRowData) && directRowData.length > 0) {
+    if (Array.isArray(directRowData)) {
       return directRowData;
     }
-    if (Array.isArray(viewData) && viewData.length > 0) {
+    if (Array.isArray(viewData)) {
       return viewData;
     }
     return directRowData || viewData || [];
@@ -389,7 +393,7 @@ export const AgGridGenerator = ({
           cellStyle: isNonFilterable ? { display: 'flex', alignItems: 'center', justifyContent: 'center', ...(col.cellStyle || {}) } : col.cellStyle,
           cellRenderer: col.cellRenderer || DefaultCellRenderer,
           filter: isNonFilterable ? false : col.filter ?? "agTextColumnFilter",
-          floatingFilter: isNonFilterable ? false : true,
+          floatingFilter: isFilterVisible && !isNonFilterable,
           menuTabs: isNonFilterable ? ["generalMenuTab"] : ["generalMenuTab", "filterMenuTab"],
           floatingFilterComponentParams: {
             suppressFilterButton: true,
@@ -408,7 +412,7 @@ export const AgGridGenerator = ({
             colId: col.id,
             sortable: true,
             filter: isNonFilterable ? false : "agTextColumnFilter",
-            floatingFilter: isNonFilterable ? false : true,
+            floatingFilter: isFilterVisible && !isNonFilterable,
             menuTabs: isNonFilterable ? ["generalMenuTab"] : ["generalMenuTab", "filterMenuTab"],
             floatingFilterComponentParams: {
               suppressFilterButton: true,
@@ -430,7 +434,7 @@ export const AgGridGenerator = ({
             field: key,
             sortable: true,
             filter: isNonFilterable ? false : "agTextColumnFilter",
-            floatingFilter: isNonFilterable ? false : true,
+            floatingFilter: isFilterVisible && !isNonFilterable,
             menuTabs: isNonFilterable ? ["generalMenuTab"] : ["generalMenuTab", "filterMenuTab"],
             floatingFilterComponentParams: {
               suppressFilterButton: true,
@@ -467,7 +471,7 @@ export const AgGridGenerator = ({
     }
 
     return cols;
-  }, [directColumnDefs, columnsData, table_config, effectiveRowData, enableCheckboxSelection]);
+  }, [directColumnDefs, columnsData, table_config, effectiveRowData, enableCheckboxSelection, isFilterVisible]);
 
   // Main menu items popup configuration matching screenshot exactly
   const getMainMenuItems = useCallback((params) => {
@@ -503,14 +507,14 @@ export const AgGridGenerator = ({
       sortable: true,
       resizable: true,
       filter: "agTextColumnFilter",
-      floatingFilter: true,
+      floatingFilter: isFilterVisible,
       menuTabs: ["generalMenuTab", "filterMenuTab"],
       flex: 1,
       minWidth: 110,
       headerClass: "font-normal text-gray-700",
       ...defaultColDef,
     }),
-    [defaultColDef]
+    [defaultColDef, isFilterVisible]
   );
 
   const getRowId = useCallback(
