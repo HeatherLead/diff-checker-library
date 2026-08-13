@@ -1,18 +1,27 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, memo } from 'react';
 import { matchSorter } from 'match-sorter';
 import { AgGridGenerator } from './agGridGenerator';
 import { getOptionConfig } from '../config';
+import { useDiffChecker } from '../context/DiffCheckerContext';
 
-export const DataDiffTable = ({
-  activeOption,
+export const DataDiffTable = memo(({
+  activeOption: propActiveOption,
   dataDiffRows = [],
-  openDiffViewer,
-  handleSyncConfiguration,
-  showToast,
-  baseUrl1,
-  baseUrl2
+  openDiffViewer: propOpenDiffViewer,
+  handleSyncConfiguration: propHandleSyncConfiguration,
+  showToast: propShowToast,
+  baseUrl1: propBaseUrl1,
+  baseUrl2: propBaseUrl2
 }) => {
-  const [showDataDiffFilters, setShowDataDiffFilters] = useState(true);
+  const ctx = useDiffChecker();
+  const activeOption = propActiveOption || ctx.activeOption;
+  const openDiffViewer = propOpenDiffViewer || ctx.openDiffViewer || (() => { });
+  const handleSyncConfiguration = propHandleSyncConfiguration || ctx.handleSyncConfiguration || (() => { });
+  const showToast = propShowToast || ctx.showToast || (() => { });
+  const baseUrl1 = propBaseUrl1 !== undefined ? propBaseUrl1 : ctx.baseUrl1;
+  const baseUrl2 = propBaseUrl2 !== undefined ? propBaseUrl2 : ctx.baseUrl2;
+
+  const [showDataDiffFilters, setShowDataDiffFilters] = useState(false);
   const [tagInput, setTagInput] = useState('');
   const [appliedTagFilter, setAppliedTagFilter] = useState('');
   const [dataDiffFilterMode, setDataDiffFilterMode] = useState('only_diff');
@@ -22,14 +31,14 @@ export const DataDiffTable = ({
   const columns = useMemo(() => {
     return config.getColumns({
       openDiffViewer,
-      openDataViewer: () => {},
+      openDataViewer: () => { },
       handleSyncConfiguration,
-      handleCloneConfiguration: () => {},
+      handleCloneConfiguration: () => { },
       showToast,
       baseUrl1,
       baseUrl2
     });
-  }, [activeOption, openDiffViewer, handleSyncConfiguration, showToast, baseUrl1, baseUrl2]);
+  }, [config, openDiffViewer, handleSyncConfiguration, showToast, baseUrl1, baseUrl2]);
 
   const dataDiffColDefs = columns.dataDiffColDefs;
 
@@ -86,8 +95,13 @@ export const DataDiffTable = ({
       </div>
 
       {/* Global Filter Bar above Table */}
-      {showDataDiffFilters && (
-        <div className="flex flex-wrap items-center justify-between gap-4 mb-4 text-xs">
+      <div
+        className={`transition-all duration-300 ease-in-out overflow-hidden ${showDataDiffFilters
+          ? 'max-h-96 opacity-100 mb-4 transform translate-y-0'
+          : 'max-h-0 opacity-0 mb-0 transform -translate-y-2 pointer-events-none'
+          }`}
+      >
+        <div className="flex flex-wrap items-center justify-between gap-4 text-xs">
           {/* Left: Tag Input + Submit + Reset */}
           <form
             onSubmit={(e) => {
@@ -159,7 +173,7 @@ export const DataDiffTable = ({
             </button>
           </div>
         </div>
-      )}
+      </div>
 
       {/* AG Grid Table */}
       <AgGridGenerator
@@ -175,6 +189,6 @@ export const DataDiffTable = ({
       </div>
     </section>
   );
-};
+});
 
 export default DataDiffTable;

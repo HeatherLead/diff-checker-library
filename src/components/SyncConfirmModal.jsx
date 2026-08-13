@@ -1,32 +1,41 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, memo } from 'react';
 import { ArrowLeftRight, X } from 'lucide-react';
+import { useDiffChecker } from '../context/DiffCheckerContext';
+import useLockBodyScroll from '../hooks/useLockBodyScroll';
 
 /**
  * SyncConfirmModal handles the confirmation before running a sync operation.
  * It displays side-by-side source and target configurations, allowing direction swap.
  */
-export const SyncConfirmModal = ({
+export const SyncConfirmModal = memo(({
   isOpen,
   onClose,
   row,
-  baseUrl1,
-  baseUrl2,
+  baseUrl1: propBaseUrl1,
+  baseUrl2: propBaseUrl2,
   onConfirm
 }) => {
+  useLockBodyScroll(isOpen);
+
+  const ctx = useDiffChecker();
+  const baseUrl1 = propBaseUrl1 !== undefined ? propBaseUrl1 : ctx.baseUrl1;
+  const baseUrl2 = propBaseUrl2 !== undefined ? propBaseUrl2 : ctx.baseUrl2;
+  const defaultSyncedBy = ctx.syncedBy || 'ayush';
+
   const [direction, setDirection] = useState('site1_to_site2'); // 'site1_to_site2' or 'site2_to_site1'
   const [confirmYes, setConfirmYes] = useState('');
-  const [syncBy, setSyncBy] = useState('');
+  const [syncBy, setSyncBy] = useState(defaultSyncedBy);
   const [submitting, setSubmitting] = useState(false);
 
   // Reset inputs when modal opens/changes
   useEffect(() => {
     if (isOpen) {
       setConfirmYes('');
-      setSyncBy('');
+      setSyncBy(defaultSyncedBy);
       setDirection('site1_to_site2');
       setSubmitting(false);
     }
-  }, [isOpen, row]);
+  }, [isOpen, row, defaultSyncedBy]);
 
   if (!isOpen || !row) return null;
 
@@ -76,7 +85,7 @@ export const SyncConfirmModal = ({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-md p-4 transition-all duration-300 animate-in fade-in duration-200">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-md p-4 transition-all duration-300 animate-in fade-in duration-200 overscroll-contain">
 
       {/* Modal Card */}
       <div className="w-full max-w-[620px] bg-white rounded-xl shadow-2xl flex flex-col border border-gray-200 relative animate-in fade-in zoom-in-95 duration-200 overflow-hidden">
@@ -219,6 +228,6 @@ export const SyncConfirmModal = ({
       </div>
     </div>
   );
-};
+});
 
 export default SyncConfirmModal;

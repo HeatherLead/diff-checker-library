@@ -1,22 +1,30 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, memo } from 'react';
 import { matchSorter } from 'match-sorter';
 import { AgGridGenerator } from './agGridGenerator';
 import { getOptionConfig } from '../config';
+import { useDiffChecker } from '../context/DiffCheckerContext';
 
-export const OnlySiteTable = ({
-  activeOption,
+export const OnlySiteTable = memo(({
+  activeOption: propActiveOption,
   onlySite1Rows = [],
   onlySite2Rows = [],
-  baseUrl1,
-  baseUrl2,
-  openDataViewer,
-  handleCloneConfiguration
+  baseUrl1: propBaseUrl1,
+  baseUrl2: propBaseUrl2,
+  openDataViewer: propOpenDataViewer,
+  handleCloneConfiguration: propHandleCloneConfiguration
 }) => {
-  const [showSite1Filters, setShowSite1Filters] = useState(true);
+  const ctx = useDiffChecker();
+  const activeOption = propActiveOption || ctx.activeOption;
+  const baseUrl1 = propBaseUrl1 !== undefined ? propBaseUrl1 : ctx.baseUrl1;
+  const baseUrl2 = propBaseUrl2 !== undefined ? propBaseUrl2 : ctx.baseUrl2;
+  const openDataViewer = propOpenDataViewer || ctx.openDataViewer || (() => { });
+  const handleCloneConfiguration = propHandleCloneConfiguration || ctx.handleCloneConfiguration || (() => { });
+
+  const [showSite1Filters, setShowSite1Filters] = useState(false);
   const [site1TagInput, setSite1TagInput] = useState('');
   const [appliedSite1TagFilter, setAppliedSite1TagFilter] = useState('');
 
-  const [showSite2Filters, setShowSite2Filters] = useState(true);
+  const [showSite2Filters, setShowSite2Filters] = useState(false);
   const [site2TagInput, setSite2TagInput] = useState('');
   const [appliedSite2TagFilter, setAppliedSite2TagFilter] = useState('');
 
@@ -24,16 +32,17 @@ export const OnlySiteTable = ({
   const config = getOptionConfig(activeOption);
 
   const columns = useMemo(() => {
+    if (!config) return {};
     return config.getColumns({
-      openDiffViewer: () => {},
+      openDiffViewer: () => { },
       openDataViewer,
-      handleSyncConfiguration: () => {},
+      handleSyncConfiguration: () => { },
       handleCloneConfiguration,
-      showToast: () => {},
+      showToast: () => { },
       baseUrl1,
       baseUrl2
     });
-  }, [activeOption, openDataViewer, handleCloneConfiguration, baseUrl1, baseUrl2]);
+  }, [config, openDataViewer, handleCloneConfiguration, baseUrl1, baseUrl2]);
 
   const site1ColDefs = columns.site1ColDefs;
   const site2ColDefs = columns.site2ColDefs;
@@ -86,8 +95,13 @@ export const OnlySiteTable = ({
           </div>
 
           {/* Global Filter Bar */}
-          {showSite1Filters && (
-            <div className="flex items-center justify-between gap-4 mb-4 text-xs">
+          <div
+            className={`transition-all duration-300 ease-in-out overflow-hidden ${showSite1Filters
+              ? 'max-h-96 opacity-100 mb-4 transform translate-y-0'
+              : 'max-h-0 opacity-0 mb-0 transform -translate-y-2 pointer-events-none'
+              }`}
+          >
+            <div className="flex items-center justify-between gap-4 text-xs">
               <form
                 onSubmit={(e) => {
                   e.preventDefault();
@@ -134,7 +148,7 @@ export const OnlySiteTable = ({
                 </button>
               </form>
             </div>
-          )}
+          </div>
 
           <div>
             <AgGridGenerator
@@ -185,8 +199,13 @@ export const OnlySiteTable = ({
         </div>
 
         {/* Global Filter Bar for Site 1 */}
-        {showSite1Filters && (
-          <div className="flex items-center justify-between gap-4 mb-4 text-xs">
+        <div
+          className={`transition-all duration-300 ease-in-out overflow-hidden ${showSite1Filters
+            ? 'max-h-96 opacity-100 mb-4 transform translate-y-0'
+            : 'max-h-0 opacity-0 mb-0 transform -translate-y-2 pointer-events-none'
+            }`}
+        >
+          <div className="flex items-center justify-between gap-4 text-xs">
             <form
               onSubmit={(e) => {
                 e.preventDefault();
@@ -233,7 +252,7 @@ export const OnlySiteTable = ({
               </button>
             </form>
           </div>
-        )}
+        </div>
 
         <div>
           <AgGridGenerator
@@ -279,8 +298,13 @@ export const OnlySiteTable = ({
         </div>
 
         {/* Global Filter Bar for Site 2 */}
-        {showSite2Filters && (
-          <div className="flex items-center justify-between gap-4 mb-4 text-xs">
+        <div
+          className={`transition-all duration-300 ease-in-out overflow-hidden ${showSite2Filters
+            ? 'max-h-96 opacity-100 mb-4 transform translate-y-0'
+            : 'max-h-0 opacity-0 mb-0 transform -translate-y-2 pointer-events-none'
+            }`}
+        >
+          <div className="flex items-center justify-between gap-4 text-xs">
             <form
               onSubmit={(e) => {
                 e.preventDefault();
@@ -327,7 +351,7 @@ export const OnlySiteTable = ({
               </button>
             </form>
           </div>
-        )}
+        </div>
 
         <div>
           <AgGridGenerator
@@ -345,6 +369,6 @@ export const OnlySiteTable = ({
       </section>
     </div>
   );
-};
+});
 
 export default OnlySiteTable;

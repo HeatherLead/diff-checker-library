@@ -10,6 +10,7 @@ import { SyncConfirmModal } from './components/SyncConfirmModal';
 import { getOptionConfig } from './config';
 import { toast, ToastContainer, Bounce } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
+import { DiffCheckerProvider } from './context/DiffCheckerContext';
 
 const ToastMessage = ({ msg, isError }) => {
   const cleanMsg = typeof msg === 'string' ? msg : String(msg);
@@ -710,15 +711,15 @@ export const DiffChecker = ({
   }, [activeOption, fetchConfiguration]);
 
   // 2. PATCH API Handler: /api/sync-configuration
-  const handleSyncConfiguration = (row, targetSiteUrl) => {
+  const handleSyncConfiguration = useCallback((row, targetSiteUrl) => {
     setSyncModalConfig({
       isOpen: true,
       row,
       targetSiteUrl,
     });
-  };
+  }, []);
 
-  const executeSync = async (item, targetSiteUrl, syncedBy) => {
+  const executeSync = useCallback(async (item, targetSiteUrl, syncedBy) => {
     const config = getOptionConfig(activeOption);
     const apiTag = config.apiKey || activeOption;
     const typeName = apiTag === 'datatables' ? 'datatables_config' : apiTag;
@@ -766,10 +767,10 @@ export const DiffChecker = ({
       console.error('Sync error:', err);
       showToast(`Sync failed: ${err.message}`, true);
     }
-  };
+  }, [activeOption, backendMetadata.import_id, baseUrl2, showToast, synced_by]);
 
   // 3. POST API Handler: /api/clone-configuration
-  const handleCloneConfiguration = async (item, targetSiteUrl, direction) => {
+  const handleCloneConfiguration = useCallback(async (item, targetSiteUrl, direction) => {
     const config = getOptionConfig(activeOption);
     const apiTag = config.apiKey || activeOption;
     const typeName = apiTag === 'datatables' ? 'datatables_config' : apiTag;
@@ -819,12 +820,12 @@ export const DiffChecker = ({
     } catch (err) {
       console.error('Clone error:', err);
     }
-  };
+  }, [activeOption, backendMetadata.import_id, baseUrl1, baseUrl2, showToast, synced_by]);
 
-  const handleSelectOption = (id, label) => {
+  const handleSelectOption = useCallback((id, label) => {
     setActiveOption(id);
     setActiveOptionLabel(label);
-  };
+  }, []);
 
   // Dataset Comparison Logic
   const { dataDiffRows, versionMismatchRows, onlySite1Rows, onlySite2Rows } = useMemo(() => {
@@ -840,7 +841,7 @@ export const DiffChecker = ({
   }, [site1Dataset, site2Dataset, activeOption]);
 
   // Open Diff Modal handler
-  const openDiffViewer = (params, fieldType = 'structure') => {
+  const openDiffViewer = useCallback((params, fieldType = 'structure') => {
     const raw1 = params.data.raw1 || {};
     const raw2 = params.data.raw2 || {};
     const config = getOptionConfig(activeOption);
@@ -883,10 +884,10 @@ export const DiffChecker = ({
       rightData: rightContent,
       jsonData: null
     });
-  };
+  }, [activeOption]);
 
   // Open Data Viewer Modal handler
-  const openDataViewer = (params) => {
+  const openDataViewer = useCallback((params) => {
     const raw = params.data.raw || {};
     const formattedData = raw && Object.keys(raw).length > 0 ? raw : {
       tag: params.data.tag,
@@ -913,153 +914,174 @@ export const DiffChecker = ({
       rightData: '',
       jsonData: parseNestedJsonStrings(formattedData)
     });
-  };
+  }, []);
+
+  // Memoized Context Value to optimize performance & eliminate prop-drilling
+  const contextValue = useMemo(() => ({
+    backendMetadata,
+    baseUrl1,
+    baseUrl2,
+    syncedBy: synced_by,
+    activeOption,
+    activeOptionLabel,
+    showToast,
+    fetchConfiguration,
+    openDiffViewer,
+    openDataViewer,
+    handleSyncConfiguration,
+    handleCloneConfiguration,
+    handleSelectOption,
+  }), [
+    backendMetadata,
+    baseUrl1,
+    baseUrl2,
+    synced_by,
+    activeOption,
+    activeOptionLabel,
+    showToast,
+    fetchConfiguration,
+    openDiffViewer,
+    openDataViewer,
+    handleSyncConfiguration,
+    handleCloneConfiguration,
+    handleSelectOption,
+  ]);
 
   return (
-    <div className="min-h-screen bg-[#fafafa] flex flex-col font-sans text-gray-800">
-      {/* Header with black bg, logo on right, title middle */}
-      <Header />
+    <DiffCheckerProvider value={contextValue}>
+      <div className="min-h-screen bg-[#fafafa] flex flex-col font-sans text-gray-800">
+        {/* Header with black bg, logo on right, title middle */}
+        <Header />
 
-      {/* Navigation Options Row */}
-      <NavigationRow activeOption={activeOption} onSelectOption={handleSelectOption} />
+        {/* Navigation Options Row */}
+        <NavigationRow activeOption={activeOption} onSelectOption={handleSelectOption} />
 
+        {/* Main Container */}
+        <main className="max-w-[1600px] w-full mx-auto p-2 space-y-8 flex-1">
 
+          {/* SECTION A: CONFIGURATION & BASE URLS */}
+          <section className="p-2">
+            <h2 className="text-center text-[1rem] leading-[1rem] font-bold uppercase tracking-widest pb-2 mb-4 underline">
+              {activeOptionLabel.toUpperCase()} CONFIGURATION
+            </h2>
 
-      {/* Main Container */}
-      <main className="max-w-[1600px] w-full mx-auto p-2 space-y-8 flex-1">
+            <div className="flex flex-wrap items-center justify-center gap-4 text-xs font-normal text-gray-600">
+              <div className="flex flex-col space-y-1">
+                <label className="flex items-center space-x-1 font-normal text-gray-700">
+                  <span>Source Backend</span>
+                  <span className="text-red-500">*</span>
+                </label>
+                <div className="relative flex items-center">
+                  <input
+                    type="text"
+                    value={baseUrl1}
+                    readOnly
+                    className="w-72 sm:w-80 px-3 py-1.5 border border-gray-300 rounded focus:ring-1 focus:ring-[#7a1c4b] focus:border-[#7a1c4b] outline-none text-gray-700 font-normal pr-8 bg-gray-50/50 cursor-default"
+                    placeholder="local-arvind-retail.wcms.cloud"
+                  />
+                  <a
+                    href={formatUrl(baseUrl1)}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="absolute right-2.5 text-gray-400 hover:text-gray-600 transition-colors flex items-center"
+                    title="Open Source Backend"
+                  >
+                    <SquareArrowOutUpRight className="w-4 h-4" />
+                  </a>
+                </div>
+              </div>
 
-        {/* SECTION A: CONFIGURATION & BASE URLS */}
-        <section className="p-2">
-          <h2 className="text-center text-[1rem] leading-[1rem] font-bold uppercase tracking-widest pb-2 mb-4 underline">
-            {activeOptionLabel.toUpperCase()} CONFIGURATION
-          </h2>
-
-          <div className="flex flex-wrap items-center justify-center gap-4 text-xs font-normal text-gray-600">
-            <div className="flex flex-col space-y-1">
-              <label className="flex items-center space-x-1 font-normal text-gray-700">
-                <span>Source Backend</span>
-                <span className="text-red-500">*</span>
-              </label>
-              <div className="relative flex items-center">
-                <input
-                  type="text"
-                  value={baseUrl1}
-                  readOnly
-                  className="w-72 sm:w-80 px-3 py-1.5 border border-gray-300 rounded focus:ring-1 focus:ring-[#7a1c4b] focus:border-[#7a1c4b] outline-none text-gray-700 font-normal pr-8 bg-gray-50/50 cursor-default"
-                  placeholder="local-arvind-retail.wcms.cloud"
-                />
-                <a
-                  href={formatUrl(baseUrl1)}
-                  target="_blank"
-                  rel="noreferrer"
-                  className="absolute right-2.5 text-gray-400 hover:text-gray-600 transition-colors flex items-center"
-                  title="Open Source Backend"
-                >
-                  <SquareArrowOutUpRight className="w-4 h-4" />
-                </a>
+              <div className="flex flex-col space-y-1">
+                <label className="flex items-center space-x-1 font-normal text-gray-700">
+                  <span>Target Backend</span>
+                  <span className="text-red-500">*</span>
+                </label>
+                <div className="relative flex items-center">
+                  <input
+                    type="text"
+                    value={baseUrl2}
+                    readOnly
+                    className="w-72 sm:w-80 px-3 py-1.5 border border-gray-300 rounded focus:ring-1 focus:ring-[#7a1c4b] focus:border-[#7a1c4b] outline-none text-gray-700 font-normal pr-8 bg-gray-50/50 cursor-default"
+                    placeholder="local-arvind-retail.wcms.cloud"
+                  />
+                  <a
+                    href={formatUrl(baseUrl2)}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="absolute right-2.5 text-gray-400 hover:text-gray-600 transition-colors flex items-center"
+                    title="Open Target Backend"
+                  >
+                    <SquareArrowOutUpRight className="w-4 h-4" />
+                  </a>
+                </div>
               </div>
             </div>
+          </section>
 
-            <div className="flex flex-col space-y-1">
-              <label className="flex items-center space-x-1 font-normal text-gray-700">
-                <span>Target Backend</span>
-                <span className="text-red-500">*</span>
-              </label>
-              <div className="relative flex items-center">
-                <input
-                  type="text"
-                  value={baseUrl2}
-                  readOnly
-                  className="w-72 sm:w-80 px-3 py-1.5 border border-gray-300 rounded focus:ring-1 focus:ring-[#7a1c4b] focus:border-[#7a1c4b] outline-none text-gray-700 font-normal pr-8 bg-gray-50/50 cursor-default"
-                  placeholder="local-arvind-retail.wcms.cloud"
-                />
-                <a
-                  href={formatUrl(baseUrl2)}
-                  target="_blank"
-                  rel="noreferrer"
-                  className="absolute right-2.5 text-gray-400 hover:text-gray-600 transition-colors flex items-center"
-                  title="Open Target Backend"
-                >
-                  <SquareArrowOutUpRight className="w-4 h-4" />
-                </a>
-              </div>
-            </div>
-          </div>
-        </section>
+          {/* SECTION B: DATA DIFF TABLE COMPONENT */}
+          <DataDiffTable
+            activeOption={activeOption}
+            dataDiffRows={dataDiffRows}
+          />
 
-        {/* SECTION B: DATA DIFF TABLE COMPONENT */}
-        <DataDiffTable
-          activeOption={activeOption}
-          dataDiffRows={dataDiffRows}
-          openDiffViewer={openDiffViewer}
-          handleSyncConfiguration={handleSyncConfiguration}
-          showToast={showToast}
+          {/* SECTION C: VERSION MISMATCH TABLE COMPONENT */}
+          <VersionMismatchTable
+            activeOption={activeOption}
+            versionMismatchRows={versionMismatchRows}
+          />
+
+          {/* SECTION D: SIDE-BY-SIDE ONLY SITE TABLES COMPONENT */}
+          <OnlySiteTable
+            activeOption={activeOption}
+            onlySite1Rows={onlySite1Rows}
+            onlySite2Rows={onlySite2Rows}
+          />
+
+        </main>
+
+        {/* Diff & Data View Modal */}
+        <DiffViewerModal
+          isOpen={modalConfig.isOpen}
+          onClose={() => setModalConfig((prev) => ({ ...prev, isOpen: false }))}
+          type={modalConfig.type}
+          tag={modalConfig.tag}
+          leftVersion={modalConfig.leftVersion}
+          rightVersion={modalConfig.rightVersion}
           baseUrl1={baseUrl1}
           baseUrl2={baseUrl2}
+          leftData={modalConfig.leftData}
+          rightData={modalConfig.rightData}
+          jsonData={modalConfig.jsonData}
         />
 
-        {/* SECTION C: VERSION MISMATCH TABLE COMPONENT */}
-        <VersionMismatchTable
-          activeOption={activeOption}
-          versionMismatchRows={versionMismatchRows}
-          openDiffViewer={openDiffViewer}
-        />
-
-        {/* SECTION D: SIDE-BY-SIDE ONLY SITE TABLES COMPONENT */}
-        <OnlySiteTable
-          activeOption={activeOption}
-          onlySite1Rows={onlySite1Rows}
-          onlySite2Rows={onlySite2Rows}
+        {/* Sync Confirmation Modal */}
+        <SyncConfirmModal
+          isOpen={syncModalConfig.isOpen}
+          onClose={() => setSyncModalConfig((prev) => ({ ...prev, isOpen: false }))}
+          row={syncModalConfig.row}
           baseUrl1={baseUrl1}
           baseUrl2={baseUrl2}
-          openDataViewer={openDataViewer}
-          handleCloneConfiguration={handleCloneConfiguration}
+          onConfirm={executeSync}
         />
 
-      </main>
-
-      {/* Diff & Data View Modal */}
-      <DiffViewerModal
-        isOpen={modalConfig.isOpen}
-        onClose={() => setModalConfig((prev) => ({ ...prev, isOpen: false }))}
-        type={modalConfig.type}
-        tag={modalConfig.tag}
-        leftVersion={modalConfig.leftVersion}
-        rightVersion={modalConfig.rightVersion}
-        baseUrl1={baseUrl1}
-        baseUrl2={baseUrl2}
-        leftData={modalConfig.leftData}
-        rightData={modalConfig.rightData}
-        jsonData={modalConfig.jsonData}
-      />
-
-      {/* Sync Confirmation Modal */}
-      <SyncConfirmModal
-        isOpen={syncModalConfig.isOpen}
-        onClose={() => setSyncModalConfig((prev) => ({ ...prev, isOpen: false }))}
-        row={syncModalConfig.row}
-        baseUrl1={baseUrl1}
-        baseUrl2={baseUrl2}
-        onConfirm={executeSync}
-      />
-
-      {/* React Toastify Container */}
-      <ToastContainer
-        position="top-center"
-        autoClose={1300}
-        limit={1}
-        closeButton={false}
-        hideProgressBar={false}
-        newestOnTop={false}
-        closeOnClick
-        rtl={false}
-        pauseOnFocusLoss
-        draggable
-        pauseOnHover={false}
-        theme="light"
-        transition={Bounce}
-      />
-    </div>
+        {/* React Toastify Container */}
+        <ToastContainer
+          position="top-center"
+          autoClose={1300}
+          limit={1}
+          closeButton={false}
+          hideProgressBar={false}
+          newestOnTop={false}
+          closeOnClick
+          rtl={false}
+          pauseOnFocusLoss
+          draggable
+          pauseOnHover={false}
+          theme="light"
+          transition={Bounce}
+        />
+      </div>
+    </DiffCheckerProvider>
   );
 };
 

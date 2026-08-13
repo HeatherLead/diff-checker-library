@@ -1,5 +1,6 @@
-import React, { useState, useRef, useEffect, useLayoutEffect, useMemo } from 'react';
+import React, { useState, useRef, useEffect, useLayoutEffect, useMemo, memo } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
+import { useDiffChecker } from '../context/DiffCheckerContext';
 
 const TABS = [
   {
@@ -76,7 +77,11 @@ const getActiveTabId = (activeOption) => {
   return 'datatables';
 };
 
-const NavigationRow = ({ activeOption, onSelectOption }) => {
+const NavigationRow = memo(({ activeOption: propActiveOption, onSelectOption: propOnSelectOption }) => {
+  const ctx = useDiffChecker();
+  const activeOption = propActiveOption || ctx.activeOption;
+  const onSelectOption = propOnSelectOption || ctx.handleSelectOption;
+
   const navigate = useNavigate();
   const location = useLocation();
   const [openDropdownId, setOpenDropdownId] = useState(null);
@@ -242,6 +247,6 @@ const NavigationRow = ({ activeOption, onSelectOption }) => {
       />
     </div>
   );
-};
+});
 
 export default NavigationRow;

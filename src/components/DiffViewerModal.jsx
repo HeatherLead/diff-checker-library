@@ -2,6 +2,7 @@ import React from 'react';
 import ReactDiffViewer from 'react-diff-viewer-continued';
 import JsonViewer from './JsonViewer';
 import { Copy } from 'lucide-react';
+import useLockBodyScroll from '../hooks/useLockBodyScroll';
 
 /**
  * Recursively parses stringified JSON inside objects, arrays, or strings
@@ -81,6 +82,8 @@ export const DiffViewerModal = ({
   rightData = '',
   jsonData = null,
 }) => {
+  useLockBodyScroll(isOpen);
+
   if (!isOpen) return null;
 
   const leftFormatted = formatDiffContent(leftData);
@@ -88,7 +91,7 @@ export const DiffViewerModal = ({
 
   return (
     /* Modal Backdrop: Blurred background (backdrop-blur-md) with dark overlay */
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-md p-4 transition-all duration-300">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-md p-4 transition-all duration-300 overscroll-contain">
 
       {/* Modal Dialog Box: 80% width and 70% height */}
       <div className="w-[80vw] h-[70vh] max-w-[80vw] max-h-[70vh] bg-white rounded-xl shadow-2xl flex flex-col overflow-hidden border border-gray-200 relative animate-in fade-in zoom-in-95 duration-200">

@@ -1,16 +1,23 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, memo } from 'react';
 import { matchSorter } from 'match-sorter';
 import { AgGridGenerator } from './agGridGenerator';
 import { getOptionConfig } from '../config';
+import { useDiffChecker } from '../context/DiffCheckerContext';
 
-export const VersionMismatchTable = ({
-  activeOption,
+export const VersionMismatchTable = memo(({
+  activeOption: propActiveOption,
   versionMismatchRows = [],
-  openDiffViewer,
-  baseUrl1,
-  baseUrl2
+  openDiffViewer: propOpenDiffViewer,
+  baseUrl1: propBaseUrl1,
+  baseUrl2: propBaseUrl2
 }) => {
-  const [showVersionFilters, setShowVersionFilters] = useState(true);
+  const ctx = useDiffChecker();
+  const activeOption = propActiveOption || ctx.activeOption;
+  const openDiffViewer = propOpenDiffViewer || ctx.openDiffViewer || (() => { });
+  const baseUrl1 = propBaseUrl1 !== undefined ? propBaseUrl1 : ctx.baseUrl1;
+  const baseUrl2 = propBaseUrl2 !== undefined ? propBaseUrl2 : ctx.baseUrl2;
+
+  const [showVersionFilters, setShowVersionFilters] = useState(false);
   const [tagInput, setTagInput] = useState('');
   const [site1VersionInput, setSite1VersionInput] = useState('');
   const [site2VersionInput, setSite2VersionInput] = useState('');
@@ -24,20 +31,23 @@ export const VersionMismatchTable = ({
   // Load configuration based on the active dropdown page option
   const config = getOptionConfig(activeOption);
 
+  const columns = useMemo(() => {
+    if (!config || !config.hasVersionMismatch) return {};
+    return config.getColumns({
+      openDiffViewer,
+      openDataViewer: () => { },
+      handleSyncConfiguration: () => { },
+      handleCloneConfiguration: () => { },
+      showToast: () => { },
+      baseUrl1,
+      baseUrl2
+    });
+  }, [config, openDiffViewer, baseUrl1, baseUrl2]);
+
   // If this configuration option does not have version mismatch records, do not render anything
-  if (!config.hasVersionMismatch) {
+  if (!config || !config.hasVersionMismatch) {
     return null;
   }
-
-  const columns = config.getColumns({
-    openDiffViewer,
-    openDataViewer: () => {},
-    handleSyncConfiguration: () => {},
-    handleCloneConfiguration: () => {},
-    showToast: () => {},
-    baseUrl1,
-    baseUrl2
-  });
 
   const versionMismatchColDefs = columns.versionMismatchColDefs;
 
@@ -107,8 +117,13 @@ export const VersionMismatchTable = ({
       </div>
 
       {/* Global Filter Bar above Table */}
-      {showVersionFilters && (
-        <div className="flex flex-wrap items-center justify-between gap-4 mb-4 text-xs">
+      <div
+        className={`transition-all duration-300 ease-in-out overflow-hidden ${showVersionFilters
+          ? 'max-h-96 opacity-100 mb-4 transform translate-y-0'
+          : 'max-h-0 opacity-0 mb-0 transform -translate-y-2 pointer-events-none'
+          }`}
+      >
+        <div className="flex flex-wrap items-center justify-between gap-4 text-xs">
           {/* Left: Tag + Site 1 Version + Site 2 Version Inputs + Submit + Reset */}
           <form
             onSubmit={handleSubmit}
@@ -203,7 +218,7 @@ export const VersionMismatchTable = ({
             </button>
           </div>
         </div>
-      )}
+      </div>
 
       {/* AG Grid Table */}
       <AgGridGenerator
@@ -219,6 +234,6 @@ export const VersionMismatchTable = ({
       </div>
     </section>
   );
-};
+});
 
 export default VersionMismatchTable;

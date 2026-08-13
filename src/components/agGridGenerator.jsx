@@ -393,7 +393,7 @@ export const AgGridGenerator = ({
           cellStyle: isNonFilterable ? { display: 'flex', alignItems: 'center', justifyContent: 'center', ...(col.cellStyle || {}) } : col.cellStyle,
           cellRenderer: col.cellRenderer || DefaultCellRenderer,
           filter: isNonFilterable ? false : col.filter ?? "agTextColumnFilter",
-          floatingFilter: isFilterVisible && !isNonFilterable,
+          floatingFilter: !isNonFilterable,
           menuTabs: isNonFilterable ? ["generalMenuTab"] : ["generalMenuTab", "filterMenuTab"],
           floatingFilterComponentParams: {
             suppressFilterButton: true,
@@ -412,7 +412,7 @@ export const AgGridGenerator = ({
             colId: col.id,
             sortable: true,
             filter: isNonFilterable ? false : "agTextColumnFilter",
-            floatingFilter: isFilterVisible && !isNonFilterable,
+            floatingFilter: !isNonFilterable,
             menuTabs: isNonFilterable ? ["generalMenuTab"] : ["generalMenuTab", "filterMenuTab"],
             floatingFilterComponentParams: {
               suppressFilterButton: true,
@@ -434,7 +434,7 @@ export const AgGridGenerator = ({
             field: key,
             sortable: true,
             filter: isNonFilterable ? false : "agTextColumnFilter",
-            floatingFilter: isFilterVisible && !isNonFilterable,
+            floatingFilter: !isNonFilterable,
             menuTabs: isNonFilterable ? ["generalMenuTab"] : ["generalMenuTab", "filterMenuTab"],
             floatingFilterComponentParams: {
               suppressFilterButton: true,
@@ -471,7 +471,7 @@ export const AgGridGenerator = ({
     }
 
     return cols;
-  }, [directColumnDefs, columnsData, table_config, effectiveRowData, enableCheckboxSelection, isFilterVisible]);
+  }, [directColumnDefs, columnsData, table_config, effectiveRowData, enableCheckboxSelection]);
 
   // Main menu items popup configuration matching screenshot exactly
   const getMainMenuItems = useCallback((params) => {
@@ -507,14 +507,14 @@ export const AgGridGenerator = ({
       sortable: true,
       resizable: true,
       filter: "agTextColumnFilter",
-      floatingFilter: isFilterVisible,
+      floatingFilter: true,
       menuTabs: ["generalMenuTab", "filterMenuTab"],
       flex: 1,
       minWidth: 110,
       headerClass: "font-normal text-gray-700",
       ...defaultColDef,
     }),
-    [defaultColDef, isFilterVisible]
+    [defaultColDef]
   );
 
   const getRowId = useCallback(
@@ -633,7 +633,7 @@ export const AgGridGenerator = ({
       )}
       <div
         ref={gridContainerRef}
-        className={`${themeClass} ${isFilterVisible ? 'ag-floating-filter-visible' : 'ag-floating-filter-hidden'} w-full shadow-sm border border-gray-200 rounded-md overflow-hidden bg-white text-xs`}
+        className={`${themeClass} ${isFilterVisible ? 'ag-floating-filter-visible' : 'ag-floating-filter-hidden'} w-full shadow-sm border border-gray-200 rounded-md overflow-hidden bg-white text-xs transition-all duration-300 ease-in-out`}
         style={{ height: containerHeight, minHeight, maxHeight }}
       >
         <AgGridReact
