@@ -1,12 +1,45 @@
 import React from 'react';
-import DiffChecker from '../../DiffChecker';
+import { useConfigurationDiff } from '../../hooks/useConfigurationDiff';
+import DataDiffTable from '../../components/DataDiffTable';
+import VersionMismatchTable from '../../components/VersionMismatchTable';
+import OnlySiteTable from '../../components/OnlySiteTable';
 
-const AttachmentTagList = () => {
+export interface AttachmentTagListProps {
+  activeOption?: string;
+}
+
+const AttachmentTagList: React.FC<AttachmentTagListProps> = ({ activeOption = 'attachment_tag_list' }) => {
+  const {
+    dataDiffRows,
+    versionMismatchRows,
+    onlySite1Rows,
+    onlySite2Rows,
+    config,
+  } = useConfigurationDiff(activeOption);
+
   return (
-    <DiffChecker
-      initialOption="attachment_tag_list"
-      initialOptionLabel="Attachment Tag List"
-    />
+    <div className="space-y-6">
+      {/* SECTION 1: DATA DIFF TABLE */}
+      <DataDiffTable
+        activeOption={activeOption}
+        dataDiffRows={dataDiffRows}
+      />
+
+      {/* SECTION 2: VERSION MISMATCH TABLE (if applicable) */}
+      {(config?.hasVersionMismatch || versionMismatchRows.length > 0) && (
+        <VersionMismatchTable
+          activeOption={activeOption}
+          versionMismatchRows={versionMismatchRows}
+        />
+      )}
+
+      {/* SECTION 3: SIDE-BY-SIDE ONLY SITE TABLES */}
+      <OnlySiteTable
+        activeOption={activeOption}
+        onlySite1Rows={onlySite1Rows}
+        onlySite2Rows={onlySite2Rows}
+      />
+    </div>
   );
 };
 

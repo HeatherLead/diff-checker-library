@@ -8,14 +8,13 @@
   --ag-header-background-color: #f1f3f8;
   --ag-header-foreground-color: #374151;
   --ag-header-cell-hover-background-color: #e2e8f0;
-  --ag-header-column-separator-display: block;
-  --ag-header-column-separator-color: #cbd5e1;
+  --ag-header-column-separator-display: none;
+  --ag-header-column-separator-color: transparent;
   --ag-row-border-color: #f0f0f0;
   --ag-border-color: #e2e8f0;
   --ag-font-size: 13px;
   --ag-grid-size: 6px;
   --ag-font-family: 'Roboto', sans-serif;
-  --ag-selected-row-background-color: #fdf2f8;
   --ag-row-hover-color: #f8fafc;
   --ag-checkbox-checked-color: #881337;
   --ag-checkbox-unchecked-color: #881337;
@@ -81,6 +80,14 @@
   text-transform: none;
 }
 
+/* Hide Header Hamburger Menu Button & Right-Side Resize Lines */
+.ag-theme-alpine .ag-header-cell-menu-button,
+.ag-theme-alpine .ag-header-icon.ag-header-cell-menu-button,
+.ag-theme-alpine .ag-header-cell-resize::after,
+.ag-theme-alpine .ag-header-column-separator {
+  display: none !important;
+}
+
 /* Floating Filter Inputs - Hide Filter Icon on Column Filter */
 .ag-theme-alpine .ag-floating-filter-button,
 .ag-theme-alpine .ag-floating-filter-button-button {
@@ -107,21 +114,23 @@
 }
 
 /* Smooth Column Filter Hide / Unhide Transitions */
-.ag-theme-alpine .ag-header {
+.ag-header {
   transition: height 0.3s cubic-bezier(0.4, 0, 0.2, 1), min-height 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
 }
 
-.ag-theme-alpine .ag-header-viewport,
-.ag-theme-alpine .ag-header-container,
-.ag-theme-alpine .ag-root-wrapper-body,
-.ag-theme-alpine .ag-body-viewport,
-.ag-theme-alpine .ag-center-cols-clipper {
+.ag-header-viewport,
+.ag-header-container,
+.ag-root-wrapper-body,
+.ag-body-viewport,
+.ag-center-cols-clipper,
+.ag-pinned-left-cols-container,
+.ag-pinned-right-cols-container {
   transition: height 0.3s cubic-bezier(0.4, 0, 0.2, 1),
-              min-height 0.3s cubic-bezier(0.4, 0, 0.2, 1),
-              top 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+    min-height 0.3s cubic-bezier(0.4, 0, 0.2, 1),
+    top 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
 }
 
-.ag-theme-alpine .ag-header-row-floating-filter {
+.ag-header-row-floating-filter {
   height: 34px !important;
   min-height: 34px !important;
   max-height: 34px !important;
@@ -130,22 +139,22 @@
   transform-origin: top center !important;
   visibility: visible !important;
   transition: height 0.3s cubic-bezier(0.4, 0, 0.2, 1),
-              min-height 0.3s cubic-bezier(0.4, 0, 0.2, 1),
-              max-height 0.3s cubic-bezier(0.4, 0, 0.2, 1),
-              opacity 0.25s cubic-bezier(0.4, 0, 0.2, 1),
-              transform 0.3s cubic-bezier(0.4, 0, 0.2, 1),
-              visibility 0.3s cubic-bezier(0.4, 0, 0.2, 1),
-              border-color 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+    min-height 0.3s cubic-bezier(0.4, 0, 0.2, 1),
+    max-height 0.3s cubic-bezier(0.4, 0, 0.2, 1),
+    opacity 0.25s cubic-bezier(0.4, 0, 0.2, 1),
+    transform 0.3s cubic-bezier(0.4, 0, 0.2, 1),
+    visibility 0.3s cubic-bezier(0.4, 0, 0.2, 1),
+    border-color 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
   overflow: hidden !important;
 }
 
 /* Hidden Floating Filter State */
-.ag-theme-alpine.ag-floating-filter-hidden .ag-header {
+.ag-floating-filter-hidden .ag-header {
   height: 38px !important;
   min-height: 38px !important;
 }
 
-.ag-theme-alpine.ag-floating-filter-hidden .ag-header-row-floating-filter {
+.ag-floating-filter-hidden .ag-header-row-floating-filter {
   height: 0px !important;
   min-height: 0px !important;
   max-height: 0px !important;
@@ -156,14 +165,14 @@
   border-bottom-width: 0px !important;
 }
 
-.ag-theme-alpine.ag-floating-filter-hidden .ag-floating-filter-body,
-.ag-theme-alpine.ag-floating-filter-hidden .ag-floating-filter {
+.ag-floating-filter-hidden .ag-floating-filter-body,
+.ag-floating-filter-hidden .ag-floating-filter {
   opacity: 0 !important;
   pointer-events: none !important;
 }
 
 /* Visible Floating Filter State */
-.ag-theme-alpine.ag-floating-filter-visible .ag-header {
+.ag-floating-filter-visible .ag-header {
   height: 72px !important;
   min-height: 72px !important;
 }
@@ -233,16 +242,120 @@
   box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
 }
 
-.btn-maroon-outline {
-  @apply px-3.5 py-0.5 text-xs font-normal text-[#881337] border border-[#881337] rounded hover:bg-[#881337] hover:text-white transition-colors duration-150 shadow-sm bg-white cursor-pointer inline-flex items-center justify-center;
+.ag-cell .ag-react-container {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  width: 100% !important;
+  height: 100% !important;
+}
+
+.ag-theme-alpine .ag-cell,
+.ag-theme-quartz .ag-cell,
+.ag-cell {
+  display: flex !important;
+  align-items: center !important;
+}
+
+.btn-maroon-outline,
+.btn-gray-outline,
+.btn-purple,
+.btn-gray,
+.btn-edit,
+.ag-cell button,
+.ag-cell a.btn-purple,
+.ag-cell a.btn-edit,
+.ag-cell a.btn-maroon-outline,
+.ag-theme-alpine .ag-cell button,
+.ag-theme-quartz .ag-cell button,
+.ag-theme-alpine .ag-cell a.btn-purple,
+.ag-theme-quartz .ag-cell a.btn-purple {
+  box-sizing: border-box !important;
+  width: 7rem !important;
+  min-width: 84px !important;
+  height: 27px !important;
+  margin: auto !important;
+  padding: 0 4px !important;
+  font-size: 0.875rem !important;
+  font-weight: normal !important;
+  line-height: 1 !important;
+  border-radius: 2.8px !important;
+  border: 1px solid #696969 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  text-align: center !important;
+  white-space: nowrap !important;
+  vertical-align: middle !important;
+  cursor: pointer !important;
+  transition: background-color 0.15s ease, opacity 0.15s ease, border-color 0.15s ease !important;
+  overflow: hidden !important;
+  text-overflow: clip !important;
+  list-style: none !important;
+  outline: none !important;
+  appearance: none !important;
+  -webkit-appearance: none !important;
+  text-decoration: none !important;
+}
+
+.ag-cell button::before,
+.ag-cell button::after,
+.ag-cell a::before,
+.ag-cell a::after,
+.btn-purple::before,
+.btn-purple::after,
+.btn-gray::before,
+.btn-gray::after {
+  content: none !important;
+  display: none !important;
+}
+
+.ag-cell button:hover,
+.ag-cell a.btn-purple:hover,
+.ag-cell a.btn-edit:hover,
+.btn-maroon-outline:hover,
+.btn-gray-outline:hover,
+.btn-purple:hover,
+.btn-gray:hover {
+  background-color: rgba(0, 0, 0, 0.04) !important;
+  opacity: 0.9 !important;
+}
+
+/* Font color rules for AG Grid Cell Buttons */
+/* 1. Edit and Sync Data -> purple (#820f4c) */
+.ag-theme-alpine .ag-cell button.btn-purple,
+.ag-theme-quartz .ag-cell button.btn-purple,
+.ag-theme-alpine .ag-cell a.btn-purple,
+.ag-theme-quartz .ag-cell a.btn-purple,
+.ag-cell button.btn-purple,
+.ag-cell button.btn-maroon-outline,
+.ag-cell a.btn-purple,
+.ag-cell a.btn-edit,
+.ag-cell a.btn-maroon-outline,
+.btn-purple,
+.btn-edit,
+.btn-maroon-outline,
+.btn-sync {
+  color: #820f4c !important;
+}
+
+/* 2. View Data, View Diff, and Other Diff -> #747474 */
+.ag-theme-alpine .ag-cell button.btn-gray,
+.ag-theme-quartz .ag-cell button.btn-gray,
+.ag-theme-alpine .ag-cell a.btn-gray,
+.ag-theme-quartz .ag-cell a.btn-gray,
+.ag-cell button.btn-gray,
+.ag-cell a.btn-gray,
+.btn-gray,
+.btn-view,
+.btn-diff {
+  color: #747474 !important;
 }
 
 .btn-maroon-solid {
   @apply px-3 py-1 text-xs font-normal text-white bg-[#7a1c4b] border border-[#7a1c4b] rounded hover:bg-[#61143a] transition-colors duration-150 shadow-sm cursor-pointer inline-flex items-center justify-center;
-}
-
-.btn-gray-outline {
-  @apply px-3 py-1 text-xs font-normal text-gray-600 border border-gray-300 rounded hover:bg-gray-100 transition-colors duration-150 bg-white cursor-pointer inline-flex items-center justify-center;
 }
 
 .ag-blue-link {

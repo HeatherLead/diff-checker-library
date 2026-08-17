@@ -1,23 +1,21 @@
-import React, { useState, useRef, useEffect, useLayoutEffect, useMemo } from 'react';
-import { useNavigate, useLocation } from 'react-router-dom';
+import React, { useState, useRef, useEffect, useLayoutEffect, useMemo, memo } from 'react';
+import { useNavigate, useLocation, useInRouterContext } from 'react-router-dom';
+import { useDiffChecker } from '../context/DiffCheckerContext';
 
-const TABS = [
+export const TABS = [
   {
     id: 'datatables',
     type: 'single',
     title: 'DataTables',
     optionId: 'datatables',
-    path: '/',
+    path: '',
   },
   {
-    id: 'entities_forms',
-    type: 'dropdown',
-    title: 'Entities & Forms',
-    items: [
-      { id: 'task_entity', label: 'Task Entity', path: '/task-entity' },
-      { id: 'subtask_master', label: 'SubTask Master', path: '/subtask-master' },
-      { id: 'custom_form', label: 'Custom Form', path: '/custom-form' },
-    ]
+    id: 'task_entity',
+    type: 'single',
+    title: 'Task Entity',
+    path: '/task-entity',
+    optionId: 'task_entity'
   },
   {
     id: 'configurations',
@@ -28,26 +26,49 @@ const TABS = [
       { id: 'site_config', label: 'Site Config', path: '/site-config' },
       { id: 'dropdown_config', label: 'Dropdown Config', path: '/dropdown-config' },
       { id: 'permission_config', label: 'Permission Config', path: '/permission-config' },
-      { id: 'workflow_config', label: 'WorkFlow Config', path: '/workflow-config' },
     ]
   },
   {
-    id: 'system_roles',
+    id: 'workflow_config',
+    type: 'single',
+    title: 'WorkFlow Config',
+    path: '/workflow-config',
+    optionId: 'workflow_config'
+  },
+  {
+    id: 'attachment_tag_list',
+    type: 'single',
+    title: 'Attachment Tag List',
+    path: '/attachment-tag-list',
+    optionId: 'attachment_tag_list'
+  },
+  {
+    id: 'templates',
+    type: 'single',
+    title: 'Templates',
+    path: '/templates',
+    optionId: 'templates'
+  },
+  {
+    id: 'utilities_modules',
     type: 'dropdown',
-    title: 'System & Roles',
+    title: 'utilities & modules',
     items: [
-      { id: 'attachment_tag_list', label: 'Attachment Tag List', path: '/attachment-tag-list' },
+      { id: 'subtask_master', label: 'SubTask Master', path: '/subtask-master' },
+      { id: 'custom_form', label: 'Custom Form', path: '/custom-form' },
       { id: 'role_department_list', label: 'Role Department List', path: '/role-department-list' },
       { id: 'drupal_roles', label: 'Drupal Roles', path: '/drupal-roles' },
       { id: 'react_menus', label: 'React Menus', path: '/react-menus' },
-      { id: 'templates', label: 'Templates', path: '/templates' },
     ]
-  }
+  },
 ];
 
-const getActiveTabId = (activeOption) => {
+export const getActiveTabId = (activeOption) => {
   if (activeOption === 'datatables') return 'datatables';
   for (const tab of TABS) {
+    if (tab.type === 'single' && (tab.optionId === activeOption || tab.id === activeOption)) {
+      return tab.id;
+    }
     if (tab.type === 'dropdown' && tab.items.some(item => item.id === activeOption)) {
       return tab.id;
     }
@@ -55,27 +76,80 @@ const getActiveTabId = (activeOption) => {
   return 'datatables';
 };
 
-const NavigationRow = ({ activeOption, onSelectOption }) => {
-  const navigate = useNavigate();
-  const location = useLocation();
+// Safe router hook wrapper
+const useSafeRouter = () => {
+  const inRouter = typeof useInRouterContext === 'function' ? useInRouterContext() : false;
+  let navigate = null;
+  let location = { pathname: typeof window !== 'undefined' ? window.location.pathname : '/' };
+
+  if (inRouter) {
+    try {
+      // eslint-disable-next-line react-hooks/rules-of-hooks
+      navigate = useNavigate();
+      // eslint-disable-next-line react-hooks/rules-of-hooks
+      location = useLocation();
+    } catch {
+      // Fallback
+    }
+  }
+
+  return { navigate, location };
+};
+
+const NavigationRow = memo(({ activeOption: propActiveOption, onSelectOption: propOnSelectOption }) => {
+  const ctx = useDiffChecker();
+  const activeOption = propActiveOption || ctx.activeOption;
+  const onSelectOption = propOnSelectOption || ctx.handleSelectOption;
+  const basePath = ctx.basePath !== undefined ? ctx.basePath : '/diff-checker';
+
+  const { navigate, location } = useSafeRouter();
   const [openDropdownId, setOpenDropdownId] = useState(null);
   const tabRefs = useRef({});
   const navContainerRef = useRef(null);
   const [indicatorStyle, setIndicatorStyle] = useState({ left: 0, width: 0, opacity: 0 });
 
+  // Clean base path without trailing slash
+  const cleanBasePath = useMemo(() => {
+    if (!basePath) return '';
+    const trimmed = basePath.trim();
+    if (trimmed === '/') return '';
+    return trimmed.replace(/\/+$/, '');
+  }, [basePath]);
+
+  // Helper to build full route path
+  const buildFullPath = (subPath) => {
+    if (!subPath || subPath === '/') {
+      return cleanBasePath || '/';
+    }
+    const cleanSub = subPath.startsWith('/') ? subPath : `/${subPath}`;
+    return `${cleanBasePath}${cleanSub}`;
+  };
+
   const currentActiveOption = useMemo(() => {
-    if (location.pathname === '/') return 'datatables';
+    const currentPath = location.pathname.replace(/\/+$/, '') || '/';
+    const rootPath = cleanBasePath || '/';
+
+    if (currentPath === rootPath || currentPath === '' || currentPath === '/') {
+      return 'datatables';
+    }
+
     for (const tab of TABS) {
-      if (tab.type === 'single' && tab.path === location.pathname) {
-        return tab.optionId;
+      if (tab.type === 'single') {
+        const fullTabPath = buildFullPath(tab.path).replace(/\/+$/, '') || '/';
+        if (currentPath === fullTabPath || (tab.path && currentPath.endsWith(tab.path))) {
+          return tab.optionId;
+        }
       }
       if (tab.type === 'dropdown') {
-        const found = tab.items.find(item => item.path === location.pathname);
+        const found = tab.items.find(item => {
+          const fullItemPath = buildFullPath(item.path).replace(/\/+$/, '') || '/';
+          return currentPath === fullItemPath || (item.path && currentPath.endsWith(item.path));
+        });
         if (found) return found.id;
       }
     }
     return activeOption || 'datatables';
-  }, [location.pathname, activeOption]);
+  }, [location.pathname, cleanBasePath, activeOption]);
 
   const activeTabId = getActiveTabId(currentActiveOption);
 
@@ -119,10 +193,19 @@ const NavigationRow = ({ activeOption, onSelectOption }) => {
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
+  const navigateTo = (targetPath) => {
+    const fullPath = buildFullPath(targetPath);
+    if (navigate) {
+      navigate(fullPath);
+    } else if (typeof window !== 'undefined') {
+      window.history.pushState({}, '', fullPath);
+    }
+  };
+
   const handleTabClick = (tab) => {
     if (tab.type === 'single') {
       if (onSelectOption) onSelectOption(tab.optionId, tab.title);
-      if (tab.path) navigate(tab.path);
+      navigateTo(tab.path);
       setOpenDropdownId(null);
     } else {
       setOpenDropdownId(prev => (prev === tab.id ? null : tab.id));
@@ -131,7 +214,7 @@ const NavigationRow = ({ activeOption, onSelectOption }) => {
 
   const handleSelectItem = (item) => {
     if (onSelectOption) onSelectOption(item.id, item.label);
-    if (item.path) navigate(item.path);
+    navigateTo(item.path);
     setOpenDropdownId(null);
   };
 
@@ -151,11 +234,10 @@ const NavigationRow = ({ activeOption, onSelectOption }) => {
                   key={tab.id}
                   ref={(el) => (tabRefs.current[tab.id] = el)}
                   onClick={() => handleTabClick(tab)}
-                  className={`py-3.5 text-[13px] font-semibold transition-colors duration-200 cursor-pointer outline-none ${
-                    isTabActive
-                      ? 'text-[#820f4c]'
-                      : 'text-gray-700 hover:text-[#820f4c]'
-                  }`}
+                  className={`py-3.5 text-[13px] font-semibold transition-colors duration-200 cursor-pointer outline-none ${isTabActive
+                    ? 'text-[#820f4c]'
+                    : 'text-gray-700 hover:text-gray-900'
+                    }`}
                 >
                   {tab.title}
                 </button>
@@ -167,17 +249,15 @@ const NavigationRow = ({ activeOption, onSelectOption }) => {
                 <button
                   ref={(el) => (tabRefs.current[tab.id] = el)}
                   onClick={() => handleTabClick(tab)}
-                  className={`py-3.5 text-[13px] font-semibold flex items-center space-x-1.5 transition-colors duration-200 cursor-pointer outline-none ${
-                    isTabActive
-                      ? 'text-[#820f4c]'
-                      : 'text-gray-700 hover:text-[#820f4c]'
-                  }`}
+                  className={`py-3.5 text-[13px] font-semibold flex items-center space-x-1.5 transition-colors duration-200 cursor-pointer outline-none ${isTabActive
+                    ? 'text-[#820f4c]'
+                    : 'text-gray-700 hover:text-gray-900'
+                    }`}
                 >
                   <span>{tab.title}</span>
                   <svg
-                    className={`w-4 h-4 transition-transform duration-200 ${
-                      isOpen ? 'transform rotate-180 text-[#820f4c]' : 'text-gray-400'
-                    }`}
+                    className={`w-4 h-4 transition-transform duration-200 ${isOpen ? 'transform rotate-180 text-[#820f4c]' : 'text-gray-400'
+                      }`}
                     fill="none"
                     stroke="currentColor"
                     viewBox="0 0 24 24"
@@ -188,18 +268,17 @@ const NavigationRow = ({ activeOption, onSelectOption }) => {
 
                 {/* DROPDOWN MENU CARD */}
                 {isOpen && (
-                  <div className="absolute left-0 top-full mt-0 w-60 bg-white border border-gray-100 rounded-lg shadow-xl py-1 z-50 animate-in fade-in zoom-in-95 duration-150 overflow-hidden">
+                  <div className="absolute left-0 top-full mt-0 w-52 min-w-[180px] bg-white border border-gray-100 rounded-lg shadow-xl py-1 z-50 animate-in fade-in zoom-in-95 duration-150 overflow-hidden">
                     {tab.items.map((item) => {
                       const isOptionSelected = currentActiveOption === item.id;
                       return (
                         <button
                           key={item.id}
                           onClick={() => handleSelectItem(item)}
-                          className={`w-full text-left px-5 py-2.5 text-[13px] transition-colors duration-150 cursor-pointer ${
-                            isOptionSelected
-                              ? 'bg-[#820f4c] text-white font-medium'
-                              : 'text-gray-700 hover:bg-[#820f4c] hover:text-white font-medium'
-                          }`}
+                          className={`w-full text-left px-2 py-1 text-[13px] transition-colors duration-150 cursor-pointer ${isOptionSelected
+                            ? 'bg-[#820f4c] text-white font-medium'
+                            : 'text-gray-700 hover:bg-gray-100 hover:text-gray-900 font-medium'
+                            }`}
                         >
                           {item.label}
                         </button>
@@ -225,6 +304,6 @@ const NavigationRow = ({ activeOption, onSelectOption }) => {
       />
     </div>
   );
-};
+});
 
 export default NavigationRow;

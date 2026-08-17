@@ -1,0 +1,204 @@
+import { useState, useEffect, useMemo, useCallback, useRef } from 'react';
+import { useDiffChecker } from '../context/DiffCheckerContext';
+import { getOptionConfig } from '../config';
+
+export interface UseConfigurationDiffOptions {
+  diffTag?: string;
+  autoFetch?: boolean;
+}
+
+export function useConfigurationDiff(diffTag: string, options: { autoFetch?: boolean } = {}) {
+  const { autoFetch = true } = options;
+
+  const ctx = useDiffChecker();
+  const apiBaseUrl = (ctx.apiBaseUrl || ctx.baseUrl1 || "").trim();
+  const baseUrl1 = ctx.baseUrl1 || "";
+  const baseUrl2 = ctx.baseUrl2 || "";
+  const headers = ctx.headers || {};
+  const setBaseUrl1 = ctx.setBaseUrl1 || (() => { });
+  const setBaseUrl2 = ctx.setBaseUrl2 || (() => { });
+  const setBackendMetadata = ctx.setBackendMetadata || (() => { });
+  const openDiffViewer = ctx.openDiffViewer || (() => { });
+  const openDataViewer = ctx.openDataViewer || (() => { });
+  const handleSyncConfiguration = ctx.handleSyncConfiguration || (() => { });
+  const handleCloneConfiguration = ctx.handleCloneConfiguration || (() => { });
+  const showToast = ctx.showToast || (() => { });
+
+  const [isLoading, setIsLoading] = useState(false);
+  const [site1Data, setSite1Data] = useState<any[]>([]);
+  const [site2Data, setSite2Data] = useState<any[]>([]);
+  const [error, setError] = useState<any>(null);
+
+  const lastFetchedKeyRef = useRef<string | null>(null);
+
+  const config = useMemo(() => getOptionConfig(diffTag), [diffTag]);
+
+  // Resolve API tag
+  const apiTag = useMemo(() => {
+    if (diffTag === 'datatables' || diffTag === 'datatables_config' || !diffTag) {
+      return 'datatables_config';
+    }
+    return (config && config.apiKey && config.apiKey !== 'datatables') ? config.apiKey : diffTag;
+  }, [diffTag, config]);
+
+  const fetchData = useCallback(async (force = false) => {
+    if (!apiBaseUrl) {
+      return;
+    }
+
+    if (!force && lastFetchedKeyRef.current === apiTag) {
+      return;
+    }
+    lastFetchedKeyRef.current = apiTag;
+
+    setIsLoading(true);
+    setError(null);
+
+    let cleanBaseUrl = apiBaseUrl;
+
+    if (!cleanBaseUrl.startsWith('http://') && !cleanBaseUrl.startsWith('https://')) {
+      cleanBaseUrl = `https://${cleanBaseUrl}`;
+    }
+    cleanBaseUrl = cleanBaseUrl.replace(/\/+$/, '');
+
+    const getUrl = `${cleanBaseUrl}/api/get-configuration?diff_tag=${encodeURIComponent(apiTag)}`;
+
+    let result: any = null;
+    let fetchError = false;
+
+    try {
+      const response = await fetch(getUrl, {
+        method: 'GET',
+        headers: {
+          'Accept': 'application/json',
+          ...headers,
+        },
+        credentials: 'include',
+      });
+
+      if (response.ok) {
+        result = await response.json();
+      } else {
+        console.warn(`[useConfigurationDiff] Fetch failed from ${getUrl} (status: ${response.status})`);
+        fetchError = true;
+      }
+    } catch (err) {
+      console.warn(`[useConfigurationDiff] Failed to fetch from API ${getUrl}:`, err);
+      fetchError = true;
+      setError(err);
+    }
+
+    let site1: any[] = [];
+    let site2: any[] = [];
+    let isErrorState = false;
+
+    try {
+      if (result && (result.status_code === 1 || result.status === 'success' || result.data) && result.data) {
+        const payloadData = result.data;
+
+        if (payloadData.src_url) {
+          setBaseUrl1((prev: string) => prev !== payloadData.src_url ? payloadData.src_url : prev);
+        }
+        if (payloadData.target_url) {
+          setBaseUrl2((prev: string) => prev !== payloadData.target_url ? payloadData.target_url : prev);
+        }
+
+        setBackendMetadata({
+          import_id: payloadData.import_id || null,
+          src_name: payloadData.src_name || '',
+          src_url: payloadData.src_url || '',
+          target_name: payloadData.target_name || '',
+          target_url: payloadData.target_url || '',
+        });
+
+        if (apiTag === 'datatables_config' || apiTag === 'datatables') {
+          site1 = payloadData.datatables_config || payloadData.site1 || payloadData.data || [];
+          site2 = payloadData.datatables_config_site2 || payloadData.site2 || payloadData.target_data || [];
+        } else {
+          const possibleData = payloadData[apiTag] || payloadData[diffTag] || payloadData.site1 || payloadData.data || payloadData.datatables_config;
+          site1 = Array.isArray(possibleData) ? possibleData : [];
+          site2 = payloadData[`${apiTag}_site2`] || payloadData[`${diffTag}_site2`] || payloadData.site2 || payloadData.target_data || [];
+        }
+      } else {
+        if (fetchError || !result) {
+          isErrorState = true;
+        }
+      }
+    } catch (err) {
+      console.error('Error processing dataset:', err);
+      isErrorState = true;
+      setError(err);
+    }
+
+    setSite1Data(site1 || []);
+    setSite2Data(site2 || []);
+    setIsLoading(false);
+
+    if (isErrorState) {
+      showToast('An error occured', true);
+    } else {
+      showToast('Data fetch successfully');
+    }
+  }, [apiBaseUrl, apiTag, diffTag, headers, setBaseUrl1, setBaseUrl2, setBackendMetadata, showToast]);
+
+  useEffect(() => {
+    if (autoFetch) {
+      fetchData();
+    }
+  }, [apiTag, autoFetch, fetchData]);
+
+  // Compute dataset diffs
+  const { dataDiffRows, versionMismatchRows, onlySite1Rows, onlySite2Rows } = useMemo(() => {
+    if (!config || typeof config.compare !== 'function') {
+      return { dataDiffRows: [], versionMismatchRows: [], onlySite1Rows: [], onlySite2Rows: [] };
+    }
+    const res = config.compare(site1Data, site2Data) || {};
+    return {
+      dataDiffRows: res.dataDiffRows || res.dataDiff || [],
+      versionMismatchRows: res.versionMismatchRows || res.versionMismatch || [],
+      onlySite1Rows: res.onlySite1Rows || res.onlySite1 || [],
+      onlySite2Rows: res.onlySite2Rows || res.onlySite2 || [],
+    };
+  }, [config, site1Data, site2Data]);
+
+  // Generate column definitions
+  const columns = useMemo(() => {
+    if (!config || typeof config.getColumns !== 'function') {
+      return { dataDiffColDefs: [], versionMismatchColDefs: [], site1ColDefs: [], site2ColDefs: [] };
+    }
+    return config.getColumns({
+      openDiffViewer,
+      openDataViewer,
+      handleSyncConfiguration,
+      handleCloneConfiguration,
+      showToast,
+      baseUrl1,
+      baseUrl2,
+    });
+  }, [config, openDiffViewer, openDataViewer, handleSyncConfiguration, handleCloneConfiguration, showToast, baseUrl1, baseUrl2]);
+
+  return {
+    isLoading,
+    error,
+    site1Data,
+    site2Data,
+    setSite1Data,
+    setSite2Data,
+    dataDiffRows,
+    versionMismatchRows,
+    onlySite1Rows,
+    onlySite2Rows,
+    columns,
+    refetch: () => fetchData(true),
+    config,
+    baseUrl1,
+    baseUrl2,
+    openDiffViewer,
+    openDataViewer,
+    handleSyncConfiguration,
+    handleCloneConfiguration,
+    showToast,
+  };
+}
+
+export default useConfigurationDiff;

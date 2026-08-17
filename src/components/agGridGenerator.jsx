@@ -130,6 +130,8 @@ const resolveGridRowKey = (row, rowSelectionId) => {
   if (!row) return null;
   const id =
     row.id ||
+    row.tag ||
+    row.tag_name ||
     row.issue_id ||
     row.issue_encoded_id ||
     row.task_id ||
@@ -137,6 +139,8 @@ const resolveGridRowKey = (row, rowSelectionId) => {
     row.initiative_id ||
     row.ticket_code ||
     row.user_id ||
+    row.module ||
+    row.entity_type ||
     (rowSelectionId && row[rowSelectionId]) ||
     row.uid;
   return id != null && id !== "" ? String(id) : null;
@@ -177,7 +181,7 @@ const DefaultCellRenderer = (params) => {
             params.colDef.onActionClick(params.data);
           }
         }}
-        className="btn-maroon-outline"
+        className="btn-purple"
       >
         Edit
       </button>
@@ -214,16 +218,124 @@ const DefaultCellRenderer = (params) => {
   return <span>{String(val)}</span>;
 };
 
-const NON_FILTERABLE_FIELDS = new Set([
-  "syncData",
-  "datatableDiff",
-  "queryDiff",
-  "otherDiff",
-  "viewData",
+const NON_FILTERABLE_EXACT_FIELDS = new Set([
+  "syncdata",
+  "synchdata",
+  "sync_data",
+  "sync",
+  "syncdatabtn",
+  "datatablediff",
+  "querydiff",
+  "otherdiff",
+  "other_diff",
+  "rolediff",
+  "role_diff",
+  "dtdiff",
+  "dt_diff",
+  "dfdiff",
+  "df_diff",
+  "customformdiff",
+  "diff",
+  "viewdata",
+  "view_data",
+  "view",
+  "viewbtn",
   "action",
-  "site1Config",
-  "site2Config",
+  "actions",
+  "edit",
+  "site1config",
+  "site2config",
+  "site1_config",
+  "site2_config",
+  "siteconfig",
+  "copyleft",
+  "copyright",
+  "copytoleft",
+  "copytoright",
+  "copy_left",
+  "copy_right",
+  "copy_to_left",
+  "copy_to_right",
 ]);
+
+const isNonFilterableCol = (field, colObj) => {
+  if (!colObj) colObj = {};
+  if (colObj.filter === false || colObj.floatingFilter === false || colObj.isButton || colObj.isAction) {
+    return true;
+  }
+
+  const strField = String(field || colObj.colId || colObj.field || "").toLowerCase().replace(/[^a-z0-9]/g, "");
+  const strHeader = String(colObj.header || colObj.headerName || "").toLowerCase().trim();
+
+  // If headerName is explicitly empty (often used for action/sync buttons like Copy to Left/Right)
+  if (colObj.headerName === "" || colObj.header === "") {
+    return true;
+  }
+
+  // Check exact field match
+  if (strField && NON_FILTERABLE_EXACT_FIELDS.has(strField)) {
+    return true;
+  }
+
+  // Check header text or field name for button-related keywords
+  // BUT exclude status fields like dt_status, df_status, role_diff_status, status
+  const isStatusField = strField.includes("status") || strHeader.includes("status");
+
+  if (!isStatusField) {
+    if (strHeader) {
+      if (
+        strHeader.includes("diff") ||
+        strHeader.includes("edit") ||
+        strHeader.includes("view") ||
+        strHeader.includes("copy") ||
+        strHeader.includes("sync") ||
+        strHeader.includes("action") ||
+        strHeader.includes("config")
+      ) {
+        return true;
+      }
+    }
+
+    if (strField) {
+      if (
+        strField.includes("diff") ||
+        strField.includes("edit") ||
+        strField.includes("view") ||
+        strField.includes("copy") ||
+        strField.includes("sync") ||
+        strField.includes("action")
+      ) {
+        return true;
+      }
+    }
+  }
+
+  // Check cellProps (if any)
+  if (
+    colObj.cellProps?.cellFun === "customeAPIBtn" ||
+    String(colObj.cellProps?.props?.className || "").includes("btn") ||
+    String(colObj.cellProps?.props?.className || "").includes("icon")
+  ) {
+    return true;
+  }
+
+  // Check cellRenderer function string representation
+  if (typeof colObj.cellRenderer === "function") {
+    const fnStr = colObj.cellRenderer.toString();
+    if (
+      fnStr.includes("<button") ||
+      fnStr.includes("btn-") ||
+      fnStr.includes("handleSync") ||
+      fnStr.includes("handleClone") ||
+      fnStr.includes("openDiffViewer") ||
+      fnStr.includes("openDataViewer")
+    ) {
+      return true;
+    }
+  }
+
+  return false;
+};
 
 /**
  * AgGridGenerator Component
@@ -240,16 +352,19 @@ export const AgGridGenerator = ({
   tableData,
   rowData: directRowData,
   columnDefs: directColumnDefs,
-  height = "320px",
+  height,
+  minHeight = "250px",
+  maxHeight = "460px",
   defaultColDef = {},
   gridOptions = {},
   onGridReady: externalOnGridReady,
+  onCellClicked: externalOnCellClicked,
   themeClass = "ag-theme-alpine",
   noRowsMessage = "No Records Found",
   enableTotalRowCount = true,
   rowSelection = "multiple",
   enableCheckboxSelection = false,
-  showFloatingFilter = true,
+  showFloatingFilter = false,
   showTableFilter,
   ...props
 }) => {
@@ -257,10 +372,10 @@ export const AgGridGenerator = ({
   const isFilterVisible = showTableFilter !== undefined ? showTableFilter : showFloatingFilter;
 
   const effectiveRowData = useMemo(() => {
-    if (Array.isArray(directRowData) && directRowData.length > 0) {
+    if (Array.isArray(directRowData)) {
       return directRowData;
     }
-    if (Array.isArray(viewData) && viewData.length > 0) {
+    if (Array.isArray(viewData)) {
       return viewData;
     }
     return directRowData || viewData || [];
@@ -270,21 +385,16 @@ export const AgGridGenerator = ({
   const derivedColumnDefs = useMemo(() => {
     let cols = [];
 
-    const isNonFilterableCol = (field, colObj) => {
-      if (colObj?.filter === false || colObj?.floatingFilter === false) return true;
-      if (!field) return false;
-      const lower = String(field).toLowerCase();
-      return NON_FILTERABLE_FIELDS.has(field) || NON_FILTERABLE_FIELDS.has(lower);
-    };
-
     if (Array.isArray(directColumnDefs) && directColumnDefs.length > 0) {
       cols = directColumnDefs.map((col) => {
         const isNonFilterable = isNonFilterableCol(col.field, col);
         return {
           ...col,
+          cellStyle: isNonFilterable ? { display: 'flex', alignItems: 'center', justifyContent: 'center', ...(col.cellStyle || {}) } : col.cellStyle,
           cellRenderer: col.cellRenderer || DefaultCellRenderer,
           filter: isNonFilterable ? false : col.filter ?? "agTextColumnFilter",
-          floatingFilter: isNonFilterable ? false : true,
+          floatingFilter: !isNonFilterable,
+          menuTabs: isNonFilterable ? ["generalMenuTab"] : ["generalMenuTab", "filterMenuTab"],
           floatingFilterComponentParams: {
             suppressFilterButton: true,
           },
@@ -302,7 +412,8 @@ export const AgGridGenerator = ({
             colId: col.id,
             sortable: true,
             filter: isNonFilterable ? false : "agTextColumnFilter",
-            floatingFilter: isNonFilterable ? false : true,
+            floatingFilter: !isNonFilterable,
+            menuTabs: isNonFilterable ? ["generalMenuTab"] : ["generalMenuTab", "filterMenuTab"],
             floatingFilterComponentParams: {
               suppressFilterButton: true,
             },
@@ -323,7 +434,8 @@ export const AgGridGenerator = ({
             field: key,
             sortable: true,
             filter: isNonFilterable ? false : "agTextColumnFilter",
-            floatingFilter: isNonFilterable ? false : true,
+            floatingFilter: !isNonFilterable,
+            menuTabs: isNonFilterable ? ["generalMenuTab"] : ["generalMenuTab", "filterMenuTab"],
             floatingFilterComponentParams: {
               suppressFilterButton: true,
             },
@@ -363,19 +475,21 @@ export const AgGridGenerator = ({
 
   // Main menu items popup configuration matching screenshot exactly
   const getMainMenuItems = useCallback((params) => {
+    const api = params.api || params.columnApi;
+    const colId = params.column.getColId();
     return [
       {
         name: "Sort Ascending",
-        action: () => params.columnApi.applyColumnState({
-          state: [{ colId: params.column.getColId(), sort: "asc" }],
+        action: () => api.applyColumnState({
+          state: [{ colId, sort: "asc" }],
           defaultState: { sort: null }
         }),
         icon: '<span style="font-size: 14px; font-weight: normal;">↑</span>'
       },
       {
         name: "Sort Descending",
-        action: () => params.columnApi.applyColumnState({
-          state: [{ colId: params.column.getColId(), sort: "desc" }],
+        action: () => api.applyColumnState({
+          state: [{ colId, sort: "desc" }],
           defaultState: { sort: null }
         }),
         icon: '<span style="font-size: 14px; font-weight: normal;">↓</span>'
@@ -394,6 +508,7 @@ export const AgGridGenerator = ({
       resizable: true,
       filter: "agTextColumnFilter",
       floatingFilter: true,
+      menuTabs: ["generalMenuTab", "filterMenuTab"],
       flex: 1,
       minWidth: 110,
       headerClass: "font-normal text-gray-700",
@@ -423,6 +538,69 @@ export const AgGridGenerator = ({
     [externalOnGridReady, derivedColumnDefs]
   );
 
+  const handleCellClicked = useCallback(
+    (params) => {
+      if (typeof externalOnCellClicked === "function") {
+        externalOnCellClicked(params);
+      } else if (typeof props.onCellClicked === "function") {
+        props.onCellClicked(params);
+      }
+    },
+    [externalOnCellClicked, props.onCellClicked]
+  );
+
+  const [headerContextMenu, setHeaderContextMenu] = useState(null);
+
+  const gridContainerRef = useRef(null);
+
+  useEffect(() => {
+    const container = gridContainerRef.current;
+    if (!container) return;
+
+    const handleContextMenuCapture = (e) => {
+      const headerCell = e.target.closest(".ag-header-cell");
+      if (!headerCell) return;
+
+      const colId = headerCell.getAttribute("col-id");
+      if (!colId || colId === "ag-Grid-Selection") return;
+
+      e.preventDefault();
+      e.stopPropagation();
+
+      const api = gridRef.current?.api;
+      const col = api?.getColumn?.(colId);
+      const colDef = col?.getColDef?.();
+      const colName = colDef?.headerName || colDef?.field || colId;
+
+      const x = Math.min(e.clientX, window.innerWidth - 210);
+      const y = Math.min(e.clientY, window.innerHeight - 250);
+
+      setHeaderContextMenu({
+        x,
+        y,
+        colId,
+        colName,
+        pinned: col?.getPinned?.() || null,
+      });
+    };
+
+    container.addEventListener("contextmenu", handleContextMenuCapture, true);
+    return () => {
+      container.removeEventListener("contextmenu", handleContextMenuCapture, true);
+    };
+  }, [derivedColumnDefs]);
+
+  useEffect(() => {
+    if (!headerContextMenu) return;
+    const handleClose = () => setHeaderContextMenu(null);
+    window.addEventListener("click", handleClose);
+    window.addEventListener("scroll", handleClose, true);
+    return () => {
+      window.removeEventListener("click", handleClose);
+      window.removeEventListener("scroll", handleClose, true);
+    };
+  }, [headerContextMenu]);
+
   useEffect(() => {
     if (gridRef.current?.api && derivedColumnDefs.length > 0) {
       applyColumnAutoSize(gridRef.current.api, derivedColumnDefs);
@@ -435,16 +613,28 @@ export const AgGridGenerator = ({
     return effectiveRowData.length;
   }, [tableData, effectiveRowData]);
 
+  const containerHeight = useMemo(() => {
+    if (height && !minHeight && !maxHeight) return height;
+    const rows = effectiveRowData ? effectiveRowData.length : 0;
+    const headerH = isFilterVisible ? 72 : 38;
+    const contentH = headerH + Math.max(rows, 1) * 38 + 10;
+    const minH = parseInt(String(minHeight || "250"), 10);
+    const maxH = parseInt(String(maxHeight || "460"), 10);
+    const targetH = Math.min(Math.max(contentH, minH), maxH);
+    return `${targetH}px`;
+  }, [effectiveRowData, isFilterVisible, height, minHeight, maxHeight]);
+
   return (
-    <div className="w-full flex flex-col gap-2">
+    <div className="w-full flex flex-col gap-2 relative">
       {enableTotalRowCount && totalRowCount > 0 && (
         <div className="flex justify-between items-center px-1 text-xs text-gray-500 font-normal">
           <span>Total Records: <span className="text-gray-800 font-normal">{totalRowCount}</span></span>
         </div>
       )}
       <div
-        className={`${themeClass} ${isFilterVisible ? 'ag-floating-filter-visible' : 'ag-floating-filter-hidden'} w-full shadow-sm border border-gray-200 rounded-md overflow-hidden bg-white text-xs`}
-        style={{ height }}
+        ref={gridContainerRef}
+        className={`${themeClass} ${isFilterVisible ? 'ag-floating-filter-visible' : 'ag-floating-filter-hidden'} w-full shadow-sm border border-gray-200 rounded-md overflow-hidden bg-white text-xs transition-all duration-300 ease-in-out`}
+        style={{ height: containerHeight, minHeight, maxHeight }}
       >
         <AgGridReact
           ref={gridRef}
@@ -452,6 +642,7 @@ export const AgGridGenerator = ({
           columnDefs={derivedColumnDefs}
           defaultColDef={standardDefaultColDef}
           onGridReady={handleGridReady}
+          onCellClicked={handleCellClicked}
           getRowId={getRowId}
           rowSelection={rowSelection}
           getMainMenuItems={getMainMenuItems}
@@ -459,12 +650,83 @@ export const AgGridGenerator = ({
           floatingFiltersHeight={34}
           rowHeight={38}
           suppressCellFocus={true}
+          suppressRowClickSelection={true}
           animateRows={true}
           overlayNoRowsTemplate={`<span class="text-sm font-normal text-gray-500">${noRowsMessage}</span>`}
           {...gridOptions}
           {...props}
         />
       </div>
+
+      {headerContextMenu && (
+        <div
+          className="fixed z-50 bg-white border border-gray-200 rounded-md shadow-xl text-xs py-1 w-48 text-gray-700 font-normal select-none"
+          style={{ top: headerContextMenu.y, left: headerContextMenu.x }}
+          onClick={(e) => e.stopPropagation()}
+        >
+          <div className="px-3 py-1.5 font-semibold text-[11px] text-gray-400 uppercase tracking-wider border-b border-gray-100 bg-gray-50/50 truncate">
+            {headerContextMenu.colName}
+          </div>
+
+          <div className="py-1 border-b border-gray-100">
+            <button
+              type="button"
+              className={`w-full text-left px-3 py-1.5 hover:bg-[#fde6f7] hover:text-[#881337] flex items-center justify-between transition-colors cursor-pointer ${headerContextMenu.pinned === "left" ? "font-semibold text-[#881337] bg-[#fde6f7]/50" : ""
+                }`}
+              onClick={() => {
+                gridRef.current?.api?.applyColumnState({
+                  state: [{ colId: headerContextMenu.colId, pinned: headerContextMenu.pinned === "left" ? null : "left" }],
+                });
+                setHeaderContextMenu(null);
+              }}
+            >
+              <span>Pin Left</span>
+              {headerContextMenu.pinned === "left" && <span>✓</span>}
+            </button>
+            <button
+              type="button"
+              className={`w-full text-left px-3 py-1.5 hover:bg-[#fde6f7] hover:text-[#881337] flex items-center justify-between transition-colors cursor-pointer ${headerContextMenu.pinned === "right" ? "font-semibold text-[#881337] bg-[#fde6f7]/50" : ""
+                }`}
+              onClick={() => {
+                gridRef.current?.api?.applyColumnState({
+                  state: [{ colId: headerContextMenu.colId, pinned: headerContextMenu.pinned === "right" ? null : "right" }],
+                });
+                setHeaderContextMenu(null);
+              }}
+            >
+              <span>Pin Right</span>
+              {headerContextMenu.pinned === "right" && <span>✓</span>}
+            </button>
+          </div>
+
+          <button
+            type="button"
+            className="w-full text-left px-3 py-1.5 hover:bg-[#fde6f7] hover:text-[#881337] flex items-center gap-2 transition-colors cursor-pointer"
+            onClick={() => {
+              if (gridRef.current?.api) {
+                gridRef.current.api.autoSizeColumns([headerContextMenu.colId], false);
+                clampColumnWidths(gridRef.current.api, [headerContextMenu.colId]);
+              }
+              setHeaderContextMenu(null);
+            }}
+          >
+            <span>Autosize This Column</span>
+          </button>
+
+          <button
+            type="button"
+            className="w-full text-left px-3 py-1.5 hover:bg-[#fde6f7] hover:text-[#881337] flex items-center gap-2 transition-colors cursor-pointer"
+            onClick={() => {
+              if (gridRef.current?.api) {
+                applyColumnAutoSize(gridRef.current.api, derivedColumnDefs);
+              }
+              setHeaderContextMenu(null);
+            }}
+          >
+            <span>Autosize All Columns</span>
+          </button>
+        </div>
+      )}
     </div>
   );
 };
