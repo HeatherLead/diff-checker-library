@@ -3,7 +3,7 @@ import { useConfigurationDiff } from '../../hooks/useConfigurationDiff';
 import DataDiffTable from '../../components/DataDiffTable';
 import VersionMismatchTable from '../../components/VersionMismatchTable';
 import OnlySiteTable from '../../components/OnlySiteTable';
-import { renderTrimTooltip } from '../../utils/cellRenderers';
+import { renderTrimTooltip, renderTagLink } from '../../utils/cellRenderers';
 
 export const roleDepartmentListConfig = {
   apiKey: 'role_department_list',
@@ -36,6 +36,7 @@ export const roleDepartmentListConfig = {
       } else {
         onlySite1.push({
           tag: record1.role?.trim(),
+          id: record1.id || record1.role?.trim(),
           raw: record1
         });
       }
@@ -46,6 +47,7 @@ export const roleDepartmentListConfig = {
       if (!record1) {
         onlySite2.push({
           tag: record2.role?.trim(),
+          id: record2.id || record2.role?.trim(),
           raw: record2
         });
       }
@@ -68,7 +70,7 @@ export const roleDepartmentListConfig = {
         }
       ],
       site1ColDefs: [
-        { field: 'tag', headerName: 'ROLE', flex: 2, cellClass: 'font-normal text-[#800040]', cellRenderer: (params: any) => renderTrimTooltip(params.value, 35) },
+        { field: 'tag', headerName: 'ROLE', flex: 2, cellClass: 'font-normal text-[#800040]', cellRenderer: (params: any) => renderTagLink(baseUrl1, 'role-department-list', params.data.id || params.data.tag, params.value) },
         {
           field: 'viewData',
           headerName: 'VIEW DATA',
@@ -87,7 +89,7 @@ export const roleDepartmentListConfig = {
         }
       ],
       site2ColDefs: [
-        { field: 'tag', headerName: 'TAG', flex: 2, cellClass: 'font-normal text-[#800040]', cellRenderer: (params: any) => renderTrimTooltip(params.value, 35) },
+        { field: 'tag', headerName: 'TAG', flex: 2, cellClass: 'font-normal text-[#800040]', cellRenderer: (params: any) => renderTagLink(baseUrl2, 'role-department-list', params.data.id || params.data.tag, params.value) },
         {
           field: 'viewData',
           headerName: 'VIEW DATA',

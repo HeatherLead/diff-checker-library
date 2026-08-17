@@ -3,7 +3,7 @@ import { useConfigurationDiff } from '../../hooks/useConfigurationDiff';
 import DataDiffTable from '../../components/DataDiffTable';
 import VersionMismatchTable from '../../components/VersionMismatchTable';
 import OnlySiteTable from '../../components/OnlySiteTable';
-import { renderTrimTooltip } from '../../utils/cellRenderers';
+import { renderTrimTooltip, renderTagLink, renderEditLink } from '../../utils/cellRenderers';
 
 export const taskEntityConfig = {
   apiKey: 'entity_forms',
@@ -98,24 +98,9 @@ export const taskEntityConfig = {
     return { dataDiff, versionMismatch, onlySite1, onlySite2 };
   },
   getColumns: ({ openDiffViewer, openDataViewer, handleSyncConfiguration, handleCloneConfiguration, baseUrl1, baseUrl2 }: any) => {
-    const renderEditLink = (url: string, id: any, label: string) => {
-      if (!url || !id) return '';
-      const isEdit = label === 'Edit' || label === 'edit';
-      return (
-        <a
-          href={`${url}/task-entity-config/edit/${id}`}
-          target="_blank"
-          rel="noreferrer"
-          className={isEdit ? "btn-purple" : "text-[#800040] hover:underline font-semibold"}
-        >
-          {label}
-        </a>
-      );
-    };
-
     return {
       dataDiffColDefs: [
-        { field: 'tag', headerName: 'TAG', flex: 1.5, cellClass: 'font-normal text-gray-700', cellRenderer: (params: any) => renderEditLink(baseUrl1, params.data.rect1id, params.value) },
+        { field: 'tag', headerName: 'TAG', flex: 1.5, cellClass: 'font-normal text-gray-700', cellRenderer: (params: any) => renderTrimTooltip(params.value, 35) },
         { field: 'siteVersion', headerName: 'SITE VERSION', flex: 1 },
         { field: 'dt_status', headerName: 'TASK ENTITY DIFF STATUS', flex: 1.5 },
         {
@@ -139,13 +124,13 @@ export const taskEntityConfig = {
           field: 'site1Config',
           headerName: 'SITE 1 CONFIG',
           flex: 1,
-          cellRenderer: (params: any) => renderEditLink(baseUrl1, params.data.rect1id, 'Edit')
+          cellRenderer: (params: any) => renderEditLink(baseUrl1, 'task-entity-config', params.data.rect1id, 'Edit')
         },
         {
           field: 'site2Config',
           headerName: 'SITE 2 CONFIG',
           flex: 1,
-          cellRenderer: (params: any) => renderEditLink(baseUrl2, params.data.rect2id, 'Edit')
+          cellRenderer: (params: any) => renderEditLink(baseUrl2, 'task-entity-config', params.data.rect2id, 'Edit')
         },
         {
           field: 'syncData',
@@ -162,13 +147,13 @@ export const taskEntityConfig = {
           field: 'site1Version',
           headerName: 'SITE1 VERSION',
           flex: 1.5,
-          cellRenderer: (params: any) => renderEditLink(baseUrl1, params.data.rect1id, params.value)
+          cellRenderer: (params: any) => renderEditLink(baseUrl1, 'task-entity-config', params.data.rect1id, params.value)
         },
         {
           field: 'site2Version',
           headerName: 'SITE2 VERSION',
           flex: 1.5,
-          cellRenderer: (params: any) => renderEditLink(baseUrl2, params.data.rect2id, params.value)
+          cellRenderer: (params: any) => renderEditLink(baseUrl2, 'task-entity-config', params.data.rect2id, params.value)
         },
         { field: 'dt_status', headerName: 'TASK ENTITY DIFF STATUS', flex: 1.5 },
         {
@@ -186,7 +171,7 @@ export const taskEntityConfig = {
           headerName: 'TAG',
           flex: 2,
           cellClass: 'font-normal text-[#800040]',
-          cellRenderer: (params: any) => renderEditLink(baseUrl1, params.data.id, params.value)
+          cellRenderer: (params: any) => renderTagLink(baseUrl1, 'task-entity-config', params.data.id, params.value)
         },
         {
           field: 'viewData',
@@ -211,7 +196,7 @@ export const taskEntityConfig = {
           headerName: 'TAG',
           flex: 2,
           cellClass: 'font-normal text-[#800040]',
-          cellRenderer: (params: any) => renderEditLink(baseUrl2, params.data.id, params.value)
+          cellRenderer: (params: any) => renderTagLink(baseUrl2, 'task-entity-config', params.data.id, params.value)
         },
         {
           field: 'viewData',

@@ -3,7 +3,7 @@ import { useConfigurationDiff } from '../../hooks/useConfigurationDiff';
 import DataDiffTable from '../../components/DataDiffTable';
 import VersionMismatchTable from '../../components/VersionMismatchTable';
 import OnlySiteTable from '../../components/OnlySiteTable';
-import { renderTrimTooltip } from '../../utils/cellRenderers';
+import { renderTrimTooltip, renderTagLink, renderEditLink } from '../../utils/cellRenderers';
 
 export const workFlowConfigConfig = {
   apiKey: 'workflow',
@@ -39,6 +39,7 @@ export const workFlowConfigConfig = {
         onlySite1.push({
           tag: record1.wf_code,
           wf_id: record1.wf_id,
+          id: record1.wf_id || record1.id,
           version: record1.version,
           raw: record1
         });
@@ -51,6 +52,7 @@ export const workFlowConfigConfig = {
         onlySite2.push({
           tag: record2.wf_code,
           wf_id: record2.wf_id,
+          id: record2.wf_id || record2.id,
           version: record2.version,
           raw: record2
         });
@@ -60,21 +62,6 @@ export const workFlowConfigConfig = {
     return { dataDiff, versionMismatch: [], onlySite1, onlySite2 };
   },
   getColumns: ({ openDiffViewer, openDataViewer, baseUrl1, baseUrl2 }: any) => {
-    const renderEditLink = (url: string, id: any, label: string) => {
-      if (!url || !id) return '';
-      const isEdit = label === 'Edit' || label === 'edit';
-      return (
-        <a
-          href={`${url}/workflow-config/edit/${id}`}
-          target="_blank"
-          rel="noreferrer"
-          className={isEdit ? "btn-purple" : "text-[#800040] hover:underline font-semibold"}
-        >
-          {label}
-        </a>
-      );
-    };
-
     return {
       dataDiffColDefs: [
         { field: 'tag', headerName: 'TAG', flex: 1.5, cellClass: 'font-normal text-gray-700', cellRenderer: (params: any) => renderTrimTooltip(params.value, 35) },
@@ -91,22 +78,22 @@ export const workFlowConfigConfig = {
           field: 'version_site1',
           headerName: 'SITE1 VERSION',
           flex: 1.2,
-          cellRenderer: (params: any) => renderEditLink(baseUrl1, params.data.rect1id, params.value)
+          cellRenderer: (params: any) => renderEditLink(baseUrl1, 'workflow-config', params.data.rect1id, params.value)
         },
         {
           field: 'version_site2',
           headerName: 'SITE2 VERSION',
           flex: 1.2,
-          cellRenderer: (params: any) => renderEditLink(baseUrl2, params.data.rect2id, params.value)
+          cellRenderer: (params: any) => renderEditLink(baseUrl2, 'workflow-config', params.data.rect2id, params.value)
         }
       ],
       site1ColDefs: [
-        { field: 'tag', headerName: 'TAG', flex: 2, cellClass: 'font-normal text-[#800040]', cellRenderer: (params: any) => renderTrimTooltip(params.value, 35) },
+        { field: 'tag', headerName: 'TAG', flex: 2, cellClass: 'font-normal text-[#800040]', cellRenderer: (params: any) => renderTagLink(baseUrl1, 'workflow-config', params.data.wf_id || params.data.id, params.value) },
         {
           field: 'version',
           headerName: 'SITE1 VERSION',
           flex: 1.2,
-          cellRenderer: (params: any) => renderEditLink(baseUrl1, params.data.wf_id, params.value)
+          cellRenderer: (params: any) => renderEditLink(baseUrl1, 'workflow-config', params.data.wf_id, params.value)
         },
         {
           field: 'viewData',
@@ -118,12 +105,12 @@ export const workFlowConfigConfig = {
         }
       ],
       site2ColDefs: [
-        { field: 'tag', headerName: 'TAG', flex: 2, cellClass: 'font-normal text-[#800040]', cellRenderer: (params: any) => renderTrimTooltip(params.value, 35) },
+        { field: 'tag', headerName: 'TAG', flex: 2, cellClass: 'font-normal text-[#800040]', cellRenderer: (params: any) => renderTagLink(baseUrl2, 'workflow-config', params.data.wf_id || params.data.id, params.value) },
         {
           field: 'version',
           headerName: 'SITE2 VERSION',
           flex: 1.2,
-          cellRenderer: (params: any) => renderEditLink(baseUrl2, params.data.wf_id, params.value)
+          cellRenderer: (params: any) => renderEditLink(baseUrl2, 'workflow-config', params.data.wf_id, params.value)
         },
         {
           field: 'viewData',

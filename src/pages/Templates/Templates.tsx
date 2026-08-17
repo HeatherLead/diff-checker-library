@@ -109,6 +109,7 @@ export const templatesConfig = {
           onlySite1.push({
             tag: tag1,
             bo_type: (record1.business_unit || "").trim(),
+            id: record1.id,
             raw: record1
           });
         }
@@ -122,6 +123,7 @@ export const templatesConfig = {
         onlySite2.push({
           tag: tag2,
           bo_type: (record2.business_unit || "").trim(),
+          id: record2.id,
           raw: record2
         });
       }
@@ -160,7 +162,7 @@ export const templatesConfig = {
         }
       ],
       site1ColDefs: [
-        { field: 'tag', headerName: 'TAG', flex: 2, cellClass: 'font-normal text-[#800040]', cellRenderer: (params: any) => renderTrimTooltip(params.value, 35) },
+        { field: 'tag', headerName: 'TAG', flex: 2, cellClass: 'font-normal text-[#800040]', cellRenderer: (params: any) => renderTagLink(baseUrl1, 'templates', params.data.id, params.value) },
         { field: 'bo_type', headerName: 'BO TYPE', flex: 1 },
         {
           field: 'viewData',
@@ -180,7 +182,7 @@ export const templatesConfig = {
         }
       ],
       site2ColDefs: [
-        { field: 'tag', headerName: 'TAG', flex: 2, cellClass: 'font-normal text-[#800040]', cellRenderer: (params: any) => renderTrimTooltip(params.value, 35) },
+        { field: 'tag', headerName: 'TAG', flex: 2, cellClass: 'font-normal text-[#800040]', cellRenderer: (params: any) => renderTagLink(baseUrl2, 'templates', params.data.id, params.value) },
         { field: 'bo_type', headerName: 'BO TYPE', flex: 1 },
         {
           field: 'viewData',

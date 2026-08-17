@@ -3,7 +3,7 @@ import { useConfigurationDiff } from '../../hooks/useConfigurationDiff';
 import DataDiffTable from '../../components/DataDiffTable';
 import VersionMismatchTable from '../../components/VersionMismatchTable';
 import OnlySiteTable from '../../components/OnlySiteTable';
-import { renderTrimTooltip } from '../../utils/cellRenderers';
+import { renderTrimTooltip, renderTagLink } from '../../utils/cellRenderers';
 
 export const attachmentTagListConfig = {
   apiKey: 'bo_attachment_tagging',
@@ -103,7 +103,7 @@ export const attachmentTagListConfig = {
         }
       ],
       site1ColDefs: [
-        { field: 'tag', headerName: 'TAG', flex: 2, cellClass: 'font-normal text-[#800040]', cellRenderer: (params: any) => renderTrimTooltip(params.value, 35) },
+        { field: 'tag', headerName: 'TAG', flex: 2, cellClass: 'font-normal text-[#800040]', cellRenderer: (params: any) => renderTagLink(baseUrl1, 'attachment-tag-list', params.data.id, params.value) },
         { field: 'bo_type', headerName: 'BO TYPE', flex: 1 },
         { field: 'task_names', headerName: 'TASK NAMES', flex: 1.5, cellRenderer: (params: any) => renderTrimTooltip(params.value, 20) },
         {
@@ -124,7 +124,7 @@ export const attachmentTagListConfig = {
         }
       ],
       site2ColDefs: [
-        { field: 'tag', headerName: 'TAG', flex: 2, cellClass: 'font-normal text-[#800040]', cellRenderer: (params: any) => renderTrimTooltip(params.value, 35) },
+        { field: 'tag', headerName: 'TAG', flex: 2, cellClass: 'font-normal text-[#800040]', cellRenderer: (params: any) => renderTagLink(baseUrl2, 'attachment-tag-list', params.data.id, params.value) },
         { field: 'bo_type', headerName: 'BO TYPE', flex: 1 },
         { field: 'task_names', headerName: 'TASK NAMES', flex: 1.5, cellRenderer: (params: any) => renderTrimTooltip(params.value, 20) },
         {

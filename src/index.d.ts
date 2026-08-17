@@ -29,6 +29,7 @@ export const DiffCheckerProvider: React.FC<any>;
 export const useDiffChecker: () => any;
 
 export const renderTrimTooltip: (val: any, maxChar?: number) => any;
+export const renderTagLink: (baseUrl: string, typeSlug: string, id: any, val: any, maxChar?: number) => any;
 export const renderEditLink: (baseUrl: string, typeSlug: string, id: any, label?: string) => any;
 
 // Autonomous Page Components & Configs

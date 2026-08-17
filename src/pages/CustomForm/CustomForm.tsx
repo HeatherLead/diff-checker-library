@@ -3,12 +3,12 @@ import { useConfigurationDiff } from '../../hooks/useConfigurationDiff';
 import DataDiffTable from '../../components/DataDiffTable';
 import VersionMismatchTable from '../../components/VersionMismatchTable';
 import OnlySiteTable from '../../components/OnlySiteTable';
-import { renderTrimTooltip } from '../../utils/cellRenderers';
+import { renderTrimTooltip, renderTagLink, renderEditLink } from '../../utils/cellRenderers';
 
 export const customFormConfig = {
   apiKey: 'custom_form',
-  leftDataKey: 'form_structure',
-  rightDataKey: 'form_structure',
+  leftDataKey: 'custom_form_field_data',
+  rightDataKey: 'custom_form_field_data',
   hasVersionMismatch: true,
   compare: (site1Dataset: any[], site2Dataset: any[]) => {
     const dataDiff: any[] = [];
@@ -35,8 +35,8 @@ export const customFormConfig = {
           tag: record1.tag,
           site1Version: record1.version,
           site2Version: non_matched_versions_rec.version,
-          dt_status: record1.form_structure === non_matched_versions_rec.form_structure ? "No change" : "Diff Changes",
-          datatableDiff: record1.form_structure === non_matched_versions_rec.form_structure ? "No diff" : "View Diff",
+          dt_status: record1.custom_form_field_data === non_matched_versions_rec.custom_form_field_data ? "No change" : "Diff Changes",
+          datatableDiff: record1.custom_form_field_data === non_matched_versions_rec.custom_form_field_data ? "No diff" : "View Diff",
           raw1: record1,
           raw2: non_matched_versions_rec
         });
@@ -63,8 +63,8 @@ export const customFormConfig = {
           rec2version: record2.version,
           rect1id: record1.id,
           rect2id: record2.id,
-          dt_status: record1.form_structure === record2.form_structure ? "No change" : "Diff Changes",
-          datatableDiff: record1.form_structure === record2.form_structure ? "No Diff" : "View Diff",
+          dt_status: record1.custom_form_field_data === record2.custom_form_field_data ? "No change" : "Diff Changes",
+          datatableDiff: record1.custom_form_field_data === record2.custom_form_field_data ? "No Diff" : "View Diff",
           other_diff: hasOtherDiff ? "Diff Changes" : "No change",
           otherDiff: hasOtherDiff ? "View Diff" : "No Diff",
           raw1: record1,
@@ -98,24 +98,9 @@ export const customFormConfig = {
     return { dataDiff, versionMismatch, onlySite1, onlySite2 };
   },
   getColumns: ({ openDiffViewer, openDataViewer, handleSyncConfiguration, handleCloneConfiguration, baseUrl1, baseUrl2 }: any) => {
-    const renderEditLink = (url: string, id: any, label: string) => {
-      if (!url || !id) return '';
-      const isEdit = label === 'Edit' || label === 'edit';
-      return (
-        <a
-          href={`${url}/custom-form-config/edit/${id}`}
-          target="_blank"
-          rel="noreferrer"
-          className={isEdit ? "btn-purple" : "text-[#800040] hover:underline font-semibold"}
-        >
-          {label}
-        </a>
-      );
-    };
-
     return {
       dataDiffColDefs: [
-        { field: 'tag', headerName: 'TAG', flex: 1.5, cellClass: 'font-normal text-gray-700', cellRenderer: (params: any) => renderEditLink(baseUrl1, params.data.rect1id, params.value) },
+        { field: 'tag', headerName: 'TAG', flex: 1.5, cellClass: 'font-normal text-gray-700', cellRenderer: (params: any) => renderTrimTooltip(params.value, 35) },
         { field: 'siteVersion', headerName: 'SITE VERSION', flex: 1 },
         { field: 'dt_status', headerName: 'CUSTOM FORM DIFF STATUS', flex: 1.5 },
         {
@@ -139,13 +124,13 @@ export const customFormConfig = {
           field: 'site1Config',
           headerName: 'SITE 1 CONFIG',
           flex: 1,
-          cellRenderer: (params: any) => renderEditLink(baseUrl1, params.data.rect1id, 'Edit')
+          cellRenderer: (params: any) => renderEditLink(baseUrl1, 'custom-form-config', params.data.rect1id, 'Edit')
         },
         {
           field: 'site2Config',
           headerName: 'SITE 2 CONFIG',
           flex: 1,
-          cellRenderer: (params: any) => renderEditLink(baseUrl2, params.data.rect2id, 'Edit')
+          cellRenderer: (params: any) => renderEditLink(baseUrl2, 'custom-form-config', params.data.rect2id, 'Edit')
         },
         {
           field: 'syncData',
@@ -162,13 +147,13 @@ export const customFormConfig = {
           field: 'site1Version',
           headerName: 'SITE1 VERSION',
           flex: 1.5,
-          cellRenderer: (params: any) => renderEditLink(baseUrl1, params.data.rect1id, params.value)
+          cellRenderer: (params: any) => renderEditLink(baseUrl1, 'custom-form-config', params.data.rect1id, params.value)
         },
         {
           field: 'site2Version',
           headerName: 'SITE2 VERSION',
           flex: 1.5,
-          cellRenderer: (params: any) => renderEditLink(baseUrl2, params.data.rect2id, params.value)
+          cellRenderer: (params: any) => renderEditLink(baseUrl2, 'custom-form-config', params.data.rect2id, params.value)
         },
         { field: 'dt_status', headerName: 'CUSTOM FORM DIFF STATUS', flex: 1.5 },
         {
@@ -186,7 +171,7 @@ export const customFormConfig = {
           headerName: 'TAG',
           flex: 2,
           cellClass: 'font-normal text-[#800040]',
-          cellRenderer: (params: any) => renderEditLink(baseUrl1, params.data.id, params.value)
+          cellRenderer: (params: any) => renderTagLink(baseUrl1, 'custom-form-config', params.data.id, params.value)
         },
         {
           field: 'viewData',
@@ -211,7 +196,7 @@ export const customFormConfig = {
           headerName: 'TAG',
           flex: 2,
           cellClass: 'font-normal text-[#800040]',
-          cellRenderer: (params: any) => renderEditLink(baseUrl2, params.data.id, params.value)
+          cellRenderer: (params: any) => renderTagLink(baseUrl2, 'custom-form-config', params.data.id, params.value)
         },
         {
           field: 'viewData',

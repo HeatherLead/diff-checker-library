@@ -32,6 +32,9 @@ export {
   useConfigurationDiff,
   DiffCheckerProvider,
   useDiffChecker,
+  renderTrimTooltip,
+  renderTagLink,
+  renderEditLink,
 };
 
 export default DiffChecker;

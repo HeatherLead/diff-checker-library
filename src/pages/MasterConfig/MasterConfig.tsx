@@ -3,7 +3,7 @@ import { useConfigurationDiff } from '../../hooks/useConfigurationDiff';
 import DataDiffTable from '../../components/DataDiffTable';
 import VersionMismatchTable from '../../components/VersionMismatchTable';
 import OnlySiteTable from '../../components/OnlySiteTable';
-import { renderTrimTooltip } from '../../utils/cellRenderers';
+import { renderTrimTooltip, renderTagLink } from '../../utils/cellRenderers';
 
 export const masterConfigConfig = {
   apiKey: 'master_config',
@@ -22,6 +22,7 @@ export const masterConfigConfig = {
       if (map1.hasOwnProperty(key) && !map2.hasOwnProperty(key) && key !== undefined) {
         onlySite1.push({
           tag: key,
+          id: map1[key]?.id || key,
           version: map1[key]?.version,
           sitecount: map1[key]?.data_count || "NA",
           raw: map1[key]
@@ -33,6 +34,7 @@ export const masterConfigConfig = {
       if (map2.hasOwnProperty(key) && !map1.hasOwnProperty(key) && key !== undefined) {
         onlySite2.push({
           tag: key,
+          id: map2[key]?.id || key,
           version: map2[key]?.version,
           sitecount: map2[key]?.data_count || "NA",
           raw: map2[key]
@@ -79,7 +81,7 @@ export const masterConfigConfig = {
         { field: 'site2count', headerName: 'SITE 2 COUNT', flex: 1 }
       ],
       site1ColDefs: [
-        { field: 'tag', headerName: 'TAG', flex: 2, cellClass: 'font-normal text-[#800040]', cellRenderer: (params: any) => renderTrimTooltip(params.value, 35) },
+        { field: 'tag', headerName: 'TAG', flex: 2, cellClass: 'font-normal text-[#800040]', cellRenderer: (params: any) => renderTagLink(baseUrl1, 'master-config', params.data.id || params.data.tag, params.value) },
         { field: 'version', headerName: 'SITE VERSION', flex: 1 },
         { field: 'sitecount', headerName: 'SITE COUNT', flex: 1 },
         {
@@ -92,7 +94,7 @@ export const masterConfigConfig = {
         }
       ],
       site2ColDefs: [
-        { field: 'tag', headerName: 'TAG', flex: 2, cellClass: 'font-normal text-[#800040]', cellRenderer: (params: any) => renderTrimTooltip(params.value, 35) },
+        { field: 'tag', headerName: 'TAG', flex: 2, cellClass: 'font-normal text-[#800040]', cellRenderer: (params: any) => renderTagLink(baseUrl2, 'master-config', params.data.id || params.data.tag, params.value) },
         { field: 'version', headerName: 'SITE VERSION', flex: 1 },
         { field: 'sitecount', headerName: 'SITE COUNT', flex: 1 },
         {

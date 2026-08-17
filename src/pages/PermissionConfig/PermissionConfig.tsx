@@ -3,7 +3,7 @@ import { useConfigurationDiff } from '../../hooks/useConfigurationDiff';
 import DataDiffTable from '../../components/DataDiffTable';
 import VersionMismatchTable from '../../components/VersionMismatchTable';
 import OnlySiteTable from '../../components/OnlySiteTable';
-import { renderTrimTooltip } from '../../utils/cellRenderers';
+import { renderTrimTooltip, renderTagLink } from '../../utils/cellRenderers';
 
 export const permissionConfig = {
   apiKey: 'permissions',
@@ -56,6 +56,7 @@ export const permissionConfig = {
           tag: ele.module,
           permission: ele.permission,
           permission_label: ele.permission_label,
+          id: ele.id || ele.permission || ele.module,
           raw: ele
         });
       }
@@ -67,6 +68,7 @@ export const permissionConfig = {
           tag: ele.module,
           permission: ele.permission,
           permission_label: ele.permission_label,
+          id: ele.id || ele.permission || ele.module,
           raw: ele
         });
       }
@@ -74,7 +76,7 @@ export const permissionConfig = {
 
     return { dataDiff, versionMismatch: [], onlySite1, onlySite2 };
   },
-  getColumns: ({ openDiffViewer, openDataViewer }: any) => {
+  getColumns: ({ openDiffViewer, openDataViewer, baseUrl1, baseUrl2 }: any) => {
     return {
       dataDiffColDefs: [
         { field: 'tag', headerName: 'MODULE', flex: 1.5, cellClass: 'font-normal text-gray-700', cellRenderer: (params: any) => renderTrimTooltip(params.value, 30) },
@@ -90,7 +92,7 @@ export const permissionConfig = {
         }
       ],
       site1ColDefs: [
-        { field: 'tag', headerName: 'MODULE', flex: 2, cellClass: 'font-normal text-[#800040]', cellRenderer: (params: any) => renderTrimTooltip(params.value, 30) },
+        { field: 'tag', headerName: 'MODULE', flex: 2, cellClass: 'font-normal text-[#800040]', cellRenderer: (params: any) => renderTagLink(baseUrl1, 'permission-config', params.data.id || params.data.tag, params.value, 30) },
         { field: 'permission_label', headerName: 'PERMISSION', flex: 1.5, cellRenderer: (params: any) => renderTrimTooltip(params.data.permission_label, 30) },
         {
           field: 'viewData',
@@ -102,7 +104,7 @@ export const permissionConfig = {
         }
       ],
       site2ColDefs: [
-        { field: 'tag', headerName: 'MODULE', flex: 2, cellClass: 'font-normal text-[#800040]', cellRenderer: (params: any) => renderTrimTooltip(params.value, 30) },
+        { field: 'tag', headerName: 'MODULE', flex: 2, cellClass: 'font-normal text-[#800040]', cellRenderer: (params: any) => renderTagLink(baseUrl2, 'permission-config', params.data.id || params.data.tag, params.value, 30) },
         { field: 'permission_label', headerName: 'PERMISSION', flex: 1.5, cellRenderer: (params: any) => renderTrimTooltip(params.data.permission_label, 30) },
         {
           field: 'viewData',

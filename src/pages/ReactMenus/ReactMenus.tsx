@@ -3,7 +3,7 @@ import { useConfigurationDiff } from '../../hooks/useConfigurationDiff';
 import DataDiffTable from '../../components/DataDiffTable';
 import VersionMismatchTable from '../../components/VersionMismatchTable';
 import OnlySiteTable from '../../components/OnlySiteTable';
-import { renderTrimTooltip } from '../../utils/cellRenderers';
+import { renderTrimTooltip, renderTagLink } from '../../utils/cellRenderers';
 
 export const reactMenusConfig = {
   apiKey: 'drupalMenues_react-menu',
@@ -42,6 +42,7 @@ export const reactMenusConfig = {
       } else {
         onlySite1.push({
           tag: s1_val.title,
+          id: s1_val.id || s1_val.url || s1_val.title,
           roles: s1_val.roles,
           status: s1_val.status,
           description: s1_val.description,
@@ -55,6 +56,7 @@ export const reactMenusConfig = {
       if (!s1_val) {
         onlySite2.push({
           tag: s2_val.title,
+          id: s2_val.id || s2_val.url || s2_val.title,
           roles: s2_val.roles,
           status: s2_val.status,
           description: s2_val.description,
@@ -80,7 +82,7 @@ export const reactMenusConfig = {
         }
       ],
       site1ColDefs: [
-        { field: 'tag', headerName: 'TAG', flex: 2, cellClass: 'font-normal text-[#800040]', cellRenderer: (params: any) => renderTrimTooltip(params.value, 35) },
+        { field: 'tag', headerName: 'TAG', flex: 2, cellClass: 'font-normal text-[#800040]', cellRenderer: (params: any) => renderTagLink(baseUrl1, 'react-menus', params.data.id || params.data.tag, params.value) },
         {
           field: 'viewData',
           headerName: 'VIEW DATA',
@@ -99,7 +101,7 @@ export const reactMenusConfig = {
         }
       ],
       site2ColDefs: [
-        { field: 'tag', headerName: 'TAG', flex: 2, cellClass: 'font-normal text-[#800040]', cellRenderer: (params: any) => renderTrimTooltip(params.value, 35) },
+        { field: 'tag', headerName: 'TAG', flex: 2, cellClass: 'font-normal text-[#800040]', cellRenderer: (params: any) => renderTagLink(baseUrl2, 'react-menus', params.data.id || params.data.tag, params.value) },
         {
           field: 'viewData',
           headerName: 'VIEW DATA',

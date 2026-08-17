@@ -3,7 +3,7 @@ import { useConfigurationDiff } from '../../hooks/useConfigurationDiff';
 import DataDiffTable from '../../components/DataDiffTable';
 import VersionMismatchTable from '../../components/VersionMismatchTable';
 import OnlySiteTable from '../../components/OnlySiteTable';
-import { renderTrimTooltip } from '../../utils/cellRenderers';
+import { renderTrimTooltip, renderTagLink } from '../../utils/cellRenderers';
 
 export const dropdownConfigConfig = {
   apiKey: 'dropdown',
@@ -36,6 +36,7 @@ export const dropdownConfigConfig = {
       } else {
         nonMatch.push({
           tag: record1.tag,
+          id: record1.id || record1.tag,
           rec1version: record1.version,
           query_status: "No Match",
           query: record1.dropdown_query,
@@ -49,6 +50,7 @@ export const dropdownConfigConfig = {
       if (!record1) {
         nonMatch.push({
           tag: record2.tag,
+          id: record2.id || record2.tag,
           rec1version: record2.version,
           query_status: "No Match",
           query: record2.dropdown_query,
@@ -59,7 +61,7 @@ export const dropdownConfigConfig = {
 
     return { dataDiff, versionMismatch: [], onlySite1: nonMatch, onlySite2: [] };
   },
-  getColumns: ({ openDiffViewer, openDataViewer }: any) => {
+  getColumns: ({ openDiffViewer, openDataViewer, baseUrl1 }: any) => {
     return {
       dataDiffColDefs: [
         { field: 'tag', headerName: 'TAG', flex: 1.5, cellClass: 'font-normal text-gray-700', cellRenderer: (params: any) => renderTrimTooltip(params.value, 35) },
@@ -75,7 +77,7 @@ export const dropdownConfigConfig = {
         }
       ],
       site1ColDefs: [
-        { field: 'tag', headerName: 'TAG', flex: 2, cellClass: 'font-normal text-[#800040]', cellRenderer: (params: any) => renderTrimTooltip(params.value, 35) },
+        { field: 'tag', headerName: 'TAG', flex: 2, cellClass: 'font-normal text-[#800040]', cellRenderer: (params: any) => renderTagLink(baseUrl1, 'dropdown-config', params.data.id || params.data.tag, params.value) },
         { field: 'rec1version', headerName: 'SITE VERSION', flex: 1 },
         {
           field: 'view_query',
