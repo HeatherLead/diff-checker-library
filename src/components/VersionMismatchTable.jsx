@@ -1,8 +1,9 @@
 import React, { useState, useMemo, memo } from 'react';
-import { matchSorter } from 'match-sorter';
 import { AgGridGenerator } from './agGridGenerator';
 import { getOptionConfig } from '../config';
 import { useDiffChecker } from '../context/DiffCheckerContext';
+import { getFilterableColumns, filterRowsByColDefs } from '../utils/filterUtils';
+import TableFilterBar from './TableFilterBar';
 
 export const VersionMismatchTable = memo(({
   activeOption: propActiveOption,
@@ -18,14 +19,8 @@ export const VersionMismatchTable = memo(({
   const baseUrl2 = propBaseUrl2 !== undefined ? propBaseUrl2 : ctx.baseUrl2;
 
   const [showVersionFilters, setShowVersionFilters] = useState(false);
-  const [tagInput, setTagInput] = useState('');
-  const [site1VersionInput, setSite1VersionInput] = useState('');
-  const [site2VersionInput, setSite2VersionInput] = useState('');
-
-  const [appliedTagFilter, setAppliedTagFilter] = useState('');
-  const [appliedSite1VersionFilter, setAppliedSite1VersionFilter] = useState('');
-  const [appliedSite2VersionFilter, setAppliedSite2VersionFilter] = useState('');
-
+  const [filterInputs, setFilterInputs] = useState({});
+  const [appliedFilters, setAppliedFilters] = useState({});
   const [versionFilterMode, setVersionFilterMode] = useState('only_diff');
 
   // Load configuration based on the active dropdown page option
@@ -44,59 +39,37 @@ export const VersionMismatchTable = memo(({
     });
   }, [config, openDiffViewer, baseUrl1, baseUrl2]);
 
+  const versionMismatchColDefs = columns?.versionMismatchColDefs;
+
+  // Extract filterable columns dynamically from versionMismatchColDefs
+  const filterableCols = useMemo(() => {
+    return getFilterableColumns(versionMismatchColDefs);
+  }, [versionMismatchColDefs]);
+
   // If this configuration option does not have version mismatch records, do not render anything
   if (!config || !config.hasVersionMismatch) {
     return null;
   }
 
-  const versionMismatchColDefs = columns.versionMismatchColDefs;
+  const handleFilterInputChange = (field, value) => {
+    setFilterInputs((prev) => ({ ...prev, [field]: value }));
+    setAppliedFilters((prev) => ({ ...prev, [field]: value }));
+  };
 
-  // Filtered rows logic
-  const filteredVersionMismatchRows = useMemo(() => {
-    let list = versionMismatchRows;
-    const tagText = appliedTagFilter.trim();
-    const site1Text = appliedSite1VersionFilter.trim();
-    const site2Text = appliedSite2VersionFilter.trim();
-
-    if (tagText) {
-      list = matchSorter(list, tagText, {
-        keys: ['tag', (item) => item.raw1?.title || '', (item) => item.raw1?.tag || '', (item) => item.raw2?.tag || ''],
-        threshold: matchSorter.rankings.CONTAINS,
-      });
-    }
-
-    if (site1Text) {
-      list = list.filter((r) => {
-        const v1 = String(r.site1Version || r.raw1?.version || '').toLowerCase();
-        return v1.includes(site1Text.toLowerCase());
-      });
-    }
-
-    if (site2Text) {
-      list = list.filter((r) => {
-        const v2 = String(r.site2Version || r.raw2?.version || '').toLowerCase();
-        return v2.includes(site2Text.toLowerCase());
-      });
-    }
-
-    return list;
-  }, [versionMismatchRows, appliedTagFilter, appliedSite1VersionFilter, appliedSite2VersionFilter]);
-
-  const handleSubmit = (e) => {
-    if (e) e.preventDefault();
-    setAppliedTagFilter(tagInput);
-    setAppliedSite1VersionFilter(site1VersionInput);
-    setAppliedSite2VersionFilter(site2VersionInput);
+  const handleSubmit = () => {
+    setAppliedFilters({ ...filterInputs });
   };
 
   const handleReset = () => {
-    setTagInput('');
-    setSite1VersionInput('');
-    setSite2VersionInput('');
-    setAppliedTagFilter('');
-    setAppliedSite1VersionFilter('');
-    setAppliedSite2VersionFilter('');
+    setFilterInputs({});
+    setAppliedFilters({});
   };
+
+  // Filtered rows logic
+  const filteredVersionMismatchRows = useMemo(() => {
+    let list = filterRowsByColDefs(versionMismatchRows, appliedFilters, filterableCols);
+    return list;
+  }, [versionMismatchRows, appliedFilters, filterableCols]);
 
   return (
     <section className="bg-white rounded-lg p-5">
@@ -117,84 +90,14 @@ export const VersionMismatchTable = memo(({
       </div>
 
       {/* Global Filter Bar above Table */}
-      <div
-        className={`transition-all duration-300 ease-in-out overflow-hidden ${showVersionFilters
-          ? 'max-h-96 opacity-100 mb-4 transform translate-y-0'
-          : 'max-h-0 opacity-0 mb-0 transform -translate-y-2 pointer-events-none'
-          }`}
-      >
-        <div className="flex flex-wrap items-center justify-between gap-4 text-xs">
-          {/* Left: Tag + Site 1 Version + Site 2 Version Inputs + Submit + Reset */}
-          <form
-            onSubmit={handleSubmit}
-            className="flex flex-wrap items-center gap-3"
-          >
-            <fieldset className="border border-gray-300 rounded px-2.5 pt-0 pb-1 inline-flex items-center text-xs bg-white focus-within:border-[#7a1c4b]">
-              <legend className="text-[11px] text-gray-500 px-1 font-normal leading-none -ml-1 select-none">
-                Tag:
-              </legend>
-              <input
-                type="text"
-                value={tagInput}
-                onChange={(e) => {
-                  setTagInput(e.target.value);
-                  setAppliedTagFilter(e.target.value);
-                }}
-                placeholder=""
-                className="outline-none bg-transparent text-xs text-gray-700 w-24 sm:w-28 h-5"
-              />
-            </fieldset>
-
-            <fieldset className="border border-gray-300 rounded px-2.5 pt-0 pb-1 inline-flex items-center text-xs bg-white focus-within:border-[#7a1c4b]">
-              <legend className="text-[11px] text-gray-500 px-1 font-normal leading-none -ml-1 select-none">
-                Site 1 Version:
-              </legend>
-              <input
-                type="text"
-                value={site1VersionInput}
-                onChange={(e) => {
-                  setSite1VersionInput(e.target.value);
-                  setAppliedSite1VersionFilter(e.target.value);
-                }}
-                placeholder=""
-                className="outline-none bg-transparent text-xs text-gray-700 w-24 sm:w-28 h-5"
-              />
-            </fieldset>
-
-            <fieldset className="border border-gray-300 rounded px-2.5 pt-0 pb-1 inline-flex items-center text-xs bg-white focus-within:border-[#7a1c4b]">
-              <legend className="text-[11px] text-gray-500 px-1 font-normal leading-none -ml-1 select-none">
-                Site 2 Version:
-              </legend>
-              <input
-                type="text"
-                value={site2VersionInput}
-                onChange={(e) => {
-                  setSite2VersionInput(e.target.value);
-                  setAppliedSite2VersionFilter(e.target.value);
-                }}
-                placeholder=""
-                className="outline-none bg-transparent text-xs text-gray-700 w-24 sm:w-28 h-5"
-              />
-            </fieldset>
-
-            <button
-              type="submit"
-              onClick={handleSubmit}
-              className="bg-[#7a1c4b] hover:bg-[#63143c] text-white font-medium text-xs px-6 py-1.5 rounded shadow-sm cursor-pointer transition-colors"
-            >
-              Submit
-            </button>
-
-            <button
-              type="button"
-              onClick={handleReset}
-              className="bg-white hover:bg-gray-50 text-gray-700 border border-gray-300 font-normal text-xs px-6 py-1.5 rounded shadow-sm cursor-pointer transition-colors"
-            >
-              Reset
-            </button>
-          </form>
-
-          {/* Right: Filter Mode Toggle (All vs Only Difference) */}
+      <TableFilterBar
+        showFilters={showVersionFilters}
+        filterableCols={filterableCols}
+        filterInputs={filterInputs}
+        onFilterInputChange={handleFilterInputChange}
+        onSubmit={handleSubmit}
+        onReset={handleReset}
+        rightControls={
           <div className="flex items-center border border-gray-300 rounded overflow-hidden shadow-sm">
             <button
               type="button"
@@ -217,8 +120,8 @@ export const VersionMismatchTable = memo(({
               Only Difference
             </button>
           </div>
-        </div>
-      </div>
+        }
+      />
 
       {/* AG Grid Table */}
       <AgGridGenerator

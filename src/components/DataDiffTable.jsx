@@ -1,8 +1,9 @@
 import React, { useState, useMemo, memo } from 'react';
-import { matchSorter } from 'match-sorter';
 import { AgGridGenerator } from './agGridGenerator';
 import { getOptionConfig } from '../config';
 import { useDiffChecker } from '../context/DiffCheckerContext';
+import { getFilterableColumns, filterRowsByColDefs } from '../utils/filterUtils';
+import TableFilterBar from './TableFilterBar';
 
 export const DataDiffTable = memo(({
   activeOption: propActiveOption,
@@ -22,8 +23,8 @@ export const DataDiffTable = memo(({
   const baseUrl2 = propBaseUrl2 !== undefined ? propBaseUrl2 : ctx.baseUrl2;
 
   const [showDataDiffFilters, setShowDataDiffFilters] = useState(false);
-  const [tagInput, setTagInput] = useState('');
-  const [appliedTagFilter, setAppliedTagFilter] = useState('');
+  const [filterInputs, setFilterInputs] = useState({});
+  const [appliedFilters, setAppliedFilters] = useState({});
   const [dataDiffFilterMode, setDataDiffFilterMode] = useState('only_diff');
 
   // Load configuration based on the active dropdown page option
@@ -42,24 +43,29 @@ export const DataDiffTable = memo(({
 
   const dataDiffColDefs = columns.dataDiffColDefs;
 
+  // Extract filterable columns dynamically from dataDiffColDefs
+  const filterableCols = useMemo(() => {
+    return getFilterableColumns(dataDiffColDefs);
+  }, [dataDiffColDefs]);
+
+  const handleFilterInputChange = (field, value) => {
+    setFilterInputs((prev) => ({ ...prev, [field]: value }));
+    setAppliedFilters((prev) => ({ ...prev, [field]: value }));
+  };
+
+  const handleSubmit = () => {
+    setAppliedFilters({ ...filterInputs });
+  };
+
+  const handleReset = () => {
+    setFilterInputs({});
+    setAppliedFilters({});
+  };
+
   // Filtered rows logic
   const filteredDataDiffRows = useMemo(() => {
-    let list = dataDiffRows;
-    const filterText = appliedTagFilter.trim();
-    if (filterText) {
-      list = matchSorter(list, filterText, {
-        keys: [
-          'tag',
-          'siteVersion',
-          'site1Version',
-          'site2Version',
-          (item) => item.raw1?.title || '',
-          (item) => item.raw1?.tag || '',
-          (item) => item.raw2?.tag || '',
-        ],
-        threshold: matchSorter.rankings.CONTAINS,
-      });
-    }
+    let list = filterRowsByColDefs(dataDiffRows, appliedFilters, filterableCols);
+
     if (dataDiffFilterMode === 'only_diff') {
       list = list.filter((r) => {
         return (
@@ -69,12 +75,17 @@ export const DataDiffTable = memo(({
           r.role_diff === 'View Diff' ||
           r.dt_status === 'Diff Changes' ||
           r.df_status === 'Diff Changes' ||
-          r.role_diff_status === 'Diff Changes'
+          r.role_diff_status === 'Diff Changes' ||
+          r.wf_status === 'Diff Changes' ||
+          r.query_status === 'Diff Changes' ||
+          r.msg_diff === 'Diff Changes' ||
+          r.excel_diff === 'View Diff' ||
+          r.validator_diff === 'View Diff'
         );
       });
     }
     return list;
-  }, [dataDiffRows, appliedTagFilter, dataDiffFilterMode]);
+  }, [dataDiffRows, appliedFilters, filterableCols, dataDiffFilterMode]);
 
   return (
     <section className="bg-white rounded-lg p-5">
@@ -95,61 +106,14 @@ export const DataDiffTable = memo(({
       </div>
 
       {/* Global Filter Bar above Table */}
-      <div
-        className={`transition-all duration-300 ease-in-out overflow-hidden ${showDataDiffFilters
-          ? 'max-h-96 opacity-100 mb-4 transform translate-y-0'
-          : 'max-h-0 opacity-0 mb-0 transform -translate-y-2 pointer-events-none'
-          }`}
-      >
-        <div className="flex flex-wrap items-center justify-between gap-4 text-xs">
-          {/* Left: Tag Input + Submit + Reset */}
-          <form
-            onSubmit={(e) => {
-              e.preventDefault();
-              setAppliedTagFilter(tagInput);
-            }}
-            className="flex items-center gap-3"
-          >
-            <fieldset className="border border-gray-300 rounded px-2.5 pt-0 pb-1 inline-flex items-center text-xs bg-white focus-within:border-[#7a1c4b]">
-              <legend className="text-[11px] text-gray-500 px-1 font-normal leading-none -ml-1 select-none">
-                Tag:
-              </legend>
-              <input
-                type="text"
-                value={tagInput}
-                onChange={(e) => {
-                  setTagInput(e.target.value);
-                  setAppliedTagFilter(e.target.value);
-                }}
-                placeholder=""
-                className="outline-none bg-transparent text-xs text-gray-700 w-28 sm:w-36 h-5"
-              />
-            </fieldset>
-
-            <button
-              type="submit"
-              onClick={(e) => {
-                e.preventDefault();
-                setAppliedTagFilter(tagInput);
-              }}
-              className="bg-[#7a1c4b] hover:bg-[#63143c] text-white font-medium text-xs px-7 py-1.5 rounded shadow-sm cursor-pointer transition-colors"
-            >
-              Submit
-            </button>
-
-            <button
-              type="button"
-              onClick={() => {
-                setTagInput('');
-                setAppliedTagFilter('');
-              }}
-              className="bg-white hover:bg-gray-50 text-gray-700 border border-gray-300 font-normal text-xs px-7 py-1.5 rounded shadow-sm cursor-pointer transition-colors"
-            >
-              Reset
-            </button>
-          </form>
-
-          {/* Right: Filter Mode Toggle (All vs Only Difference) */}
+      <TableFilterBar
+        showFilters={showDataDiffFilters}
+        filterableCols={filterableCols}
+        filterInputs={filterInputs}
+        onFilterInputChange={handleFilterInputChange}
+        onSubmit={handleSubmit}
+        onReset={handleReset}
+        rightControls={
           <div className="flex items-center border border-gray-300 rounded overflow-hidden shadow-sm">
             <button
               type="button"
@@ -172,8 +136,8 @@ export const DataDiffTable = memo(({
               Only Difference
             </button>
           </div>
-        </div>
-      </div>
+        }
+      />
 
       {/* AG Grid Table */}
       <AgGridGenerator

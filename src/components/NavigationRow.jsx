@@ -1,14 +1,14 @@
 import React, { useState, useRef, useEffect, useLayoutEffect, useMemo, memo } from 'react';
-import { useNavigate, useLocation } from 'react-router-dom';
+import { useNavigate, useLocation, useInRouterContext } from 'react-router-dom';
 import { useDiffChecker } from '../context/DiffCheckerContext';
 
-const TABS = [
+export const TABS = [
   {
     id: 'datatables',
     type: 'single',
     title: 'DataTables',
     optionId: 'datatables',
-    path: '/',
+    path: '',
   },
   {
     id: 'task_entity',
@@ -61,10 +61,9 @@ const TABS = [
       { id: 'react_menus', label: 'React Menus', path: '/react-menus' },
     ]
   },
-
 ];
 
-const getActiveTabId = (activeOption) => {
+export const getActiveTabId = (activeOption) => {
   if (activeOption === 'datatables') return 'datatables';
   for (const tab of TABS) {
     if (tab.type === 'single' && (tab.optionId === activeOption || tab.id === activeOption)) {
@@ -77,31 +76,80 @@ const getActiveTabId = (activeOption) => {
   return 'datatables';
 };
 
+// Safe router hook wrapper
+const useSafeRouter = () => {
+  const inRouter = typeof useInRouterContext === 'function' ? useInRouterContext() : false;
+  let navigate = null;
+  let location = { pathname: typeof window !== 'undefined' ? window.location.pathname : '/' };
+
+  if (inRouter) {
+    try {
+      // eslint-disable-next-line react-hooks/rules-of-hooks
+      navigate = useNavigate();
+      // eslint-disable-next-line react-hooks/rules-of-hooks
+      location = useLocation();
+    } catch {
+      // Fallback
+    }
+  }
+
+  return { navigate, location };
+};
+
 const NavigationRow = memo(({ activeOption: propActiveOption, onSelectOption: propOnSelectOption }) => {
   const ctx = useDiffChecker();
   const activeOption = propActiveOption || ctx.activeOption;
   const onSelectOption = propOnSelectOption || ctx.handleSelectOption;
+  const basePath = ctx.basePath !== undefined ? ctx.basePath : '/diff-checker';
 
-  const navigate = useNavigate();
-  const location = useLocation();
+  const { navigate, location } = useSafeRouter();
   const [openDropdownId, setOpenDropdownId] = useState(null);
   const tabRefs = useRef({});
   const navContainerRef = useRef(null);
   const [indicatorStyle, setIndicatorStyle] = useState({ left: 0, width: 0, opacity: 0 });
 
+  // Clean base path without trailing slash
+  const cleanBasePath = useMemo(() => {
+    if (!basePath) return '';
+    const trimmed = basePath.trim();
+    if (trimmed === '/') return '';
+    return trimmed.replace(/\/+$/, '');
+  }, [basePath]);
+
+  // Helper to build full route path
+  const buildFullPath = (subPath) => {
+    if (!subPath || subPath === '/') {
+      return cleanBasePath || '/';
+    }
+    const cleanSub = subPath.startsWith('/') ? subPath : `/${subPath}`;
+    return `${cleanBasePath}${cleanSub}`;
+  };
+
   const currentActiveOption = useMemo(() => {
-    if (location.pathname === '/') return 'datatables';
+    const currentPath = location.pathname.replace(/\/+$/, '') || '/';
+    const rootPath = cleanBasePath || '/';
+
+    if (currentPath === rootPath || currentPath === '' || currentPath === '/') {
+      return 'datatables';
+    }
+
     for (const tab of TABS) {
-      if (tab.type === 'single' && tab.path === location.pathname) {
-        return tab.optionId;
+      if (tab.type === 'single') {
+        const fullTabPath = buildFullPath(tab.path).replace(/\/+$/, '') || '/';
+        if (currentPath === fullTabPath || (tab.path && currentPath.endsWith(tab.path))) {
+          return tab.optionId;
+        }
       }
       if (tab.type === 'dropdown') {
-        const found = tab.items.find(item => item.path === location.pathname);
+        const found = tab.items.find(item => {
+          const fullItemPath = buildFullPath(item.path).replace(/\/+$/, '') || '/';
+          return currentPath === fullItemPath || (item.path && currentPath.endsWith(item.path));
+        });
         if (found) return found.id;
       }
     }
     return activeOption || 'datatables';
-  }, [location.pathname, activeOption]);
+  }, [location.pathname, cleanBasePath, activeOption]);
 
   const activeTabId = getActiveTabId(currentActiveOption);
 
@@ -145,10 +193,19 @@ const NavigationRow = memo(({ activeOption: propActiveOption, onSelectOption: pr
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
+  const navigateTo = (targetPath) => {
+    const fullPath = buildFullPath(targetPath);
+    if (navigate) {
+      navigate(fullPath);
+    } else if (typeof window !== 'undefined') {
+      window.history.pushState({}, '', fullPath);
+    }
+  };
+
   const handleTabClick = (tab) => {
     if (tab.type === 'single') {
       if (onSelectOption) onSelectOption(tab.optionId, tab.title);
-      if (tab.path) navigate(tab.path);
+      navigateTo(tab.path);
       setOpenDropdownId(null);
     } else {
       setOpenDropdownId(prev => (prev === tab.id ? null : tab.id));
@@ -157,7 +214,7 @@ const NavigationRow = memo(({ activeOption: propActiveOption, onSelectOption: pr
 
   const handleSelectItem = (item) => {
     if (onSelectOption) onSelectOption(item.id, item.label);
-    if (item.path) navigate(item.path);
+    navigateTo(item.path);
     setOpenDropdownId(null);
   };
 

@@ -1,8 +1,9 @@
 import React, { useState, useMemo, memo } from 'react';
-import { matchSorter } from 'match-sorter';
 import { AgGridGenerator } from './agGridGenerator';
 import { getOptionConfig } from '../config';
 import { useDiffChecker } from '../context/DiffCheckerContext';
+import { getFilterableColumns, filterRowsByColDefs } from '../utils/filterUtils';
+import TableFilterBar from './TableFilterBar';
 
 export const OnlySiteTable = memo(({
   activeOption: propActiveOption,
@@ -21,12 +22,12 @@ export const OnlySiteTable = memo(({
   const handleCloneConfiguration = propHandleCloneConfiguration || ctx.handleCloneConfiguration || (() => { });
 
   const [showSite1Filters, setShowSite1Filters] = useState(false);
-  const [site1TagInput, setSite1TagInput] = useState('');
-  const [appliedSite1TagFilter, setAppliedSite1TagFilter] = useState('');
+  const [site1FilterInputs, setSite1FilterInputs] = useState({});
+  const [appliedSite1Filters, setAppliedSite1Filters] = useState({});
 
   const [showSite2Filters, setShowSite2Filters] = useState(false);
-  const [site2TagInput, setSite2TagInput] = useState('');
-  const [appliedSite2TagFilter, setAppliedSite2TagFilter] = useState('');
+  const [site2FilterInputs, setSite2FilterInputs] = useState({});
+  const [appliedSite2Filters, setAppliedSite2Filters] = useState({});
 
   // Load configuration based on the active dropdown page option
   const config = getOptionConfig(activeOption);
@@ -47,24 +48,51 @@ export const OnlySiteTable = memo(({
   const site1ColDefs = columns.site1ColDefs;
   const site2ColDefs = columns.site2ColDefs;
 
+  // Dynamically extract filterable columns
+  const site1FilterableCols = useMemo(() => {
+    return getFilterableColumns(site1ColDefs);
+  }, [site1ColDefs]);
+
+  const site2FilterableCols = useMemo(() => {
+    return getFilterableColumns(site2ColDefs);
+  }, [site2ColDefs]);
+
+  const handleSite1FilterInputChange = (field, value) => {
+    setSite1FilterInputs((prev) => ({ ...prev, [field]: value }));
+    setAppliedSite1Filters((prev) => ({ ...prev, [field]: value }));
+  };
+
+  const handleSite1Submit = () => {
+    setAppliedSite1Filters({ ...site1FilterInputs });
+  };
+
+  const handleSite1Reset = () => {
+    setSite1FilterInputs({});
+    setAppliedSite1Filters({});
+  };
+
+  const handleSite2FilterInputChange = (field, value) => {
+    setSite2FilterInputs((prev) => ({ ...prev, [field]: value }));
+    setAppliedSite2Filters((prev) => ({ ...prev, [field]: value }));
+  };
+
+  const handleSite2Submit = () => {
+    setAppliedSite2Filters({ ...site2FilterInputs });
+  };
+
+  const handleSite2Reset = () => {
+    setSite2FilterInputs({});
+    setAppliedSite2Filters({});
+  };
+
   // Filtered rows logic
   const filteredSite1Rows = useMemo(() => {
-    let list = onlySite1Rows;
-    const filterText = appliedSite1TagFilter.trim();
-    if (filterText) {
-      list = matchSorter(list, filterText, { keys: ['tag', 'title', (item) => item.raw?.title || ''] });
-    }
-    return list;
-  }, [onlySite1Rows, appliedSite1TagFilter]);
+    return filterRowsByColDefs(onlySite1Rows, appliedSite1Filters, site1FilterableCols);
+  }, [onlySite1Rows, appliedSite1Filters, site1FilterableCols]);
 
   const filteredSite2Rows = useMemo(() => {
-    let list = onlySite2Rows;
-    const filterText = appliedSite2TagFilter.trim();
-    if (filterText) {
-      list = matchSorter(list, filterText, { keys: ['tag', 'title', (item) => item.raw?.title || ''] });
-    }
-    return list;
-  }, [onlySite2Rows, appliedSite2TagFilter]);
+    return filterRowsByColDefs(onlySite2Rows, appliedSite2Filters, site2FilterableCols);
+  }, [onlySite2Rows, appliedSite2Filters, site2FilterableCols]);
 
   // If this configuration option does not show site-specific tables, do not render anything
   if (config.hasOnlySiteTables === false) {
@@ -95,60 +123,14 @@ export const OnlySiteTable = memo(({
           </div>
 
           {/* Global Filter Bar */}
-          <div
-            className={`transition-all duration-300 ease-in-out overflow-hidden ${showSite1Filters
-              ? 'max-h-96 opacity-100 mb-4 transform translate-y-0'
-              : 'max-h-0 opacity-0 mb-0 transform -translate-y-2 pointer-events-none'
-              }`}
-          >
-            <div className="flex items-center justify-between gap-4 text-xs">
-              <form
-                onSubmit={(e) => {
-                  e.preventDefault();
-                  setAppliedSite1TagFilter(site1TagInput);
-                }}
-                className="flex items-center gap-3"
-              >
-                <fieldset className="border border-gray-300 rounded px-2.5 pt-0 pb-1 inline-flex items-center text-xs bg-white focus-within:border-[#7a1c4b]">
-                  <legend className="text-[11px] text-gray-500 px-1 font-normal leading-none -ml-1 select-none">
-                    Tag:
-                  </legend>
-                  <input
-                    type="text"
-                    value={site1TagInput}
-                    onChange={(e) => {
-                      setSite1TagInput(e.target.value);
-                      setAppliedSite1TagFilter(e.target.value);
-                    }}
-                    placeholder=""
-                    className="outline-none bg-transparent text-xs text-gray-700 w-28 sm:w-36 h-5"
-                  />
-                </fieldset>
-
-                <button
-                  type="submit"
-                  onClick={(e) => {
-                    e.preventDefault();
-                    setAppliedSite1TagFilter(site1TagInput);
-                  }}
-                  className="bg-[#7a1c4b] hover:bg-[#63143c] text-white font-medium text-xs px-7 py-1.5 rounded shadow-sm cursor-pointer transition-colors"
-                >
-                  Submit
-                </button>
-
-                <button
-                  type="button"
-                  onClick={() => {
-                    setSite1TagInput('');
-                    setAppliedSite1TagFilter('');
-                  }}
-                  className="bg-white hover:bg-gray-50 text-gray-700 border border-gray-300 font-normal text-xs px-7 py-1.5 rounded shadow-sm cursor-pointer transition-colors"
-                >
-                  Reset
-                </button>
-              </form>
-            </div>
-          </div>
+          <TableFilterBar
+            showFilters={showSite1Filters}
+            filterableCols={site1FilterableCols}
+            filterInputs={site1FilterInputs}
+            onFilterInputChange={handleSite1FilterInputChange}
+            onSubmit={handleSite1Submit}
+            onReset={handleSite1Reset}
+          />
 
           <div>
             <AgGridGenerator
@@ -199,60 +181,14 @@ export const OnlySiteTable = memo(({
         </div>
 
         {/* Global Filter Bar for Site 1 */}
-        <div
-          className={`transition-all duration-300 ease-in-out overflow-hidden ${showSite1Filters
-            ? 'max-h-96 opacity-100 mb-4 transform translate-y-0'
-            : 'max-h-0 opacity-0 mb-0 transform -translate-y-2 pointer-events-none'
-            }`}
-        >
-          <div className="flex items-center justify-between gap-4 text-xs">
-            <form
-              onSubmit={(e) => {
-                e.preventDefault();
-                setAppliedSite1TagFilter(site1TagInput);
-              }}
-              className="flex items-center gap-3"
-            >
-              <fieldset className="border border-gray-300 rounded px-2.5 pt-0 pb-1 inline-flex items-center text-xs bg-white focus-within:border-[#7a1c4b]">
-                <legend className="text-[11px] text-gray-500 px-1 font-normal leading-none -ml-1 select-none">
-                  Tag:
-                </legend>
-                <input
-                  type="text"
-                  value={site1TagInput}
-                  onChange={(e) => {
-                    setSite1TagInput(e.target.value);
-                    setAppliedSite1TagFilter(e.target.value);
-                  }}
-                  placeholder=""
-                  className="outline-none bg-transparent text-xs text-gray-700 w-24 sm:w-32 h-5"
-                />
-              </fieldset>
-
-              <button
-                type="submit"
-                onClick={(e) => {
-                  e.preventDefault();
-                  setAppliedSite1TagFilter(site1TagInput);
-                }}
-                className="bg-[#7a1c4b] hover:bg-[#63143c] text-white font-medium text-xs px-5 py-1.5 rounded shadow-sm cursor-pointer transition-colors"
-              >
-                Submit
-              </button>
-
-              <button
-                type="button"
-                onClick={() => {
-                  setSite1TagInput('');
-                  setAppliedSite1TagFilter('');
-                }}
-                className="bg-white hover:bg-gray-50 text-gray-700 border border-gray-300 font-normal text-xs px-5 py-1.5 rounded shadow-sm cursor-pointer transition-colors"
-              >
-                Reset
-              </button>
-            </form>
-          </div>
-        </div>
+        <TableFilterBar
+          showFilters={showSite1Filters}
+          filterableCols={site1FilterableCols}
+          filterInputs={site1FilterInputs}
+          onFilterInputChange={handleSite1FilterInputChange}
+          onSubmit={handleSite1Submit}
+          onReset={handleSite1Reset}
+        />
 
         <div>
           <AgGridGenerator
@@ -298,60 +234,14 @@ export const OnlySiteTable = memo(({
         </div>
 
         {/* Global Filter Bar for Site 2 */}
-        <div
-          className={`transition-all duration-300 ease-in-out overflow-hidden ${showSite2Filters
-            ? 'max-h-96 opacity-100 mb-4 transform translate-y-0'
-            : 'max-h-0 opacity-0 mb-0 transform -translate-y-2 pointer-events-none'
-            }`}
-        >
-          <div className="flex items-center justify-between gap-4 text-xs">
-            <form
-              onSubmit={(e) => {
-                e.preventDefault();
-                setAppliedSite2TagFilter(site2TagInput);
-              }}
-              className="flex items-center gap-3"
-            >
-              <fieldset className="border border-gray-300 rounded px-2.5 pt-0 pb-1 inline-flex items-center text-xs bg-white focus-within:border-[#7a1c4b]">
-                <legend className="text-[11px] text-gray-500 px-1 font-normal leading-none -ml-1 select-none">
-                  Tag:
-                </legend>
-                <input
-                  type="text"
-                  value={site2TagInput}
-                  onChange={(e) => {
-                    setSite2TagInput(e.target.value);
-                    setAppliedSite2TagFilter(e.target.value);
-                  }}
-                  placeholder=""
-                  className="outline-none bg-transparent text-xs text-gray-700 w-24 sm:w-32 h-5"
-                />
-              </fieldset>
-
-              <button
-                type="submit"
-                onClick={(e) => {
-                  e.preventDefault();
-                  setAppliedSite2TagFilter(site2TagInput);
-                }}
-                className="bg-[#7a1c4b] hover:bg-[#63143c] text-white font-medium text-xs px-5 py-1.5 rounded shadow-sm cursor-pointer transition-colors"
-              >
-                Submit
-              </button>
-
-              <button
-                type="button"
-                onClick={() => {
-                  setSite2TagInput('');
-                  setAppliedSite2TagFilter('');
-                }}
-                className="bg-white hover:bg-gray-50 text-gray-700 border border-gray-300 font-normal text-xs px-5 py-1.5 rounded shadow-sm cursor-pointer transition-colors"
-              >
-                Reset
-              </button>
-            </form>
-          </div>
-        </div>
+        <TableFilterBar
+          showFilters={showSite2Filters}
+          filterableCols={site2FilterableCols}
+          filterInputs={site2FilterInputs}
+          onFilterInputChange={handleSite2FilterInputChange}
+          onSubmit={handleSite2Submit}
+          onReset={handleSite2Reset}
+        />
 
         <div>
           <AgGridGenerator
