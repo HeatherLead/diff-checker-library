@@ -84,10 +84,13 @@ export const SyncConfirmModal = memo(({
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-md p-4 transition-all duration-300 animate-in fade-in duration-200 overscroll-contain">
 
       {/* Modal Card */}
-      <div className="w-full max-w-[620px] bg-white rounded-xl shadow-2xl flex flex-col border border-gray-200 relative animate-in fade-in zoom-in-95 duration-200 overflow-hidden">
+      <div
+        className="w-full max-w-[620px] h-auto max-h-[90vh] my-auto bg-white rounded-xl shadow-2xl flex flex-col border border-gray-200 relative animate-in fade-in zoom-in-95 duration-200 overflow-hidden flex-shrink-0"
+        style={{ height: 'auto', maxHeight: '90vh' }}
+      >
 
         {/* Header */}
-        <div className="px-6 pt-5 pb-3 flex items-center justify-between border-b border-gray-100">
+        <div className="px-6 pt-5 pb-3 flex items-center justify-between border-b border-gray-100 flex-shrink-0">
           <h3 className="text-lg font-bold text-gray-800 tracking-wider">Confirm Data Sync</h3>
           <button
             onClick={onClose}
@@ -99,7 +102,11 @@ export const SyncConfirmModal = memo(({
         </div>
 
         {/* Content Body */}
-        <form onSubmit={handleSubmit} className="px-6 py-5 flex flex-col gap-5">
+        <form
+          onSubmit={handleSubmit}
+          className="px-6 py-5 flex flex-col gap-5 overflow-y-auto max-h-[calc(90vh-70px)] h-auto"
+          style={{ height: 'auto', maxHeight: 'calc(90vh - 70px)' }}
+        >
 
           <p className="text-gray-600 text-sm font-medium text-left">
             Are you sure you want confirm data Sync?

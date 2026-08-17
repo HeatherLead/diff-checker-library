@@ -83,9 +83,12 @@ export const DiffViewerModal = ({
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-md p-4 transition-all duration-300 overscroll-contain">
-      <div className="w-[80vw] h-[70vh] max-w-[80vw] max-h-[70vh] bg-white rounded-xl shadow-2xl flex flex-col overflow-hidden border border-gray-200 relative animate-in fade-in zoom-in-95 duration-200">
+      <div
+        className="w-[80vw] h-[70vh] max-w-[80vw] max-h-[70vh] my-auto bg-white rounded-xl shadow-2xl flex flex-col overflow-hidden border border-gray-200 relative animate-in fade-in zoom-in-95 duration-200 flex-shrink-0"
+        style={{ width: '80vw', maxWidth: '80vw', height: '70vh', maxHeight: '70vh' }}
+      >
         {type === 'diff' ? (
-          <div className="px-6 py-3 border-b border-gray-200 bg-white flex items-center justify-between shadow-sm">
+          <div className="px-6 py-3 border-b border-gray-200 bg-white flex items-center justify-between shadow-sm flex-shrink-0">
             <div className="grid grid-cols-2 gap-6 w-full pr-8">
               {/* Left Side Header */}
               <div>
@@ -128,11 +131,11 @@ export const DiffViewerModal = ({
             </button>
           </div>
         ) : (
-          <div className="px-6 py-4 border-b border-gray-200 bg-white flex items-center justify-between shadow-sm">
+          <div className="px-6 py-4 border-b border-gray-200 bg-white flex items-center justify-between shadow-sm flex-shrink-0">
             <h3 className="text-base font-bold text-gray-800 tracking-wider">DATA</h3>
             <button
               onClick={onClose}
-              className="text-gray-400 hover:text-gray-700 text-xl font-bold p-1 rounded-md hover:bg-gray-100 transition-colors"
+              className="text-gray-400 hover:text-gray-700 text-xl font-bold p-1 rounded-md hover:bg-gray-100 transition-colors cursor-pointer"
               title="Close"
             >
               ✕
@@ -181,7 +184,7 @@ export const DiffViewerModal = ({
         </div>
 
         {/* Modal Footer Controls */}
-        <div className="px-6 py-2.5 bg-gray-50 border-t border-gray-200 flex justify-between items-center text-xs">
+        <div className="px-6 py-2.5 bg-gray-50 border-t border-gray-200 flex justify-between items-center text-xs flex-shrink-0">
           <span className="text-gray-500 font-normal">
             Tag: <span className="text-gray-700 font-normal">{tag}</span>
           </span>
