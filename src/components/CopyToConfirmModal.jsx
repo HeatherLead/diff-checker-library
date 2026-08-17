@@ -3,11 +3,7 @@ import { ArrowRight, X } from 'lucide-react';
 import { useDiffChecker } from '../context/DiffCheckerContext';
 import useLockBodyScroll from '../hooks/useLockBodyScroll';
 
-/**
- * CloneConfirmModal handles the confirmation before running a clone (Copy to Right / Copy to Left) operation.
- * It displays side-by-side source and target configurations with a fixed directional arrow from source to target.
- */
-export const CloneConfirmModal = memo(({
+export const CopyToConfirmModal = memo(({
   isOpen,
   onClose,
   row,
@@ -21,7 +17,7 @@ export const CloneConfirmModal = memo(({
   const ctx = useDiffChecker();
   const baseUrl1 = propBaseUrl1 !== undefined ? propBaseUrl1 : ctx.baseUrl1;
   const baseUrl2 = propBaseUrl2 !== undefined ? propBaseUrl2 : ctx.baseUrl2;
-  const defaultSyncedBy = ctx.syncedBy || 'ayush';
+  const defaultSyncedBy = ctx.syncedBy || '';
 
   const [confirmYes, setConfirmYes] = useState('');
   const [syncBy, setSyncBy] = useState(defaultSyncedBy);
@@ -62,7 +58,6 @@ export const CloneConfirmModal = memo(({
 
   const isFormValid = confirmYes.trim().toLowerCase() === 'yes' && syncBy.trim().length > 0;
 
-  // Visual labels based on backend URLs
   const getSiteLabel = (url, isTarget = false) => {
     if (!url) return isTarget ? 'Target: ' : 'Source: ';
     if (url.includes('.wcms.cloud')) {
@@ -77,10 +72,9 @@ export const CloneConfirmModal = memo(({
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-md p-4 transition-all duration-300 animate-in fade-in duration-200 overscroll-contain">
 
-      {/* Modal Card */}
       <div className="w-full max-w-[620px] bg-white rounded-xl shadow-2xl flex flex-col border border-gray-200 relative animate-in fade-in zoom-in-95 duration-200 overflow-hidden">
 
-        {/* Header */}
+
         <div className="px-6 pt-5 pb-3 flex items-center justify-between border-b border-gray-100">
           <h3 className="text-lg font-bold text-gray-800 tracking-wider">Confirm Data Clone</h3>
           <button
@@ -92,17 +86,14 @@ export const CloneConfirmModal = memo(({
           </button>
         </div>
 
-        {/* Content Body */}
         <form onSubmit={handleSubmit} className="px-6 py-5 flex flex-col gap-5">
 
           <p className="text-gray-600 text-sm font-medium text-left">
             Are you sure you want confirm data Clone?
           </p>
 
-          {/* Site comparison side-by-side container */}
           <div className="border border-gray-200 rounded-lg p-4 bg-white flex flex-row items-center justify-between gap-3 relative shadow-xs">
 
-            {/* Left Box (Source) */}
             <div className="flex-1 min-w-0 p-3 bg-gray-50/70 rounded-lg border border-gray-100 text-left">
               <span className="text-xs font-bold text-gray-500 uppercase tracking-wide">
                 {getSiteLabel(sourceUrl, false)}
@@ -123,14 +114,12 @@ export const CloneConfirmModal = memo(({
               </p>
             </div>
 
-            {/* Direction Arrow Center indicator */}
             <div className="w-10 flex-shrink-0 flex items-center justify-center relative h-12">
               <div className="w-8 h-8 rounded-full border border-gray-200 bg-white flex items-center justify-center shadow-xs text-[#820f4c]">
                 <ArrowRight className="w-4 h-4 text-[#820f4c]" />
               </div>
             </div>
 
-            {/* Right Box (Target) */}
             <div className="flex-1 min-w-0 p-3 bg-gray-50/70 rounded-lg border border-gray-100 text-left">
               <span className="text-xs font-bold text-gray-500 uppercase tracking-wide">
                 {getSiteLabel(targetUrl, true)}
@@ -153,7 +142,6 @@ export const CloneConfirmModal = memo(({
 
           </div>
 
-          {/* Yes Confirmation Input */}
           <div className="flex flex-col gap-1.5 text-left">
             <label htmlFor="confirmYes" className="text-xs font-semibold text-gray-700">
               To confirm the clone, type "yes" <span className="text-red-500">*</span>
@@ -170,7 +158,6 @@ export const CloneConfirmModal = memo(({
             />
           </div>
 
-          {/* Sync By Name Input */}
           <div className="flex flex-col gap-1.5 text-left">
             <label htmlFor="syncBy" className="text-xs font-semibold text-gray-700">
               Sync by <span className="text-red-500">*</span>
@@ -187,7 +174,6 @@ export const CloneConfirmModal = memo(({
             />
           </div>
 
-          {/* Footer Actions */}
           <div className="flex items-center justify-end gap-3 mt-2 border-t border-gray-100 pt-4">
             <button
               type="button"
@@ -213,4 +199,4 @@ export const CloneConfirmModal = memo(({
   );
 });
 
-export default CloneConfirmModal;
+export default CopyToConfirmModal;

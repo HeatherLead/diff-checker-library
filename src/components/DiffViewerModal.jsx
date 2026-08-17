@@ -4,11 +4,6 @@ import JsonViewer from './JsonViewer';
 import { Copy } from 'lucide-react';
 import useLockBodyScroll from '../hooks/useLockBodyScroll';
 
-/**
- * Recursively parses stringified JSON inside objects, arrays, or strings
- * so that any nested JSON strings (e.g. datatable_structure, entity_config, params_structure)
- * are expanded into actual JavaScript objects/arrays.
- */
 export const parseNestedJsonStrings = (val) => {
   if (val === null || val === undefined) return val;
 
@@ -43,9 +38,6 @@ export const parseNestedJsonStrings = (val) => {
   return val;
 };
 
-/**
- * Format stringified JSON or plain text for optimal side-by-side diff display
- */
 export const formatDiffContent = (val) => {
   if (val === null || val === undefined) return '';
 
@@ -90,13 +82,8 @@ export const DiffViewerModal = ({
   const rightFormatted = formatDiffContent(rightData);
 
   return (
-    /* Modal Backdrop: Blurred background (backdrop-blur-md) with dark overlay */
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-md p-4 transition-all duration-300 overscroll-contain">
-
-      {/* Modal Dialog Box: 80% width and 70% height */}
       <div className="w-[80vw] h-[70vh] max-w-[80vw] max-h-[70vh] bg-white rounded-xl shadow-2xl flex flex-col overflow-hidden border border-gray-200 relative animate-in fade-in zoom-in-95 duration-200">
-
-        {/* Modal Header */}
         {type === 'diff' ? (
           <div className="px-6 py-3 border-b border-gray-200 bg-white flex items-center justify-between shadow-sm">
             <div className="grid grid-cols-2 gap-6 w-full pr-8">

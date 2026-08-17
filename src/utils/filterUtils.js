@@ -1,57 +1,6 @@
 import { matchSorter } from 'match-sorter';
+import { NON_FILTERABLE_EXACT_FIELDS } from '../constants/constants';
 
-const NON_FILTERABLE_EXACT_FIELDS = new Set([
-  'syncdata',
-  'synchdata',
-  'sync_data',
-  'sync',
-  'syncdatabtn',
-  'datatablediff',
-  'querydiff',
-  'otherdiff',
-  'rolediff',
-  'dtdiff',
-  'dt_diff',
-  'dfdiff',
-  'df_diff',
-  'customformdiff',
-  'diff',
-  'viewdata',
-  'view_data',
-  'view',
-  'viewquery',
-  'view_query',
-  'viewbtn',
-  'action',
-  'actions',
-  'edit',
-  'site1config',
-  'site2config',
-  'site1_config',
-  'site2_config',
-  'siteconfig',
-  'copyleft',
-  'copyright',
-  'copytoleft',
-  'copytoright',
-  'copy_left',
-  'copy_right',
-  'copy_to_left',
-  'copy_to_right',
-  'exceldiff',
-  'excel_diff',
-  'validatordiff',
-  'validator_diff',
-  'displaymsgdiff',
-  'display_msg_diff',
-  'viewrolediff',
-  'view_role_diff'
-]);
-
-/**
- * Checks if a column definition is a searchable text/data column
- * and excludes action buttons, diff buttons, config links, and sync buttons.
- */
 export const isFilterableColumn = (col) => {
   if (!col || !col.field) return false;
   if (col.filter === false || col.floatingFilter === false || col.isButton || col.isAction) return false;
@@ -93,9 +42,6 @@ export const isFilterableColumn = (col) => {
   return true;
 };
 
-/**
- * Transforms column header text into a user-friendly filter label (e.g. "SITE VERSION" -> "Site Version")
- */
 export const formatFilterLabel = (headerName) => {
   if (!headerName) return '';
   const str = String(headerName).trim();
@@ -110,9 +56,6 @@ export const formatFilterLabel = (headerName) => {
     .join(' ');
 };
 
-/**
- * Extracts all filterable column definitions from a list of colDefs
- */
 export const getFilterableColumns = (colDefs) => {
   if (!Array.isArray(colDefs)) return [];
   return colDefs.filter(isFilterableColumn).map(col => ({
@@ -122,9 +65,6 @@ export const getFilterableColumns = (colDefs) => {
   }));
 };
 
-/**
- * Filters rows based on active filter criteria across multiple column fields
- */
 export const filterRowsByColDefs = (rows, appliedFilters, filterableCols) => {
   if (!Array.isArray(rows)) return [];
   if (!appliedFilters || Object.keys(appliedFilters).length === 0) return rows;

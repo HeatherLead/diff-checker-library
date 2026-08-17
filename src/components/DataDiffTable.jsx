@@ -1,9 +1,12 @@
-import React, { useState, useMemo, memo } from 'react';
-import { AgGridGenerator } from './agGridGenerator';
+import React, { useState, useMemo, useCallback, memo } from 'react';
+import { AGGridGenerator } from './AGGridGenerator';
 import { getOptionConfig } from '../config';
 import { useDiffChecker } from '../context/DiffCheckerContext';
 import { getFilterableColumns, filterRowsByColDefs } from '../utils/filterUtils';
 import TableFilterBar from './TableFilterBar';
+import { VIEW_DIFF_FIELDS, DIFF_CHANGES_FIELDS } from '../constants/constants';
+
+const noop = () => { };
 
 export const DataDiffTable = memo(({
   activeOption: propActiveOption,
@@ -16,9 +19,9 @@ export const DataDiffTable = memo(({
 }) => {
   const ctx = useDiffChecker();
   const activeOption = propActiveOption || ctx.activeOption;
-  const openDiffViewer = propOpenDiffViewer || ctx.openDiffViewer || (() => { });
-  const handleSyncConfiguration = propHandleSyncConfiguration || ctx.handleSyncConfiguration || (() => { });
-  const showToast = propShowToast || ctx.showToast || (() => { });
+  const openDiffViewer = propOpenDiffViewer || ctx.openDiffViewer || noop;
+  const handleSyncConfiguration = propHandleSyncConfiguration || ctx.handleSyncConfiguration || noop;
+  const showToast = propShowToast || ctx.showToast || noop;
   const baseUrl1 = propBaseUrl1 !== undefined ? propBaseUrl1 : ctx.baseUrl1;
   const baseUrl2 = propBaseUrl2 !== undefined ? propBaseUrl2 : ctx.baseUrl2;
 
@@ -32,9 +35,9 @@ export const DataDiffTable = memo(({
   const columns = useMemo(() => {
     return config.getColumns({
       openDiffViewer,
-      openDataViewer: () => { },
+      openDataViewer: noop,
       handleSyncConfiguration,
-      handleCloneConfiguration: () => { },
+      handleCloneConfiguration: noop,
       showToast,
       baseUrl1,
       baseUrl2
@@ -48,19 +51,19 @@ export const DataDiffTable = memo(({
     return getFilterableColumns(dataDiffColDefs);
   }, [dataDiffColDefs]);
 
-  const handleFilterInputChange = (field, value) => {
+  const handleFilterInputChange = useCallback((field, value) => {
     setFilterInputs((prev) => ({ ...prev, [field]: value }));
     setAppliedFilters((prev) => ({ ...prev, [field]: value }));
-  };
+  }, []);
 
-  const handleSubmit = () => {
+  const handleSubmit = useCallback(() => {
     setAppliedFilters({ ...filterInputs });
-  };
+  }, [filterInputs]);
 
-  const handleReset = () => {
+  const handleReset = useCallback(() => {
     setFilterInputs({});
     setAppliedFilters({});
-  };
+  }, []);
 
   // Filtered rows logic
   const filteredDataDiffRows = useMemo(() => {
@@ -69,18 +72,8 @@ export const DataDiffTable = memo(({
     if (dataDiffFilterMode === 'only_diff') {
       list = list.filter((r) => {
         return (
-          r.datatableDiff === 'View Diff' ||
-          r.queryDiff === 'View Diff' ||
-          r.otherDiff === 'View Diff' ||
-          r.role_diff === 'View Diff' ||
-          r.dt_status === 'Diff Changes' ||
-          r.df_status === 'Diff Changes' ||
-          r.role_diff_status === 'Diff Changes' ||
-          r.wf_status === 'Diff Changes' ||
-          r.query_status === 'Diff Changes' ||
-          r.msg_diff === 'Diff Changes' ||
-          r.excel_diff === 'View Diff' ||
-          r.validator_diff === 'View Diff'
+          VIEW_DIFF_FIELDS.some((field) => r[field] === 'View Diff') ||
+          DIFF_CHANGES_FIELDS.some((field) => r[field] === 'Diff Changes')
         );
       });
     }
@@ -140,7 +133,7 @@ export const DataDiffTable = memo(({
       />
 
       {/* AG Grid Table */}
-      <AgGridGenerator
+      <AGGridGenerator
         rowData={filteredDataDiffRows}
         columnDefs={dataDiffColDefs}
         showFloatingFilter={false}

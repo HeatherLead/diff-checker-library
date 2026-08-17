@@ -1,5 +1,5 @@
 import React, { useState, useMemo, memo } from 'react';
-import { AgGridGenerator } from './agGridGenerator';
+import { AGGridGenerator } from './AGGridGenerator';
 import { getOptionConfig } from '../config';
 import { useDiffChecker } from '../context/DiffCheckerContext';
 import { getFilterableColumns, filterRowsByColDefs } from '../utils/filterUtils';
@@ -124,7 +124,7 @@ export const VersionMismatchTable = memo(({
       />
 
       {/* AG Grid Table */}
-      <AgGridGenerator
+      <AGGridGenerator
         rowData={filteredVersionMismatchRows}
         columnDefs={versionMismatchColDefs}
         showFloatingFilter={false}

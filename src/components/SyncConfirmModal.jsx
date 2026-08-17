@@ -3,10 +3,6 @@ import { ArrowLeftRight, X } from 'lucide-react';
 import { useDiffChecker } from '../context/DiffCheckerContext';
 import useLockBodyScroll from '../hooks/useLockBodyScroll';
 
-/**
- * SyncConfirmModal handles the confirmation before running a sync operation.
- * It displays side-by-side source and target configurations, allowing direction swap.
- */
 export const SyncConfirmModal = memo(({
   isOpen,
   onClose,
@@ -20,7 +16,7 @@ export const SyncConfirmModal = memo(({
   const ctx = useDiffChecker();
   const baseUrl1 = propBaseUrl1 !== undefined ? propBaseUrl1 : ctx.baseUrl1;
   const baseUrl2 = propBaseUrl2 !== undefined ? propBaseUrl2 : ctx.baseUrl2;
-  const defaultSyncedBy = ctx.syncedBy || 'ayush';
+  const defaultSyncedBy = ctx.syncedBy || '';
 
   const [direction, setDirection] = useState('site1_to_site2'); // 'site1_to_site2' or 'site2_to_site1'
   const [confirmYes, setConfirmYes] = useState('');

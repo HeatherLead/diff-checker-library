@@ -1,5 +1,5 @@
 import React, { useState, useMemo, memo } from 'react';
-import { AgGridGenerator } from './agGridGenerator';
+import { AGGridGenerator } from './AGGridGenerator';
 import { getOptionConfig } from '../config';
 import { useDiffChecker } from '../context/DiffCheckerContext';
 import { getFilterableColumns, filterRowsByColDefs } from '../utils/filterUtils';
@@ -103,7 +103,7 @@ export const OnlySiteTable = memo(({
   if (config.hasNonMatchTable) {
     return (
       <div className="grid grid-cols-1 gap-6">
-        <section className="bg-white rounded-lg p-5">
+        <section className="bg-white rounded-lg p-5 min-w-0 shadow-sm border border-gray-100">
           <div className="flex items-center justify-between border-b pb-2 mb-4">
             <div className="w-1/4"></div>
             <div className="text-center w-2/4">
@@ -133,9 +133,10 @@ export const OnlySiteTable = memo(({
           />
 
           <div>
-            <AgGridGenerator
+            <AGGridGenerator
               rowData={filteredSite1Rows}
               columnDefs={site1ColDefs}
+              defaultColDef={{ minWidth: 130, resizable: true }}
               showFloatingFilter={false}
               minHeight="250px"
               maxHeight="440px"
@@ -153,7 +154,7 @@ export const OnlySiteTable = memo(({
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
       {/* Left Side: ONLY SITE 1 DATATABLES */}
-      <section className="bg-white rounded-lg p-5">
+      <section className="bg-white rounded-lg p-5 min-w-0 shadow-sm border border-gray-100">
         <div className="flex items-center justify-between border-b pb-2 mb-4">
           <div className="w-1/4"></div>
           <div className="text-center w-2/4">
@@ -191,9 +192,10 @@ export const OnlySiteTable = memo(({
         />
 
         <div>
-          <AgGridGenerator
+          <AGGridGenerator
             rowData={filteredSite1Rows}
             columnDefs={site1ColDefs}
+            defaultColDef={{ minWidth: 130, resizable: true }}
             showFloatingFilter={false}
             minHeight="250px"
             maxHeight="440px"
@@ -206,7 +208,7 @@ export const OnlySiteTable = memo(({
       </section>
 
       {/* Right Side: ONLY SITE 2 DATATABLES */}
-      <section className="bg-white rounded-lg p-5">
+      <section className="bg-white rounded-lg p-5 min-w-0 shadow-sm border border-gray-100">
         <div className="flex items-center justify-between border-b pb-2 mb-4">
           <div className="w-1/4"></div>
           <div className="text-center w-2/4">
@@ -244,9 +246,10 @@ export const OnlySiteTable = memo(({
         />
 
         <div>
-          <AgGridGenerator
+          <AGGridGenerator
             rowData={filteredSite2Rows}
             columnDefs={site2ColDefs}
+            defaultColDef={{ minWidth: 130, resizable: true }}
             showFloatingFilter={false}
             minHeight="250px"
             maxHeight="440px"

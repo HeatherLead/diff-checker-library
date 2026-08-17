@@ -2,13 +2,13 @@ import './index.css';
 import DiffChecker from './DiffChecker';
 import Header from './components/Header';
 import NavigationRow from './components/NavigationRow';
-import { AgGridGenerator } from './components/agGridGenerator';
+import { AGGridGenerator } from './components/AGGridGenerator';
 import DataDiffTable from './components/DataDiffTable';
 import VersionMismatchTable from './components/VersionMismatchTable';
 import OnlySiteTable from './components/OnlySiteTable';
 import DiffViewerModal from './components/DiffViewerModal';
 import { SyncConfirmModal } from './components/SyncConfirmModal';
-import { CloneConfirmModal } from './components/CloneConfirmModal';
+import { CopyToConfirmModal } from './components/CopyToConfirmModal';
 import { CONFIGS, getOptionConfig } from './config';
 import { useConfigurationDiff } from './hooks/useConfigurationDiff';
 import { DiffCheckerProvider, useDiffChecker } from './context/DiffCheckerContext';
@@ -20,13 +20,13 @@ export {
   DiffChecker,
   Header,
   NavigationRow,
-  AgGridGenerator,
+  AGGridGenerator,
   DataDiffTable,
   VersionMismatchTable,
   OnlySiteTable,
   DiffViewerModal,
   SyncConfirmModal,
-  CloneConfirmModal,
+  CopyToConfirmModal,
   CONFIGS,
   getOptionConfig,
   useConfigurationDiff,

@@ -8,11 +8,8 @@ function App() {
   return (
     <BrowserRouter>
       <Routes>
-        {/* Mount directly at /diff-checker (matching consumer pattern) */}
-        <Route path="/diff-checker/*" element={<DiffChecker base_url={defaultBaseUrl} basePath="/diff-checker" />} />
-        
-        {/* Also allow direct root routes during local development */}
-        <Route path="/*" element={<DiffChecker base_url={defaultBaseUrl} basePath="" />} />
+        <Route path="/diff-checker/*" element={<DiffChecker base_url={defaultBaseUrl} base_path="/diff-checker" />} />
+        <Route path="/*" element={<DiffChecker base_url={defaultBaseUrl} base_path="" />} />
       </Routes>
     </BrowserRouter>
   );

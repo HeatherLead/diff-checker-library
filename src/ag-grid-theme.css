@@ -47,19 +47,22 @@
 
 .ag-theme-alpine .ag-body-vertical-scroll ::-webkit-scrollbar,
 .ag-theme-alpine .ag-body-viewport ::-webkit-scrollbar,
+.ag-theme-alpine .ag-body-horizontal-scroll ::-webkit-scrollbar,
 .ag-theme-alpine ::-webkit-scrollbar {
   width: 6px !important;
-  height: 6px !important;
+  height: 7px !important;
 }
 
 .ag-theme-alpine .ag-body-vertical-scroll ::-webkit-scrollbar-track,
 .ag-theme-alpine .ag-body-viewport ::-webkit-scrollbar-track,
+.ag-theme-alpine .ag-body-horizontal-scroll ::-webkit-scrollbar-track,
 .ag-theme-alpine ::-webkit-scrollbar-track {
   background: transparent !important;
 }
 
 .ag-theme-alpine .ag-body-vertical-scroll ::-webkit-scrollbar-thumb,
 .ag-theme-alpine .ag-body-viewport ::-webkit-scrollbar-thumb,
+.ag-theme-alpine .ag-body-horizontal-scroll ::-webkit-scrollbar-thumb,
 .ag-theme-alpine ::-webkit-scrollbar-thumb {
   background-color: rgba(140, 140, 140, 0.4) !important;
   border-radius: 9999px !important;
@@ -68,8 +71,23 @@
 
 .ag-theme-alpine .ag-body-vertical-scroll ::-webkit-scrollbar-thumb:hover,
 .ag-theme-alpine .ag-body-viewport ::-webkit-scrollbar-thumb:hover,
+.ag-theme-alpine .ag-body-horizontal-scroll ::-webkit-scrollbar-thumb:hover,
 .ag-theme-alpine ::-webkit-scrollbar-thumb:hover {
   background-color: rgba(136, 19, 55, 0.7) !important;
+}
+
+.ag-theme-alpine .ag-body-horizontal-scroll {
+  height: 7px !important;
+  min-height: 7px !important;
+  max-height: 7px !important;
+  background: transparent !important;
+}
+
+.ag-theme-alpine .ag-body-horizontal-scroll-viewport,
+.ag-theme-alpine .ag-body-horizontal-scroll-container {
+  height: 7px !important;
+  min-height: 7px !important;
+  background: transparent !important;
 }
 
 .ag-theme-alpine .ag-header-cell-label {
@@ -367,4 +385,34 @@
 
 .ag-blue-link:hover {
   text-decoration: underline;
+}
+
+/* AG Grid Header & Cell Tooltip Styling */
+.ag-theme-alpine .ag-tooltip,
+.ag-theme-quartz .ag-tooltip,
+.ag-tooltip {
+  background-color: #1e293b !important;
+  color: #f8fafc !important;
+  font-family: 'Roboto', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif !important;
+  font-size: 11.5px !important;
+  font-weight: 500 !important;
+  letter-spacing: 0.02em !important;
+  padding: 5px 9px !important;
+  border-radius: 4px !important;
+  border: 1px solid rgba(255, 255, 255, 0.12) !important;
+  box-shadow: 0 4px 12px -1px rgba(0, 0, 0, 0.25), 0 2px 6px -2px rgba(0, 0, 0, 0.2) !important;
+  white-space: normal !important;
+  max-width: 320px !important;
+  word-break: break-word !important;
+  line-height: 1.35 !important;
+  z-index: 99999 !important;
+  pointer-events: none !important;
+  transition: opacity 0.15s ease-in-out, transform 0.15s ease-in-out !important;
+}
+
+.ag-theme-alpine .ag-tooltip-custom,
+.ag-theme-quartz .ag-tooltip-custom,
+.ag-tooltip-custom {
+  background-color: #1e293b !important;
+  color: #f8fafc !important;
 }
