@@ -1,9 +1,5 @@
 import React from 'react';
 
-/**
- * Reusable dynamic filter bar rendered above tables.
- * Renders an input fieldset for each filterable column, plus Submit and Reset buttons.
- */
 export const TableFilterBar = ({
   showFilters,
   filterableCols = [],
@@ -19,14 +15,12 @@ export const TableFilterBar = ({
 
   return (
     <div
-      className={`transition-all duration-300 ease-in-out overflow-hidden ${
-        showFilters
-          ? 'max-h-96 opacity-100 mb-4 transform translate-y-0'
-          : 'max-h-0 opacity-0 mb-0 transform -translate-y-2 pointer-events-none'
-      }`}
+      className={`transition-all duration-300 ease-in-out overflow-hidden ${showFilters
+        ? 'max-h-96 opacity-100 mb-4 transform translate-y-0'
+        : 'max-h-0 opacity-0 mb-0 transform -translate-y-2 pointer-events-none'
+        }`}
     >
       <div className="flex flex-wrap items-center justify-between gap-4 text-xs">
-        {/* Left: Dynamic Column Inputs + Submit + Reset */}
         <form
           onSubmit={(e) => {
             e.preventDefault();
@@ -80,8 +74,6 @@ export const TableFilterBar = ({
             Reset
           </button>
         </form>
-
-        {/* Right side controls (if any, like radio filters) */}
         {rightControls && (
           <div className="flex items-center">{rightControls}</div>
         )}

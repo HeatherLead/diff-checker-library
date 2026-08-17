@@ -3,6 +3,113 @@ import { useConfigurationDiff } from '../../hooks/useConfigurationDiff';
 import DataDiffTable from '../../components/DataDiffTable';
 import VersionMismatchTable from '../../components/VersionMismatchTable';
 import OnlySiteTable from '../../components/OnlySiteTable';
+import { renderTrimTooltip, renderTagLink } from '../../utils/cellRenderers';
+
+export const roleDepartmentListConfig = {
+  apiKey: 'role_department_list',
+  leftDataKey: 'attachment',
+  rightDataKey: 'attachment',
+  hasVersionMismatch: false,
+  compare: (site1Dataset: any[], site2Dataset: any[]) => {
+    const dataDiff: any[] = [];
+    const onlySite1: any[] = [];
+    const onlySite2: any[] = [];
+
+    const map1 = site1Dataset || [];
+    const map2 = site2Dataset || [];
+
+    map1.forEach((record1: any) => {
+      const record2 = map2.find((r: any) => r.role?.trim() === record1.role?.trim());
+
+      if (record2) {
+        const clean1 = Object.fromEntries(Object.entries(record1).filter(([k]) => !["updated", "updated_by", "created", "created_by"].includes(k)));
+        const clean2 = Object.fromEntries(Object.entries(record2).filter(([k]) => !["updated", "updated_by", "created", "created_by"].includes(k)));
+        const hasDiff = JSON.stringify(clean1) !== JSON.stringify(clean2);
+
+        dataDiff.push({
+          tag: record1.role?.trim(),
+          role_diff_status: hasDiff ? "Diff Changes" : "No change",
+          view_role_diff: hasDiff ? "View Diff" : "No diff",
+          raw1: record1,
+          raw2: record2
+        });
+      } else {
+        onlySite1.push({
+          tag: record1.role?.trim(),
+          id: record1.id || record1.role?.trim(),
+          raw: record1
+        });
+      }
+    });
+
+    map2.forEach((record2: any) => {
+      const record1 = map1.find((r: any) => r.role?.trim() === record2.role?.trim());
+      if (!record1) {
+        onlySite2.push({
+          tag: record2.role?.trim(),
+          id: record2.id || record2.role?.trim(),
+          raw: record2
+        });
+      }
+    });
+
+    return { dataDiff, versionMismatch: [], onlySite1, onlySite2 };
+  },
+  getColumns: ({ openDiffViewer, openDataViewer, handleCloneConfiguration, baseUrl1, baseUrl2 }: any) => {
+    return {
+      dataDiffColDefs: [
+        { field: 'tag', headerName: 'TAG', flex: 1.5, cellClass: 'font-normal text-gray-700', cellRenderer: (params: any) => renderTrimTooltip(params.value, 35) },
+        { field: 'role_diff_status', headerName: 'ROLE DIFF STATUS', flex: 1.5 },
+        {
+          field: 'view_role_diff',
+          headerName: 'VIEW ROLE DIFF',
+          flex: 1.2,
+          cellRenderer: (params: any) => params.value === 'View Diff' ? (
+            <button onClick={() => openDiffViewer(params, 'other')} className="btn-gray">View Diff</button>
+          ) : <span className="text-gray-500 font-normal">{params.value}</span>
+        }
+      ],
+      site1ColDefs: [
+        { field: 'tag', headerName: 'ROLE', flex: 2, cellClass: 'font-normal text-[#800040]', cellRenderer: (params: any) => renderTagLink(baseUrl1, 'role-department-list', params.data.id || params.data.tag, params.value) },
+        {
+          field: 'viewData',
+          headerName: 'VIEW DATA',
+          flex: 1.2,
+          cellRenderer: (params: any) => (
+            <button onClick={() => openDataViewer(params)} className="btn-gray">View Data</button>
+          )
+        },
+        {
+          field: 'syncData',
+          headerName: '',
+          flex: 1.2,
+          cellRenderer: (params: any) => (
+            <button onClick={() => handleCloneConfiguration(params.data.raw, baseUrl2, 'to_right')} className="btn-gray">Copy to Right</button>
+          )
+        }
+      ],
+      site2ColDefs: [
+        { field: 'tag', headerName: 'TAG', flex: 2, cellClass: 'font-normal text-[#800040]', cellRenderer: (params: any) => renderTagLink(baseUrl2, 'role-department-list', params.data.id || params.data.tag, params.value) },
+        {
+          field: 'viewData',
+          headerName: 'VIEW DATA',
+          flex: 1.2,
+          cellRenderer: (params: any) => (
+            <button onClick={() => openDataViewer(params)} className="btn-gray">View Data</button>
+          )
+        },
+        {
+          field: 'syncData',
+          headerName: '',
+          flex: 1.2,
+          cellRenderer: (params: any) => (
+            <button onClick={() => handleCloneConfiguration(params.data.raw, baseUrl1, 'to_left')} className="btn-gray">Copy to Left</button>
+          )
+        }
+      ]
+    };
+  }
+};
 
 export interface RoleDepartmentListProps {
   activeOption?: string;

@@ -7,19 +7,34 @@ import React, {
 } from "react";
 import { AgGridReact } from "ag-grid-react";
 import "ag-grid-enterprise";
-
-const ESTIMATE_CHAR_PX = 7.5;
-const ESTIMATE_PADDING = 40;
-const ESTIMATE_ROW_SAMPLE = 100;
+import {
+  ESTIMATE_CHAR_PX,
+  ESTIMATE_PADDING,
+  ESTIMATE_ROW_SAMPLE,
+  NON_FILTERABLE_EXACT_FIELDS,
+  ROW_KEY_FIELDS,
+  NON_FILTERABLE_HEADER_KEYWORDS,
+  NON_FILTERABLE_FIELD_KEYWORDS,
+} from "../constants/constants";
 
 const stripHtmlForMeasure = (val) => {
   if (val == null) return "";
-  return String(val).replace(/<[^>]*>/g, "").trim();
+  const str = String(val);
+  if (!str.includes("<")) return str.trim();
+  return str.replace(/<[^>]*>/g, "").trim();
 };
 
 const parseColDim = (val) => {
   const parsed = parseInt(val, 10);
   return Number.isNaN(parsed) ? undefined : parsed;
+};
+
+const getHeaderTooltip = (col) => {
+  if (col.headerTooltip !== undefined) return col.headerTooltip || undefined;
+  const raw = col.headerName ?? col.header ?? col.title ?? col.id ?? col.field ?? "";
+  if (typeof raw !== "string") return String(raw || "").trim() || undefined;
+  const stripped = stripHtmlForMeasure(raw);
+  return stripped || undefined;
 };
 
 /** Width estimation from header + row data for virtualized cols */
@@ -54,10 +69,11 @@ const estimateColumnWidthFromData = (column, rows) => {
 };
 
 const shouldSkipColumnAutoSize = (colDef) => {
-  if (!colDef?.colId) return true;
-  const colId = colDef.colId;
+  if (!colDef?.colId && !colDef?.field) return true;
+  const colId = colDef.colId || colDef.field;
   if (colId === "selection" || colId.startsWith("ag-Grid-Selection")) return true;
   if (colDef.hasApiWidth) return true;
+  if (colDef.width && colDef.flex === 0) return true;
   return false;
 };
 
@@ -128,21 +144,19 @@ const applyColumnAutoSize = (api, columnDefsList) => {
 /** Stable row key resolver */
 const resolveGridRowKey = (row, rowSelectionId) => {
   if (!row) return null;
-  const id =
-    row.id ||
-    row.tag ||
-    row.tag_name ||
-    row.issue_id ||
-    row.issue_encoded_id ||
-    row.task_id ||
-    row.bo_id ||
-    row.initiative_id ||
-    row.ticket_code ||
-    row.user_id ||
-    row.module ||
-    row.entity_type ||
-    (rowSelectionId && row[rowSelectionId]) ||
-    row.uid;
+  let id = null;
+  for (let i = 0; i < ROW_KEY_FIELDS.length; i++) {
+    const field = ROW_KEY_FIELDS[i];
+    if (row[field] != null && row[field] !== "") {
+      id = row[field];
+      break;
+    }
+  }
+  if (id == null || id === "") {
+    if (rowSelectionId && row[rowSelectionId] != null && row[rowSelectionId] !== "") {
+      id = row[rowSelectionId];
+    }
+  }
   return id != null && id !== "" ? String(id) : null;
 };
 
@@ -218,46 +232,6 @@ const DefaultCellRenderer = (params) => {
   return <span>{String(val)}</span>;
 };
 
-const NON_FILTERABLE_EXACT_FIELDS = new Set([
-  "syncdata",
-  "synchdata",
-  "sync_data",
-  "sync",
-  "syncdatabtn",
-  "datatablediff",
-  "querydiff",
-  "otherdiff",
-  "other_diff",
-  "rolediff",
-  "role_diff",
-  "dtdiff",
-  "dt_diff",
-  "dfdiff",
-  "df_diff",
-  "customformdiff",
-  "diff",
-  "viewdata",
-  "view_data",
-  "view",
-  "viewbtn",
-  "action",
-  "actions",
-  "edit",
-  "site1config",
-  "site2config",
-  "site1_config",
-  "site2_config",
-  "siteconfig",
-  "copyleft",
-  "copyright",
-  "copytoleft",
-  "copytoright",
-  "copy_left",
-  "copy_right",
-  "copy_to_left",
-  "copy_to_right",
-]);
-
 const isNonFilterableCol = (field, colObj) => {
   if (!colObj) colObj = {};
   if (colObj.filter === false || colObj.floatingFilter === false || colObj.isButton || colObj.isAction) {
@@ -282,31 +256,12 @@ const isNonFilterableCol = (field, colObj) => {
   const isStatusField = strField.includes("status") || strHeader.includes("status");
 
   if (!isStatusField) {
-    if (strHeader) {
-      if (
-        strHeader.includes("diff") ||
-        strHeader.includes("edit") ||
-        strHeader.includes("view") ||
-        strHeader.includes("copy") ||
-        strHeader.includes("sync") ||
-        strHeader.includes("action") ||
-        strHeader.includes("config")
-      ) {
-        return true;
-      }
+    if (strHeader && NON_FILTERABLE_HEADER_KEYWORDS.some(kw => strHeader.includes(kw))) {
+      return true;
     }
 
-    if (strField) {
-      if (
-        strField.includes("diff") ||
-        strField.includes("edit") ||
-        strField.includes("view") ||
-        strField.includes("copy") ||
-        strField.includes("sync") ||
-        strField.includes("action")
-      ) {
-        return true;
-      }
+    if (strField && NON_FILTERABLE_FIELD_KEYWORDS.some(kw => strField.includes(kw))) {
+      return true;
     }
   }
 
@@ -321,15 +276,22 @@ const isNonFilterableCol = (field, colObj) => {
 
   // Check cellRenderer function string representation
   if (typeof colObj.cellRenderer === "function") {
-    const fnStr = colObj.cellRenderer.toString();
-    if (
-      fnStr.includes("<button") ||
-      fnStr.includes("btn-") ||
-      fnStr.includes("handleSync") ||
-      fnStr.includes("handleClone") ||
-      fnStr.includes("openDiffViewer") ||
-      fnStr.includes("openDataViewer")
-    ) {
+    if (colObj.cellRenderer === DefaultCellRenderer) {
+      return false;
+    }
+
+    if (colObj.cellRenderer._isNonFilterable === undefined) {
+      const fnStr = colObj.cellRenderer.toString();
+      colObj.cellRenderer._isNonFilterable =
+        fnStr.includes("<button") ||
+        fnStr.includes("btn-") ||
+        fnStr.includes("handleSync") ||
+        fnStr.includes("handleClone") ||
+        fnStr.includes("openDiffViewer") ||
+        fnStr.includes("openDataViewer");
+    }
+
+    if (colObj.cellRenderer._isNonFilterable) {
       return true;
     }
   }
@@ -338,10 +300,10 @@ const isNonFilterableCol = (field, colObj) => {
 };
 
 /**
- * AgGridGenerator Component
+ * AGGridGenerator Component
  * Generates an AG-Grid instance styled and configured based on passed props.
  */
-export const AgGridGenerator = ({
+export const AGGridGenerator = ({
   view_name,
   datatable_id,
   datatable_title,
@@ -366,6 +328,8 @@ export const AgGridGenerator = ({
   enableCheckboxSelection = false,
   showFloatingFilter = false,
   showTableFilter,
+  tooltipShowDelay = 1000,
+  tooltipHideDelay = 8000,
   ...props
 }) => {
   const gridRef = useRef();
@@ -388,8 +352,10 @@ export const AgGridGenerator = ({
     if (Array.isArray(directColumnDefs) && directColumnDefs.length > 0) {
       cols = directColumnDefs.map((col) => {
         const isNonFilterable = isNonFilterableCol(col.field, col);
+        const headerTooltip = getHeaderTooltip(col);
         return {
           ...col,
+          headerTooltip,
           cellStyle: isNonFilterable ? { display: 'flex', alignItems: 'center', justifyContent: 'center', ...(col.cellStyle || {}) } : col.cellStyle,
           cellRenderer: col.cellRenderer || DefaultCellRenderer,
           filter: isNonFilterable ? false : col.filter ?? "agTextColumnFilter",
@@ -406,8 +372,11 @@ export const AgGridGenerator = ({
         cols = webCols.map((col) => {
           const field = col.accessor || col.id;
           const isNonFilterable = isNonFilterableCol(field, col);
+          const headerName = col.header || col.title || col.id;
+          const headerTooltip = getHeaderTooltip({ ...col, headerName });
           return {
-            headerName: col.header || col.title || col.id,
+            headerName,
+            headerTooltip,
             field,
             colId: col.id,
             sortable: true,
@@ -429,8 +398,10 @@ export const AgGridGenerator = ({
         const sample = effectiveRowData[0];
         cols = Object.keys(sample).map((key) => {
           const isNonFilterable = isNonFilterableCol(key, {});
+          const headerName = key.replace(/_/g, " ").toUpperCase();
           return {
-            headerName: key.replace(/_/g, " ").toUpperCase(),
+            headerName,
+            headerTooltip: headerName,
             field: key,
             sortable: true,
             filter: isNonFilterable ? false : "agTextColumnFilter",
@@ -463,6 +434,7 @@ export const AgGridGenerator = ({
             sortable: false,
             filter: false,
             floatingFilter: false,
+            headerTooltip: undefined,
             headerClass: "ag-selection-checkbox-header",
           },
           ...cols,
@@ -531,11 +503,8 @@ export const AgGridGenerator = ({
       if (typeof externalOnGridReady === "function") {
         externalOnGridReady(params);
       }
-      setTimeout(() => {
-        applyColumnAutoSize(params.api, derivedColumnDefs);
-      }, 100);
     },
-    [externalOnGridReady, derivedColumnDefs]
+    [externalOnGridReady]
   );
 
   const handleCellClicked = useCallback(
@@ -588,7 +557,7 @@ export const AgGridGenerator = ({
     return () => {
       container.removeEventListener("contextmenu", handleContextMenuCapture, true);
     };
-  }, [derivedColumnDefs]);
+  }, []);
 
   useEffect(() => {
     if (!headerContextMenu) return;
@@ -601,11 +570,6 @@ export const AgGridGenerator = ({
     };
   }, [headerContextMenu]);
 
-  useEffect(() => {
-    if (gridRef.current?.api && derivedColumnDefs.length > 0) {
-      applyColumnAutoSize(gridRef.current.api, derivedColumnDefs);
-    }
-  }, [derivedColumnDefs, effectiveRowData]);
 
   const totalRowCount = useMemo(() => {
     if (tableData?.total_record_count != null) return tableData.total_record_count;
@@ -652,6 +616,8 @@ export const AgGridGenerator = ({
           suppressCellFocus={true}
           suppressRowClickSelection={true}
           animateRows={true}
+          tooltipShowDelay={tooltipShowDelay}
+          tooltipHideDelay={tooltipHideDelay}
           overlayNoRowsTemplate={`<span class="text-sm font-normal text-gray-500">${noRowsMessage}</span>`}
           {...gridOptions}
           {...props}
@@ -731,5 +697,5 @@ export const AgGridGenerator = ({
   );
 };
 
-export default AgGridGenerator;
+export default AGGridGenerator;
 

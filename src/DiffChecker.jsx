@@ -1,10 +1,11 @@
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import Header from './components/Header';
-import NavigationRow, { TABS } from './components/NavigationRow';
+import NavigationRow from './components/NavigationRow';
+import { TABS } from './constants/constants';
 import DiffViewerModal, { formatDiffContent, parseNestedJsonStrings } from './components/DiffViewerModal';
 import { SquareArrowOutUpRight, Check, X } from 'lucide-react';
 import { SyncConfirmModal } from './components/SyncConfirmModal';
-import { CloneConfirmModal } from './components/CloneConfirmModal';
+import { CopyToConfirmModal } from './components/CopyToConfirmModal';
 import { getOptionConfig } from './config';
 import { toast, ToastContainer, Bounce } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
@@ -154,24 +155,17 @@ const resolveOptionFromPath = (pathname, basePath) => {
 };
 
 export const DiffChecker = ({
-  baseurl,
-  baseUrl,
   base_url = "",
-  base_path,
-  basePath = "/diff-checker",
-  backend_url = "",
-  backend_url_2 = "",
+  base_path = "/diff-checker",
   synced_by = "",
   headers = {},
   initialOption = 'datatables',
   initialOptionLabel = 'DataTables',
   children
 }) => {
-  const resolvedBasePath = base_path !== undefined ? base_path : basePath;
-
   // Initialize activeOption from current URL pathname or props
   const initialResolved = typeof window !== 'undefined'
-    ? resolveOptionFromPath(window.location.pathname, resolvedBasePath)
+    ? resolveOptionFromPath(window.location.pathname, base_path)
     : null;
 
   const [activeOption, setActiveOption] = useState(initialResolved ? initialResolved.id : initialOption);
@@ -180,7 +174,7 @@ export const DiffChecker = ({
   // Sync activeOption on popstate / browser back & forward
   useEffect(() => {
     const handlePopState = () => {
-      const resolved = resolveOptionFromPath(window.location.pathname, resolvedBasePath);
+      const resolved = resolveOptionFromPath(window.location.pathname, base_path);
       if (resolved) {
         setActiveOption(resolved.id);
         setActiveOptionLabel(resolved.label);
@@ -188,17 +182,12 @@ export const DiffChecker = ({
     };
     window.addEventListener('popstate', handlePopState);
     return () => window.removeEventListener('popstate', handlePopState);
-  }, [resolvedBasePath]);
+  }, [base_path]);
 
   // Resolve base prop if provided
-  const propBase = baseurl !== undefined ? baseurl : (baseUrl !== undefined ? baseUrl : base_url);
-  const targetHost = typeof propBase === 'string' && propBase.trim()
-    ? propBase.trim()
-    : (typeof propBase === 'object' && propBase
-      ? (propBase.base_url || propBase.src_url || propBase.baseUrl || backend_url)
-      : backend_url);
-  const initialSrc = typeof propBase === 'object' && propBase ? (propBase.src_url || propBase.srcUrl) : (typeof propBase === 'string' && propBase ? propBase : backend_url);
-  const initialTarget = typeof propBase === 'object' && propBase ? (propBase.target_url || propBase.targetUrl) : backend_url_2;
+  const targetHost = typeof base_url === 'string' && base_url.trim() ? base_url.trim() : "";
+  const initialSrc = typeof base_url === 'string' && base_url.trim() ? base_url.trim() : "";
+  const initialTarget = "";
 
   const [baseUrl1, setBaseUrl1] = useState(initialSrc);
   const [baseUrl2, setBaseUrl2] = useState(initialTarget);
@@ -216,14 +205,10 @@ export const DiffChecker = ({
   }, [initialOption, initialOptionLabel, initialResolved]);
 
   useEffect(() => {
-    const rawProp = baseurl !== undefined ? baseurl : (baseUrl !== undefined ? baseUrl : base_url);
-    if (typeof rawProp === 'object' && rawProp !== null) {
-      if (rawProp.src_url) setBaseUrl1(rawProp.src_url);
-      if (rawProp.target_url) setBaseUrl2(rawProp.target_url);
-    } else if (typeof rawProp === 'string' && rawProp.trim()) {
-      setBaseUrl1(rawProp);
+    if (typeof base_url === 'string' && base_url.trim()) {
+      setBaseUrl1(base_url);
     }
-  }, [baseurl, baseUrl, base_url]);
+  }, [base_url]);
 
   // Modal Configuration State
   const [modalConfig, setModalConfig] = useState({
@@ -294,7 +279,7 @@ export const DiffChecker = ({
         bo_type: itemBoType
       },
       import_id: numericImportId,
-      synced_by: syncedBy || synced_by || "ayush"
+      synced_by: syncedBy || synced_by || ""
     };
 
     let cleanTargetUrl = targetSiteUrl || baseUrl2 || "";
@@ -359,7 +344,7 @@ export const DiffChecker = ({
         bo_type: itemBoType
       },
       import_id: stringImportId,
-      synced_by: clonedBy || synced_by || "ayush"
+      synced_by: clonedBy || synced_by || ""
     };
 
     let cleanTargetUrl = targetSiteUrl || (direction === 'to_left' ? baseUrl1 : baseUrl2) || "";
@@ -477,7 +462,7 @@ export const DiffChecker = ({
     setBaseUrl1,
     baseUrl2,
     setBaseUrl2,
-    basePath: resolvedBasePath,
+    basePath: base_path,
     syncedBy: synced_by,
     synced_by,
     headers,
@@ -496,7 +481,7 @@ export const DiffChecker = ({
     backendMetadata,
     baseUrl1,
     baseUrl2,
-    resolvedBasePath,
+    base_path,
     synced_by,
     headers,
     activeOption,
@@ -613,7 +598,7 @@ export const DiffChecker = ({
         />
 
         {/* Clone Confirmation Modal */}
-        <CloneConfirmModal
+        <CopyToConfirmModal
           isOpen={cloneModalConfig.isOpen}
           onClose={() => setCloneModalConfig((prev) => ({ ...prev, isOpen: false }))}
           row={cloneModalConfig.row}

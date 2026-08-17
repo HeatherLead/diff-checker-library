@@ -3,6 +3,12 @@ import { useConfigurationDiff } from '../../hooks/useConfigurationDiff';
 import DataDiffTable from '../../components/DataDiffTable';
 import VersionMismatchTable from '../../components/VersionMismatchTable';
 import OnlySiteTable from '../../components/OnlySiteTable';
+import { masterConfigConfig } from '../MasterConfig/MasterConfig';
+
+export const siteConfigConfig = {
+  ...masterConfigConfig,
+  apiKey: 'site_config',
+};
 
 export interface SiteConfigProps {
   activeOption?: string;

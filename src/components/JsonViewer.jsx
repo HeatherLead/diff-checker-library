@@ -1,10 +1,6 @@
 import React, { useState } from 'react';
 
-/**
- * CopyButton Component
- * Displays a copy icon on hover matching the UI design in the user screenshot.
- * Copies objects, arrays, or primitive values to clipboard on click.
- */
+
 const CopyButton = ({ value, label = "Copy" }) => {
   const [copied, setCopied] = useState(false);
 
@@ -55,11 +51,6 @@ const CopyButton = ({ value, label = "Copy" }) => {
   );
 };
 
-/**
- * JsonViewer Component
- * Renders an interactive, styled JSON tree viewer matching the requested design.
- * Features collapsible nodes, object/array item counts, line/object hover copy buttons.
- */
 export const JsonViewer = ({ data, rootKey = 'data' }) => {
   const [collapsed, setCollapsed] = useState({});
 

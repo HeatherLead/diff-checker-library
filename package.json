@@ -1,6 +1,6 @@
 {
   "name": "@ayushvc/diff-checker",
-  "version": "1.0.0",
+  "version": "1.0.2",
   "description": "Configurable Diff Checker component library with live API integration and dynamic sub-routing",
   "type": "module",
   "main": "./dist/diff-checker.cjs.js",
@@ -21,7 +21,6 @@
       "types": "./src/index.d.ts"
     },
     "./style.css": "./dist/style.css",
-    "./dist/style.css": "./dist/style.css",
     "./*": "./*"
   },
   "files": [
@@ -49,7 +48,8 @@
     "lucide-react": "^1.31.0",
     "match-sorter": "^8.3.0",
     "react-diff-viewer-continued": "^4.4.0",
-    "react-toastify": "^11.1.0"
+    "react-toastify": "^11.1.0",
+    "use-sync-external-store": "^1.2.0"
   },
   "devDependencies": {
     "@types/react": "^18.3.12",

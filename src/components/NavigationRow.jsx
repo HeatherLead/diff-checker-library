@@ -1,67 +1,7 @@
 import React, { useState, useRef, useEffect, useLayoutEffect, useMemo, memo } from 'react';
 import { useNavigate, useLocation, useInRouterContext } from 'react-router-dom';
 import { useDiffChecker } from '../context/DiffCheckerContext';
-
-export const TABS = [
-  {
-    id: 'datatables',
-    type: 'single',
-    title: 'DataTables',
-    optionId: 'datatables',
-    path: '',
-  },
-  {
-    id: 'task_entity',
-    type: 'single',
-    title: 'Task Entity',
-    path: '/task-entity',
-    optionId: 'task_entity'
-  },
-  {
-    id: 'configurations',
-    type: 'dropdown',
-    title: 'Configurations',
-    items: [
-      { id: 'master_config', label: 'Master Config', path: '/master-config' },
-      { id: 'site_config', label: 'Site Config', path: '/site-config' },
-      { id: 'dropdown_config', label: 'Dropdown Config', path: '/dropdown-config' },
-      { id: 'permission_config', label: 'Permission Config', path: '/permission-config' },
-    ]
-  },
-  {
-    id: 'workflow_config',
-    type: 'single',
-    title: 'WorkFlow Config',
-    path: '/workflow-config',
-    optionId: 'workflow_config'
-  },
-  {
-    id: 'attachment_tag_list',
-    type: 'single',
-    title: 'Attachment Tag List',
-    path: '/attachment-tag-list',
-    optionId: 'attachment_tag_list'
-  },
-  {
-    id: 'templates',
-    type: 'single',
-    title: 'Templates',
-    path: '/templates',
-    optionId: 'templates'
-  },
-  {
-    id: 'utilities_modules',
-    type: 'dropdown',
-    title: 'utilities & modules',
-    items: [
-      { id: 'subtask_master', label: 'SubTask Master', path: '/subtask-master' },
-      { id: 'custom_form', label: 'Custom Form', path: '/custom-form' },
-      { id: 'role_department_list', label: 'Role Department List', path: '/role-department-list' },
-      { id: 'drupal_roles', label: 'Drupal Roles', path: '/drupal-roles' },
-      { id: 'react_menus', label: 'React Menus', path: '/react-menus' },
-    ]
-  },
-];
+import { TABS } from '../constants/constants';
 
 export const getActiveTabId = (activeOption) => {
   if (activeOption === 'datatables') return 'datatables';
