@@ -38,27 +38,27 @@
 }
 
 .dc-filter-fieldset {
-  border: 1px solid $dc-border-dark;
-  border-radius: $dc-radius-sm;
-  padding: 0 10px 4px 10px;
-  display: inline-flex;
-  align-items: center;
-  font-size: 12px;
-  background-color: #ffffff;
-  margin: 0;
+  border: 1px solid $dc-border-dark !important;
+  border-radius: $dc-radius-sm !important;
+  padding: 0 10px 4px 10px !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  font-size: 12px !important;
+  background-color: #ffffff !important;
+  margin: 0 !important;
 
   &:focus-within {
-    border-color: $dc-primary-hover;
+    border-color: $dc-primary-hover !important;
   }
 }
 
 .dc-filter-legend {
-  font-size: 11px;
-  color: $dc-text-muted;
-  padding: 0 4px;
-  font-weight: 400;
-  line-height: 1;
-  margin-left: -4px;
+  font-size: 11px !important;
+  color: $dc-text-muted !important;
+  padding: 0 4px !important;
+  font-weight: 400 !important;
+  line-height: 1 !important;
+  margin-left: -4px !important;
   user-select: none;
 }
 
