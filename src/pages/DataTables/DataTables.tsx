@@ -78,7 +78,7 @@ export const dataTablesConfig = {
   getColumns: ({ openDiffViewer, openDataViewer, handleSyncConfiguration, handleCloneConfiguration, baseUrl1, baseUrl2 }: any) => {
     return {
       dataDiffColDefs: [
-        { field: 'tag', headerName: 'TAG', flex: 1.5, cellClass: 'font-normal text-gray-700', cellRenderer: (params: any) => renderTrimTooltip(params.value, 35) },
+        { field: 'tag', headerName: 'TAG', flex: 1.5, cellRenderer: (params: any) => renderTrimTooltip(params.value, 35) },
         { field: 'siteVersion', headerName: 'SITE VERSION', flex: 1 },
         {
           field: 'datatableDiff',
@@ -86,7 +86,7 @@ export const dataTablesConfig = {
           flex: 1.2,
           cellRenderer: (params: any) => params.value === 'View Diff' ? (
             <button onClick={() => openDiffViewer(params, 'structure')} className="btn-gray">View Diff</button>
-          ) : <span className="text-gray-500 font-normal">{params.value}</span>
+          ) : <span className="dc-muted-text">{params.value}</span>
         },
         {
           field: 'queryDiff',
@@ -94,7 +94,7 @@ export const dataTablesConfig = {
           flex: 1.2,
           cellRenderer: (params: any) => params.value === 'View Diff' ? (
             <button onClick={() => openDiffViewer(params, 'query')} className="btn-gray">View Diff</button>
-          ) : <span className="text-gray-500 font-normal">{params.value}</span>
+          ) : <span className="dc-muted-text">{params.value}</span>
         },
         {
           field: 'otherDiff',
@@ -132,16 +132,16 @@ export const dataTablesConfig = {
         }
       ],
       versionMismatchColDefs: [
-        { field: 'tag', headerName: 'TAG', flex: 2, cellClass: 'font-normal text-gray-700', cellRenderer: (params: any) => renderTrimTooltip(params.value, 35) },
-        { field: 'site1Version', headerName: 'SITE1 VERSION', flex: 1.5, cellRenderer: (params: any) => <span className="text-[#800040] font-normal text-sm">{params.value}</span> },
-        { field: 'site2Version', headerName: 'SITE2 VERSION', flex: 1.5, cellRenderer: (params: any) => <span className="text-[#800040] font-normal text-sm">{params.value}</span> },
+        { field: 'tag', headerName: 'TAG', flex: 2, cellRenderer: (params: any) => renderTrimTooltip(params.value, 35) },
+        { field: 'site1Version', headerName: 'SITE1 VERSION', flex: 1.5, cellRenderer: (params: any) => <span className="dc-tag-span" style={{ fontSize: '14px' }}>{params.value}</span> },
+        { field: 'site2Version', headerName: 'SITE2 VERSION', flex: 1.5, cellRenderer: (params: any) => <span className="dc-tag-span" style={{ fontSize: '14px' }}>{params.value}</span> },
         {
           field: 'datatableDiff',
           headerName: 'DATATABLE DIFF',
           flex: 1.5,
           cellRenderer: (params: any) => params.value === 'View Diff' ? (
             <button onClick={() => openDiffViewer(params, 'structure')} className="btn-gray">View Diff</button>
-          ) : <span className="text-gray-500 font-normal">{params.value}</span>
+          ) : <span className="dc-muted-text">{params.value}</span>
         },
         {
           field: 'queryDiff',
@@ -149,11 +149,11 @@ export const dataTablesConfig = {
           flex: 1.5,
           cellRenderer: (params: any) => params.value === 'View Diff' ? (
             <button onClick={() => openDiffViewer(params, 'query')} className="btn-gray">View Diff</button>
-          ) : <span className="text-gray-500 font-normal">{params.value}</span>
+          ) : <span className="dc-muted-text">{params.value}</span>
         }
       ],
       site1ColDefs: [
-        { field: 'tag', headerName: 'TAG', flex: 2, cellClass: 'font-normal text-[#800040]', cellRenderer: (params: any) => renderTagLink(baseUrl1, 'datatables-config', params.data.id, params.value) },
+        { field: 'tag', headerName: 'TAG', flex: 2, cellRenderer: (params: any) => renderTagLink(baseUrl1, 'datatables-config', params.data.id, params.value) },
         {
           field: 'viewData',
           headerName: 'VIEW DATA',
@@ -172,7 +172,7 @@ export const dataTablesConfig = {
         }
       ],
       site2ColDefs: [
-        { field: 'tag', headerName: 'TAG', flex: 2, cellClass: 'font-normal text-[#800040]', cellRenderer: (params: any) => renderTagLink(baseUrl2, 'datatables-config', params.data.id, params.value) },
+        { field: 'tag', headerName: 'TAG', flex: 2, cellRenderer: (params: any) => renderTagLink(baseUrl2, 'datatables-config', params.data.id, params.value) },
         {
           field: 'viewData',
           headerName: 'VIEW DATA',
@@ -210,7 +210,7 @@ const DataTables: React.FC<DataTablesProps> = ({ activeOption = 'datatables' }) 
   } = useConfigurationDiff(activeOption);
 
   return (
-    <div className="space-y-6">
+    <div className="dc-page-container">
       {/* SECTION 1: DATA DIFF TABLE */}
       <DataDiffTable
         activeOption={activeOption}

@@ -1,0 +1,49 @@
+// Colors
+$dc-primary: #820f4c;
+$dc-primary-hover: #7a1c4b;
+$dc-primary-dark: #61143a;
+$dc-primary-light: #fde6f7;
+$dc-primary-tag: #800040;
+
+// Grays & Neutrals
+$dc-bg-page: #fafafa;
+$dc-bg-card: #ffffff;
+$dc-bg-light: #f8f9fa;
+$dc-bg-muted: #f1f3f8;
+$dc-bg-hover: #f3f4f6;
+
+$dc-text-primary: #1f2937;
+$dc-text-secondary: #374151;
+$dc-text-muted: #6b7280;
+$dc-text-light: #9ca3af;
+$dc-text-gray-btn: #747474;
+
+$dc-border: #e5e7eb;
+$dc-border-light: #f3f4f6;
+$dc-border-dark: #d1d5db;
+
+// Status & Accents
+$dc-success: #00c853;
+$dc-danger: #ef4444;
+$dc-warning: #f59e0b;
+$dc-link: #4f46e5;
+$dc-blue-link: #2563eb;
+
+// Shadows
+$dc-shadow-xs: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+$dc-shadow-sm: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px -1px rgba(0, 0, 0, 0.1);
+$dc-shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -2px rgba(0, 0, 0, 0.1);
+$dc-shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -4px rgba(0, 0, 0, 0.1);
+$dc-shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
+$dc-shadow-2xl: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+
+// Radii
+$dc-radius-sm: 4px;
+$dc-radius-md: 6px;
+$dc-radius-lg: 8px;
+$dc-radius-xl: 12px;
+$dc-radius-full: 9999px;
+
+// Typography
+$dc-font-sans: 'Roboto', -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+$dc-font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;

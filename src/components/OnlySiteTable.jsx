@@ -102,22 +102,22 @@ export const OnlySiteTable = memo(({
   // Unified non-matching records view
   if (config.hasNonMatchTable) {
     return (
-      <div className="grid grid-cols-1 gap-6">
-        <section className="bg-white rounded-lg p-5 min-w-0 shadow-sm border border-gray-100">
-          <div className="flex items-center justify-between border-b pb-2 mb-4">
-            <div className="w-1/4"></div>
-            <div className="text-center w-2/4">
-              <h3 className="text-sm font-bold text-gray-700 uppercase tracking-wider">
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: '24px' }}>
+        <section className="dc-table-card">
+          <div className="dc-table-header">
+            <div className="dc-table-header-spacer"></div>
+            <div className="dc-table-header-center-wide">
+              <h3 className="dc-table-title">
                 NON MATCH RECORD
               </h3>
             </div>
-            <div className="w-1/4 flex justify-end">
+            <div className="dc-table-header-right-quarter">
               <button
                 onClick={() => setShowSite1Filters(!showSite1Filters)}
-                className="text-xs text-gray-500 hover:text-gray-700 flex items-center space-x-1 cursor-pointer transition-colors duration-150 select-none"
+                className="dc-toggle-filter-btn"
               >
                 <span>{showSite1Filters ? 'Hide filters' : 'Show filters'}</span>
-                <span className={`inline-block text-[10px] transform transition-transform duration-300 ease-in-out ${showSite1Filters ? 'rotate-0' : 'rotate-180'}`}>▲</span>
+                <span className={`dc-arrow-rotate ${showSite1Filters ? 'up' : 'down'}`}>▲</span>
               </button>
             </div>
           </div>
@@ -143,7 +143,7 @@ export const OnlySiteTable = memo(({
             />
           </div>
 
-          <div className="mt-2 text-xs italic text-gray-600 font-normal">
+          <div className="dc-records-count">
             Total Records: {filteredSite1Rows.length} records
           </div>
         </section>
@@ -152,31 +152,31 @@ export const OnlySiteTable = memo(({
   }
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+    <div className="dc-grid-2col">
       {/* Left Side: ONLY SITE 1 DATATABLES */}
-      <section className="bg-white rounded-lg p-5 min-w-0 shadow-sm border border-gray-100">
-        <div className="flex items-center justify-between border-b pb-2 mb-4">
-          <div className="w-1/4"></div>
-          <div className="text-center w-2/4">
-            <h3 className="text-sm font-bold text-gray-700 uppercase tracking-wider">
+      <section className="dc-table-card">
+        <div className="dc-table-header">
+          <div className="dc-table-header-spacer"></div>
+          <div className="dc-table-header-center-wide">
+            <h3 className="dc-table-title">
               ONLY SITE 1 DATATABLES
             </h3>
             <a
               href={baseUrl1}
               target="_blank"
               rel="noreferrer"
-              className="text-xs text-indigo-600 hover:underline font-normal block truncate max-w-xs mx-auto"
+              className="dc-table-url"
             >
               {baseUrl1}
             </a>
           </div>
-          <div className="w-1/4 flex justify-end">
+          <div className="dc-table-header-right-quarter">
             <button
               onClick={() => setShowSite1Filters(!showSite1Filters)}
-              className="text-xs text-gray-500 hover:text-gray-700 flex items-center space-x-1 cursor-pointer transition-colors duration-150 select-none"
+              className="dc-toggle-filter-btn"
             >
               <span>{showSite1Filters ? 'Hide filters' : 'Show filters'}</span>
-              <span className={`inline-block text-[10px] transform transition-transform duration-300 ease-in-out ${showSite1Filters ? 'rotate-0' : 'rotate-180'}`}>▲</span>
+              <span className={`dc-arrow-rotate ${showSite1Filters ? 'up' : 'down'}`}>▲</span>
             </button>
           </div>
         </div>
@@ -202,35 +202,35 @@ export const OnlySiteTable = memo(({
           />
         </div>
 
-        <div className="mt-2 text-xs italic text-gray-600 font-normal">
+        <div className="dc-records-count">
           Total Records: {filteredSite1Rows.length} records
         </div>
       </section>
 
       {/* Right Side: ONLY SITE 2 DATATABLES */}
-      <section className="bg-white rounded-lg p-5 min-w-0 shadow-sm border border-gray-100">
-        <div className="flex items-center justify-between border-b pb-2 mb-4">
-          <div className="w-1/4"></div>
-          <div className="text-center w-2/4">
-            <h3 className="text-sm font-bold text-gray-700 uppercase tracking-wider">
+      <section className="dc-table-card">
+        <div className="dc-table-header">
+          <div className="dc-table-header-spacer"></div>
+          <div className="dc-table-header-center-wide">
+            <h3 className="dc-table-title">
               ONLY SITE 2 DATATABLES
             </h3>
             <a
               href={baseUrl2}
               target="_blank"
               rel="noreferrer"
-              className="text-xs text-indigo-600 hover:underline font-normal block truncate max-w-xs mx-auto"
+              className="dc-table-url"
             >
               {baseUrl2}
             </a>
           </div>
-          <div className="w-1/4 flex justify-end">
+          <div className="dc-table-header-right-quarter">
             <button
               onClick={() => setShowSite2Filters(!showSite2Filters)}
-              className="text-xs text-gray-500 hover:text-gray-700 flex items-center space-x-1 cursor-pointer transition-colors duration-150 select-none"
+              className="dc-toggle-filter-btn"
             >
               <span>{showSite2Filters ? 'Hide filters' : 'Show filters'}</span>
-              <span className={`inline-block text-[10px] transform transition-transform duration-300 ease-in-out ${showSite2Filters ? 'rotate-0' : 'rotate-180'}`}>▲</span>
+              <span className={`dc-arrow-rotate ${showSite2Filters ? 'up' : 'down'}`}>▲</span>
             </button>
           </div>
         </div>
@@ -256,7 +256,7 @@ export const OnlySiteTable = memo(({
           />
         </div>
 
-        <div className="mt-2 text-xs italic text-gray-600 font-normal">
+        <div className="dc-records-count">
           Total Records: {filteredSite2Rows.length} records
         </div>
       </section>

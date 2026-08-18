@@ -373,7 +373,25 @@
 }
 
 .btn-maroon-solid {
-  @apply px-3 py-1 text-xs font-normal text-white bg-[#7a1c4b] border border-[#7a1c4b] rounded hover:bg-[#61143a] transition-colors duration-150 shadow-sm cursor-pointer inline-flex items-center justify-center;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 4px 12px;
+  font-size: 12px;
+  font-weight: 400;
+  color: #ffffff;
+  background-color: #7a1c4b;
+  border: 1px solid #7a1c4b;
+  border-radius: 4px;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+  cursor: pointer;
+  outline: none;
+  transition: background-color 0.15s ease;
+}
+
+.btn-maroon-solid:hover {
+  background-color: #61143a;
+  color: #ffffff;
 }
 
 .ag-blue-link {

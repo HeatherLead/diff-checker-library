@@ -100,7 +100,7 @@ export const customFormConfig = {
   getColumns: ({ openDiffViewer, openDataViewer, handleSyncConfiguration, handleCloneConfiguration, baseUrl1, baseUrl2 }: any) => {
     return {
       dataDiffColDefs: [
-        { field: 'tag', headerName: 'TAG', flex: 1.5, cellClass: 'font-normal text-gray-700', cellRenderer: (params: any) => renderTrimTooltip(params.value, 35) },
+        { field: 'tag', headerName: 'TAG', flex: 1.5, cellRenderer: (params: any) => renderTrimTooltip(params.value, 35) },
         { field: 'siteVersion', headerName: 'SITE VERSION', flex: 1 },
         { field: 'dt_status', headerName: 'CUSTOM FORM DIFF STATUS', flex: 1.5 },
         {
@@ -109,7 +109,7 @@ export const customFormConfig = {
           flex: 1.2,
           cellRenderer: (params: any) => params.value === 'View Diff' ? (
             <button onClick={() => openDiffViewer(params, 'structure')} className="btn-gray">View Diff</button>
-          ) : <span className="text-gray-500 font-normal">{params.value}</span>
+          ) : <span className="dc-muted-text">{params.value}</span>
         },
         { field: 'other_diff', headerName: 'OTHER DIFF STATUS', flex: 1.2 },
         {
@@ -118,7 +118,7 @@ export const customFormConfig = {
           flex: 1,
           cellRenderer: (params: any) => params.value === 'View Diff' ? (
             <button onClick={() => openDiffViewer(params, 'other')} className="btn-gray">Other</button>
-          ) : <span className="text-gray-500 font-normal">{params.value}</span>
+          ) : <span className="dc-muted-text">{params.value}</span>
         },
         {
           field: 'site1Config',
@@ -142,7 +142,7 @@ export const customFormConfig = {
         }
       ],
       versionMismatchColDefs: [
-        { field: 'tag', headerName: 'TAG', flex: 2, cellClass: 'font-normal text-gray-700', cellRenderer: (params: any) => renderTrimTooltip(params.value, 35) },
+        { field: 'tag', headerName: 'TAG', flex: 2, cellRenderer: (params: any) => renderTrimTooltip(params.value, 35) },
         {
           field: 'site1Version',
           headerName: 'SITE1 VERSION',
@@ -162,7 +162,7 @@ export const customFormConfig = {
           flex: 1.5,
           cellRenderer: (params: any) => params.value === 'View Diff' ? (
             <button onClick={() => openDiffViewer(params, 'structure')} className="btn-gray">View Diff</button>
-          ) : <span className="text-gray-500 font-normal">{params.value}</span>
+          ) : <span className="dc-muted-text">{params.value}</span>
         }
       ],
       site1ColDefs: [
@@ -170,7 +170,6 @@ export const customFormConfig = {
           field: 'tag',
           headerName: 'TAG',
           flex: 2,
-          cellClass: 'font-normal text-[#800040]',
           cellRenderer: (params: any) => renderTagLink(baseUrl1, 'custom-form-config', params.data.id, params.value)
         },
         {
@@ -195,7 +194,6 @@ export const customFormConfig = {
           field: 'tag',
           headerName: 'TAG',
           flex: 2,
-          cellClass: 'font-normal text-[#800040]',
           cellRenderer: (params: any) => renderTagLink(baseUrl2, 'custom-form-config', params.data.id, params.value)
         },
         {
@@ -233,7 +231,7 @@ const CustomForm: React.FC<CustomFormProps> = ({ activeOption = 'custom_form' })
   } = useConfigurationDiff(activeOption);
 
   return (
-    <div className="space-y-6">
+    <div className="dc-page-container">
       {/* SECTION 1: DATA DIFF TABLE */}
       <DataDiffTable
         activeOption={activeOption}

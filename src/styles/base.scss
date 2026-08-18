@@ -1,0 +1,157 @@
+@use './variables' as *;
+@use './mixins' as *;
+
+body {
+  margin: 0;
+  padding: 0;
+}
+
+.dc-root {
+  min-height: 100vh;
+  margin: 0;
+  padding: 0;
+  background-color: $dc-bg-page;
+  display: flex;
+  flex-direction: column;
+  font-family: $dc-font-sans;
+  color: $dc-text-primary;
+  box-sizing: border-box;
+
+  *,
+  *::before,
+  *::after {
+    box-sizing: border-box;
+  }
+}
+
+.dc-main-container {
+  // max-width: 1600px;
+  width: 100%;
+  margin: 0 auto;
+  padding: 8px;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 32px;
+}
+
+.dc-page-container {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  padding: 12px;
+}
+
+// Configuration Section (Base URLs)
+.dc-config-section {
+  padding: 8px;
+}
+
+.dc-config-title {
+  text-align: center;
+  font-size: 1rem;
+  line-height: 1rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  padding-bottom: 8px;
+  margin-bottom: 16px;
+  text-decoration: underline;
+  color: $dc-text-primary;
+}
+
+.dc-config-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  font-size: 12px;
+  font-weight: 400;
+  color: $dc-text-muted;
+}
+
+.dc-config-group {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.dc-config-label {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-weight: 400;
+  color: $dc-text-secondary;
+
+  .dc-required-star {
+    color: $dc-danger;
+  }
+}
+
+.dc-config-input-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.dc-config-input {
+  width: 288px;
+  padding: 6px 32px 6px 12px;
+  border: 1px solid $dc-border-dark;
+  border-radius: $dc-radius-sm;
+  outline: none;
+  color: $dc-text-secondary;
+  font-weight: 400;
+  background-color: rgba(249, 250, 251, 0.5);
+  cursor: default;
+  font-size: 12px;
+  font-family: inherit;
+  transition: border-color 0.15s;
+
+  @media (min-width: 640px) {
+    width: 320px;
+  }
+
+  &:focus {
+    border-color: $dc-primary-hover;
+    box-shadow: 0 0 0 1px $dc-primary-hover;
+  }
+}
+
+.dc-config-ext-link {
+  position: absolute;
+  right: 10px;
+  color: $dc-text-light;
+  display: flex;
+  align-items: center;
+  transition: color 0.15s;
+
+  &:hover {
+    color: $dc-text-muted;
+  }
+}
+
+// Cell Renderer Helpers
+.dc-tag-link {
+  font-weight: 400;
+  color: $dc-primary-tag;
+  cursor: pointer;
+  text-decoration: none;
+  display: inline-block;
+
+  &:hover {
+    color: $dc-primary-tag;
+  }
+}
+
+.dc-tag-span {
+  font-weight: 400;
+  color: $dc-primary-tag;
+  cursor: pointer;
+}
+
+.dc-muted-text {
+  font-weight: 400;
+  color: $dc-text-muted;
+}

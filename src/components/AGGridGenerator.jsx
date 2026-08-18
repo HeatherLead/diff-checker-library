@@ -589,15 +589,15 @@ export const AGGridGenerator = ({
   }, [effectiveRowData, isFilterVisible, height, minHeight, maxHeight]);
 
   return (
-    <div className="w-full flex flex-col gap-2 relative">
+    <div className="dc-grid-wrapper">
       {enableTotalRowCount && totalRowCount > 0 && (
-        <div className="flex justify-between items-center px-1 text-xs text-gray-500 font-normal">
-          <span>Total Records: <span className="text-gray-800 font-normal">{totalRowCount}</span></span>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '0 4px', fontSize: '12px', color: '#6b7280', fontWeight: 400 }}>
+          <span>Total Records: <span style={{ color: '#1f2937', fontWeight: 400 }}>{totalRowCount}</span></span>
         </div>
       )}
       <div
         ref={gridContainerRef}
-        className={`${themeClass} ${isFilterVisible ? 'ag-floating-filter-visible' : 'ag-floating-filter-hidden'} w-full shadow-sm border border-gray-200 rounded-md overflow-hidden bg-white text-xs transition-all duration-300 ease-in-out`}
+        className={`dc-grid-container ${themeClass} ${isFilterVisible ? 'ag-floating-filter-visible' : 'ag-floating-filter-hidden'}`}
         style={{ height: containerHeight, minHeight, maxHeight }}
       >
         <AgGridReact
@@ -626,19 +626,18 @@ export const AGGridGenerator = ({
 
       {headerContextMenu && (
         <div
-          className="fixed z-50 bg-white border border-gray-200 rounded-md shadow-xl text-xs py-1 w-48 text-gray-700 font-normal select-none"
+          className="dc-grid-context-menu"
           style={{ top: headerContextMenu.y, left: headerContextMenu.x }}
           onClick={(e) => e.stopPropagation()}
         >
-          <div className="px-3 py-1.5 font-semibold text-[11px] text-gray-400 uppercase tracking-wider border-b border-gray-100 bg-gray-50/50 truncate">
+          <div className="dc-grid-context-header">
             {headerContextMenu.colName}
           </div>
 
-          <div className="py-1 border-b border-gray-100">
+          <div className="dc-grid-context-section">
             <button
               type="button"
-              className={`w-full text-left px-3 py-1.5 hover:bg-[#fde6f7] hover:text-[#881337] flex items-center justify-between transition-colors cursor-pointer ${headerContextMenu.pinned === "left" ? "font-semibold text-[#881337] bg-[#fde6f7]/50" : ""
-                }`}
+              className={`dc-grid-context-item ${headerContextMenu.pinned === "left" ? "active" : ""}`}
               onClick={() => {
                 gridRef.current?.api?.applyColumnState({
                   state: [{ colId: headerContextMenu.colId, pinned: headerContextMenu.pinned === "left" ? null : "left" }],
@@ -651,8 +650,7 @@ export const AGGridGenerator = ({
             </button>
             <button
               type="button"
-              className={`w-full text-left px-3 py-1.5 hover:bg-[#fde6f7] hover:text-[#881337] flex items-center justify-between transition-colors cursor-pointer ${headerContextMenu.pinned === "right" ? "font-semibold text-[#881337] bg-[#fde6f7]/50" : ""
-                }`}
+              className={`dc-grid-context-item ${headerContextMenu.pinned === "right" ? "active" : ""}`}
               onClick={() => {
                 gridRef.current?.api?.applyColumnState({
                   state: [{ colId: headerContextMenu.colId, pinned: headerContextMenu.pinned === "right" ? null : "right" }],
@@ -667,7 +665,7 @@ export const AGGridGenerator = ({
 
           <button
             type="button"
-            className="w-full text-left px-3 py-1.5 hover:bg-[#fde6f7] hover:text-[#881337] flex items-center gap-2 transition-colors cursor-pointer"
+            className="dc-grid-context-item"
             onClick={() => {
               if (gridRef.current?.api) {
                 gridRef.current.api.autoSizeColumns([headerContextMenu.colId], false);
@@ -681,7 +679,7 @@ export const AGGridGenerator = ({
 
           <button
             type="button"
-            className="w-full text-left px-3 py-1.5 hover:bg-[#fde6f7] hover:text-[#881337] flex items-center gap-2 transition-colors cursor-pointer"
+            className="dc-grid-context-item"
             onClick={() => {
               if (gridRef.current?.api) {
                 applyColumnAutoSize(gridRef.current.api, derivedColumnDefs);

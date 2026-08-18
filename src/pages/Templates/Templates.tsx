@@ -134,7 +134,7 @@ export const templatesConfig = {
   getColumns: ({ openDiffViewer, openDataViewer, handleSyncConfiguration, handleCloneConfiguration, baseUrl1, baseUrl2 }: any) => {
     return {
       dataDiffColDefs: [
-        { field: 'tag', headerName: 'TAG', flex: 1.5, cellClass: 'font-normal text-gray-700', cellRenderer: (params: any) => renderTrimTooltip(params.value, 35) },
+        { field: 'tag', headerName: 'TAG', flex: 1.5, cellRenderer: (params: any) => renderTrimTooltip(params.value, 35) },
         { field: 'bo_type', headerName: 'BO TYPE', flex: 1 },
         {
           field: 'excel_diff',
@@ -142,7 +142,7 @@ export const templatesConfig = {
           flex: 1.2,
           cellRenderer: (params: any) => params.value === 'View Diff' ? (
             <button onClick={() => openDiffViewer(params, 'excel')} className="btn-gray">View Diff</button>
-          ) : <span className="text-gray-500 font-normal">{params.value}</span>
+          ) : <span className="dc-muted-text">{params.value}</span>
         },
         {
           field: 'validator_diff',
@@ -150,7 +150,7 @@ export const templatesConfig = {
           flex: 1.2,
           cellRenderer: (params: any) => params.value === 'View Diff' ? (
             <button onClick={() => openDiffViewer(params, 'validator')} className="btn-gray">View Diff</button>
-          ) : <span className="text-gray-500 font-normal">{params.value}</span>
+          ) : <span className="dc-muted-text">{params.value}</span>
         },
         {
           field: 'syncData',
@@ -162,7 +162,7 @@ export const templatesConfig = {
         }
       ],
       site1ColDefs: [
-        { field: 'tag', headerName: 'TAG', flex: 2, cellClass: 'font-normal text-[#800040]', cellRenderer: (params: any) => renderTagLink(baseUrl1, 'templates', params.data.id, params.value) },
+        { field: 'tag', headerName: 'TAG', flex: 2, cellRenderer: (params: any) => renderTagLink(baseUrl1, 'templates', params.data.id, params.value) },
         { field: 'bo_type', headerName: 'BO TYPE', flex: 1 },
         {
           field: 'viewData',
@@ -182,7 +182,7 @@ export const templatesConfig = {
         }
       ],
       site2ColDefs: [
-        { field: 'tag', headerName: 'TAG', flex: 2, cellClass: 'font-normal text-[#800040]', cellRenderer: (params: any) => renderTagLink(baseUrl2, 'templates', params.data.id, params.value) },
+        { field: 'tag', headerName: 'TAG', flex: 2, cellRenderer: (params: any) => renderTagLink(baseUrl2, 'templates', params.data.id, params.value) },
         { field: 'bo_type', headerName: 'BO TYPE', flex: 1 },
         {
           field: 'viewData',
@@ -219,7 +219,7 @@ const Templates: React.FC<TemplatesProps> = ({ activeOption = 'templates' }) => 
   } = useConfigurationDiff(activeOption);
 
   return (
-    <div className="space-y-6">
+    <div className="dc-page-container">
       {/* SECTION 1: DATA DIFF TABLE */}
       <DataDiffTable
         activeOption={activeOption}

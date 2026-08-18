@@ -82,24 +82,24 @@ export const DiffViewerModal = ({
   const rightFormatted = formatDiffContent(rightData);
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-md p-4 transition-all duration-300 overscroll-contain">
+    <div className="dc-modal-overlay">
       <div
-        className="w-[80vw] h-[70vh] max-w-[80vw] max-h-[70vh] my-auto bg-white rounded-xl shadow-2xl flex flex-col overflow-hidden border border-gray-200 relative animate-in fade-in zoom-in-95 duration-200 flex-shrink-0"
+        className="dc-modal-card-diff"
         style={{ width: '80vw', maxWidth: '80vw', height: '70vh', maxHeight: '70vh' }}
       >
         {type === 'diff' ? (
-          <div className="px-6 py-3 border-b border-gray-200 bg-white flex items-center justify-between shadow-sm flex-shrink-0">
-            <div className="grid grid-cols-2 gap-6 w-full pr-8">
+          <div className="dc-modal-header-diff">
+            <div className="dc-diff-grid-headers">
               {/* Left Side Header */}
               <div>
-                <h4 className="text-sm font-bold text-gray-800 tracking-tight">
-                  Left Side - Tag: <span className="text-[#800040]">{tag}</span> (v.{leftVersion})
+                <h4 className="dc-diff-side-title">
+                  Left Side - Tag: <span>{tag}</span> (v.{leftVersion})
                 </h4>
                 <a
                   href={baseUrl1}
                   target="_blank"
                   rel="noreferrer"
-                  className="text-xs text-indigo-600 hover:underline font-medium block truncate"
+                  className="dc-diff-side-url"
                 >
                   {baseUrl1}
                 </a>
@@ -107,14 +107,14 @@ export const DiffViewerModal = ({
 
               {/* Right Side Header */}
               <div>
-                <h4 className="text-sm font-bold text-gray-800 tracking-tight">
-                  Right Side - Tag: <span className="text-[#800040]">{tag}</span> (v.{rightVersion})
+                <h4 className="dc-diff-side-title">
+                  Right Side - Tag: <span>{tag}</span> (v.{rightVersion})
                 </h4>
                 <a
                   href={baseUrl2}
                   target="_blank"
                   rel="noreferrer"
-                  className="text-xs text-indigo-600 hover:underline font-medium block truncate"
+                  className="dc-diff-side-url"
                 >
                   {baseUrl2}
                 </a>
@@ -124,18 +124,18 @@ export const DiffViewerModal = ({
             {/* Close Button */}
             <button
               onClick={onClose}
-              className="text-gray-400 hover:text-gray-700 text-xl font-bold p-1 rounded-md hover:bg-gray-100 transition-colors"
+              className="dc-modal-close-btn-text"
               title="Close"
             >
               ✕
             </button>
           </div>
         ) : (
-          <div className="px-6 py-4 border-b border-gray-200 bg-white flex items-center justify-between shadow-sm flex-shrink-0">
-            <h3 className="text-base font-bold text-gray-800 tracking-wider">DATA</h3>
+          <div className="dc-modal-header">
+            <h3 className="dc-modal-title">DATA</h3>
             <button
               onClick={onClose}
-              className="text-gray-400 hover:text-gray-700 text-xl font-bold p-1 rounded-md hover:bg-gray-100 transition-colors cursor-pointer"
+              className="dc-modal-close-btn-text"
               title="Close"
             >
               ✕
@@ -144,9 +144,9 @@ export const DiffViewerModal = ({
         )}
 
         {/* Modal Content Body */}
-        <div className="flex-1 overflow-auto bg-white p-4">
+        <div className="dc-diff-modal-body">
           {type === 'diff' ? (
-            <div className="diff-viewer-wrapper text-xs font-mono border border-gray-200 rounded overflow-hidden">
+            <div className="diff-viewer-wrapper" style={{ fontSize: '12px', fontFamily: 'monospace', border: '1px solid #e5e7eb', borderRadius: '4px', overflow: 'hidden' }}>
               <ReactDiffViewer
                 oldValue={leftFormatted}
                 newValue={rightFormatted}
@@ -184,26 +184,28 @@ export const DiffViewerModal = ({
         </div>
 
         {/* Modal Footer Controls */}
-        <div className="px-6 py-2.5 bg-gray-50 border-t border-gray-200 flex justify-between items-center text-xs flex-shrink-0">
-          <span className="text-gray-500 font-normal">
-            Tag: <span className="text-gray-700 font-normal">{tag}</span>
+        <div className="dc-diff-modal-footer">
+          <span style={{ color: '#6b7280', fontWeight: 400 }}>
+            Tag: <span style={{ color: '#374151', fontWeight: 400 }}>{tag}</span>
           </span>
-          <div className="flex space-x-2">
-            {type === 'diff' && (
+          <div style={{ display: 'flex', gap: '8px' }}>
+            {/* {type === 'diff' && (
               <button
                 onClick={() => {
                   const textToCopy = `Left:\n${leftFormatted}\n\nRight:\n${rightFormatted}`;
                   navigator.clipboard.writeText(textToCopy);
                 }}
-                className="btn-gray-outline py-1 px-3 text-xs"
+                className="btn-gray-outline"
+                style={{ padding: '4px 12px', fontSize: '12px' }}
               >
                 Copy
-                <Copy className='ml-3' width={16} height={16} />
+                <Copy style={{ marginLeft: '12px' }} width={16} height={16} />
               </button>
-            )}
+            )} */}
             <button
               onClick={onClose}
-              className="btn-maroon-solid py-1 px-4 text-xs font-normal"
+              className="btn-maroon-solid"
+              style={{ padding: '6px 36px', fontSize: '12px', fontWeight: 400 }}
             >
               Close
             </button>

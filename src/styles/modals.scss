@@ -1,0 +1,389 @@
+@use './variables' as *;
+@use './mixins' as *;
+
+.dc-modal-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: rgba(0, 0, 0, 0.4);
+  backdrop-filter: blur(8px);
+  padding: 16px;
+  transition: all 0.3s ease;
+  animation: dc-fade-in 0.2s ease-out;
+  overscroll-behavior: contain;
+  min-height: 100vh;
+}
+
+.dc-modal-card {
+  width: 100%;
+  max-width: 620px;
+  height: auto;
+  max-height: 90vh;
+  margin: auto;
+  background-color: #ffffff;
+  border-radius: $dc-radius-xl;
+  box-shadow: $dc-shadow-2xl;
+  display: flex;
+  flex-direction: column;
+  border: 1px solid $dc-border;
+  position: relative;
+  animation: dc-zoom-in 0.2s ease-out;
+  overflow: hidden;
+  flex-shrink: 0;
+}
+
+.dc-modal-card-diff {
+  width: 80vw;
+  max-width: 80vw;
+  height: 70vh;
+  max-height: 70vh;
+  margin: auto;
+  background-color: #ffffff;
+  border-radius: $dc-radius-xl;
+  box-shadow: $dc-shadow-2xl;
+  display: flex;
+  flex-direction: column;
+  border: 1px solid $dc-border;
+  position: relative;
+  animation: dc-zoom-in 0.2s ease-out;
+  overflow: hidden;
+  flex-shrink: 0;
+}
+
+.dc-modal-header {
+  padding: 20px 24px 12px 24px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-bottom: 1px solid $dc-border-light;
+  flex-shrink: 0;
+}
+
+.dc-modal-header-diff {
+  padding: 12px 24px;
+  border-bottom: 1px solid $dc-border;
+  background-color: #ffffff;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  box-shadow: $dc-shadow-xs;
+  flex-shrink: 0;
+}
+
+.dc-modal-title {
+  font-size: 18px;
+  font-weight: 700;
+  color: $dc-text-primary;
+  letter-spacing: 0.05em;
+  margin: 0;
+}
+
+.dc-modal-close-btn {
+  color: $dc-text-light;
+  padding: 6px;
+  border-radius: $dc-radius-lg;
+  border: none;
+  background: none;
+  cursor: pointer;
+  outline: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background-color 0.15s ease, color 0.15s ease;
+
+  &:hover {
+    background-color: $dc-bg-hover;
+    color: $dc-text-secondary;
+  }
+}
+
+.dc-modal-close-btn-text {
+  color: $dc-text-light;
+  font-size: 20px;
+  font-weight: 700;
+  padding: 4px 8px;
+  border-radius: $dc-radius-md;
+  border: none;
+  background: none;
+  cursor: pointer;
+  line-height: 1;
+  transition: background-color 0.15s ease, color 0.15s ease;
+
+  &:hover {
+    background-color: $dc-bg-hover;
+    color: $dc-text-secondary;
+  }
+}
+
+.dc-modal-form {
+  padding: 20px 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  overflow-y: auto;
+  max-height: calc(90vh - 70px);
+  height: auto;
+}
+
+.dc-modal-desc {
+  color: $dc-text-muted;
+  font-size: 14px;
+  font-weight: 500;
+  text-align: left;
+  margin: 0;
+}
+
+.dc-modal-compare-box {
+  border: 1px solid $dc-border;
+  border-radius: $dc-radius-lg;
+  padding: 16px;
+  background-color: #ffffff;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  position: relative;
+  box-shadow: $dc-shadow-xs;
+}
+
+.dc-modal-compare-site {
+  flex: 1;
+  min-width: 0;
+  padding: 12px;
+  background-color: rgba(249, 250, 251, 0.7);
+  border-radius: $dc-radius-lg;
+  border: 1px solid $dc-border-light;
+  text-align: left;
+}
+
+.dc-modal-site-label {
+  font-size: 12px;
+  font-weight: 700;
+  color: $dc-text-muted;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.dc-modal-tag-badge {
+  background-color: #fef9c3;
+  color: #854d0e;
+  padding: 2px 6px;
+  border-radius: $dc-radius-sm;
+  font-family: $dc-font-mono;
+  font-size: 11px;
+  font-weight: 600;
+  margin-left: 4px;
+}
+
+.dc-modal-site-url {
+  margin-top: 8px;
+  margin-bottom: 0;
+  @include truncate;
+
+  a {
+    color: $dc-link;
+    font-size: 12px;
+    font-weight: 500;
+    word-break: break-all;
+    text-decoration: none;
+
+    &:hover {
+      text-decoration: underline;
+    }
+  }
+}
+
+.dc-modal-swap-wrapper {
+  width: 40px;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  height: 48px;
+}
+
+.dc-modal-swap-btn {
+  width: 32px;
+  height: 32px;
+  border-radius: $dc-radius-full;
+  border: 1px solid $dc-border;
+  background-color: #ffffff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: $dc-shadow-md;
+  cursor: pointer;
+  outline: none;
+  color: $dc-text-muted;
+  transition: all 0.2s ease;
+
+  &:hover {
+    box-shadow: $dc-shadow-lg;
+    border-color: $dc-primary;
+    color: $dc-primary;
+  }
+}
+
+.dc-modal-arrow-circle {
+  width: 32px;
+  height: 32px;
+  border-radius: $dc-radius-full;
+  border: 1px solid $dc-border;
+  background-color: #ffffff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: $dc-shadow-xs;
+  color: $dc-primary;
+}
+
+.dc-modal-input-group {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  text-align: left;
+}
+
+.dc-modal-label {
+  font-size: 12px;
+  font-weight: 600;
+  color: $dc-text-secondary;
+}
+
+.dc-modal-input {
+  width: 100%;
+  padding: 8px 12px;
+  border: 1px solid $dc-border-dark;
+  border-radius: $dc-radius-md;
+  outline: none;
+  font-size: 14px;
+  color: $dc-text-secondary;
+  transition: border-color 0.15s ease;
+  background-color: #fafafa;
+  font-family: inherit;
+
+  &:focus {
+    border-color: $dc-primary;
+    box-shadow: 0 0 0 1px $dc-primary;
+  }
+}
+
+.dc-modal-footer {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 12px;
+  margin-top: 8px;
+  border-top: 1px solid $dc-border-light;
+  padding-top: 16px;
+}
+
+.dc-modal-btn-close {
+  padding: 6px 20px;
+  font-size: 12px;
+  font-weight: 500;
+  color: $dc-text-secondary;
+  border: 1px solid $dc-border-dark;
+  border-radius: $dc-radius-sm;
+  background-color: #ffffff;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: $dc-shadow-xs;
+  outline: none;
+  transition: background-color 0.15s ease;
+
+  &:hover {
+    background-color: $dc-bg-hover;
+  }
+}
+
+.dc-modal-btn-action {
+  padding: 6px 20px;
+  font-size: 12px;
+  font-weight: 500;
+  border-radius: $dc-radius-sm;
+  border: 1px solid transparent;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: $dc-shadow-xs;
+  outline: none;
+  transition: background-color 0.15s ease, color 0.15s ease, border-color 0.15s ease;
+
+  &.active {
+    color: $dc-primary;
+    border-color: $dc-primary;
+    background-color: #ffffff;
+    cursor: pointer;
+
+    &:hover {
+      background-color: $dc-primary;
+      color: #ffffff;
+    }
+  }
+
+  &.disabled {
+    color: $dc-text-light;
+    border-color: $dc-border;
+    background-color: $dc-bg-page;
+    cursor: not-allowed;
+  }
+}
+
+// Diff Viewer Modal Body & Layout
+.dc-diff-modal-body {
+  flex: 1;
+  overflow: auto;
+  background-color: #ffffff;
+  padding: 16px;
+}
+
+.dc-diff-grid-headers {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 24px;
+  width: 100%;
+  padding-right: 32px;
+}
+
+.dc-diff-side-title {
+  font-size: 14px;
+  font-weight: 700;
+  color: $dc-text-primary;
+  letter-spacing: -0.01em;
+  margin: 0;
+
+  span {
+    color: $dc-primary-tag;
+  }
+}
+
+.dc-diff-side-url {
+  font-size: 12px;
+  color: $dc-link;
+  font-weight: 500;
+  display: block;
+  @include truncate;
+
+  &:hover {
+    text-decoration: underline;
+  }
+}
+
+.dc-diff-modal-footer {
+  padding: 10px 24px;
+  background-color: $dc-bg-light;
+  border-top: 1px solid $dc-border;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 12px;
+  flex-shrink: 0;
+}

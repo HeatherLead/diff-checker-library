@@ -14,28 +14,23 @@ export const TableFilterBar = ({
   }
 
   return (
-    <div
-      className={`transition-all duration-300 ease-in-out overflow-hidden ${showFilters
-        ? 'max-h-96 opacity-100 mb-4 transform translate-y-0'
-        : 'max-h-0 opacity-0 mb-0 transform -translate-y-2 pointer-events-none'
-        }`}
-    >
-      <div className="flex flex-wrap items-center justify-between gap-4 text-xs">
+    <div className={`dc-filter-bar ${showFilters ? 'open' : 'closed'}`}>
+      <div className="dc-filter-bar-inner">
         <form
           onSubmit={(e) => {
             e.preventDefault();
             if (onSubmit) onSubmit();
           }}
-          className="flex flex-wrap items-center gap-3"
+          className="dc-filter-form"
         >
           {filterableCols.map((col) => {
             const val = filterInputs[col.field] ?? '';
             return (
               <fieldset
                 key={col.field}
-                className="border border-gray-300 rounded px-2.5 pt-0 pb-1 inline-flex items-center text-xs bg-white focus-within:border-[#7a1c4b]"
+                className="dc-filter-fieldset"
               >
-                <legend className="text-[11px] text-gray-500 px-1 font-normal leading-none -ml-1 select-none">
+                <legend className="dc-filter-legend">
                   {col.label}:
                 </legend>
                 <input
@@ -47,7 +42,7 @@ export const TableFilterBar = ({
                     }
                   }}
                   placeholder=""
-                  className="outline-none bg-transparent text-xs text-gray-700 w-24 sm:w-32 h-5"
+                  className="dc-filter-input"
                 />
               </fieldset>
             );
@@ -59,7 +54,7 @@ export const TableFilterBar = ({
               e.preventDefault();
               if (onSubmit) onSubmit();
             }}
-            className="bg-[#7a1c4b] hover:bg-[#63143c] text-white font-medium text-xs px-5 sm:px-7 py-1.5 rounded shadow-sm cursor-pointer transition-colors"
+            className="dc-filter-btn-submit"
           >
             Submit
           </button>
@@ -69,13 +64,13 @@ export const TableFilterBar = ({
             onClick={() => {
               if (onReset) onReset();
             }}
-            className="bg-white hover:bg-gray-50 text-gray-700 border border-gray-300 font-normal text-xs px-5 sm:px-7 py-1.5 rounded shadow-sm cursor-pointer transition-colors"
+            className="dc-filter-btn-reset"
           >
             Reset
           </button>
         </form>
         {rightControls && (
-          <div className="flex items-center">{rightControls}</div>
+          <div style={{ display: 'flex', alignItems: 'center' }}>{rightControls}</div>
         )}
       </div>
     </div>

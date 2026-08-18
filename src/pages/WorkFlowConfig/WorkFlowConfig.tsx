@@ -64,7 +64,7 @@ export const workFlowConfigConfig = {
   getColumns: ({ openDiffViewer, openDataViewer, baseUrl1, baseUrl2 }: any) => {
     return {
       dataDiffColDefs: [
-        { field: 'tag', headerName: 'TAG', flex: 1.5, cellClass: 'font-normal text-gray-700', cellRenderer: (params: any) => renderTrimTooltip(params.value, 35) },
+        { field: 'tag', headerName: 'TAG', flex: 1.5, cellRenderer: (params: any) => renderTrimTooltip(params.value, 35) },
         { field: 'wf_status', headerName: 'MASTER CONFIG DIFF STATUS', flex: 1.5 },
         {
           field: 'datatableDiff',
@@ -72,7 +72,7 @@ export const workFlowConfigConfig = {
           flex: 1.2,
           cellRenderer: (params: any) => params.value === 'View Diff' ? (
             <button onClick={() => openDiffViewer(params, 'structure')} className="btn-gray">View Diff</button>
-          ) : <span className="text-gray-500 font-normal">{params.value}</span>
+          ) : <span className="dc-muted-text">{params.value}</span>
         },
         {
           field: 'version_site1',
@@ -88,7 +88,7 @@ export const workFlowConfigConfig = {
         }
       ],
       site1ColDefs: [
-        { field: 'tag', headerName: 'TAG', flex: 2, cellClass: 'font-normal text-[#800040]', cellRenderer: (params: any) => renderTagLink(baseUrl1, 'workflow-config', params.data.wf_id || params.data.id, params.value) },
+        { field: 'tag', headerName: 'TAG', flex: 2, cellRenderer: (params: any) => renderTagLink(baseUrl1, 'workflow-config', params.data.wf_id || params.data.id, params.value) },
         {
           field: 'version',
           headerName: 'SITE1 VERSION',
@@ -105,7 +105,7 @@ export const workFlowConfigConfig = {
         }
       ],
       site2ColDefs: [
-        { field: 'tag', headerName: 'TAG', flex: 2, cellClass: 'font-normal text-[#800040]', cellRenderer: (params: any) => renderTagLink(baseUrl2, 'workflow-config', params.data.wf_id || params.data.id, params.value) },
+        { field: 'tag', headerName: 'TAG', flex: 2, cellRenderer: (params: any) => renderTagLink(baseUrl2, 'workflow-config', params.data.wf_id || params.data.id, params.value) },
         {
           field: 'version',
           headerName: 'SITE2 VERSION',
@@ -141,7 +141,7 @@ const WorkFlowConfig: React.FC<WorkFlowConfigProps> = ({ activeOption = 'workflo
   } = useConfigurationDiff(activeOption);
 
   return (
-    <div className="space-y-6">
+    <div className="dc-page-container">
       {/* SECTION 1: DATA DIFF TABLE */}
       <DataDiffTable
         activeOption={activeOption}

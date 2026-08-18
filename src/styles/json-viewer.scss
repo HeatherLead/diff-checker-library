@@ -1,0 +1,155 @@
+@use './variables' as *;
+@use './mixins' as *;
+
+.dc-json-viewer {
+  font-family: $dc-font-mono;
+  font-size: 12px;
+  color: $dc-text-primary;
+  padding: 16px;
+  background-color: #ffffff;
+  user-select: text;
+  overflow-y: auto;
+  max-height: 100%;
+}
+
+.dc-json-copy-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  margin-left: 6px;
+  padding: 2px;
+  color: #3b82f6;
+  border-radius: $dc-radius-sm;
+  transition: all 0.15s ease;
+  outline: none;
+  border: none;
+  background: none;
+  opacity: 0;
+  cursor: pointer;
+
+  &:hover {
+    color: #1d4ed8;
+    background-color: #eff6ff;
+  }
+}
+
+.dc-json-copied-badge {
+  display: inline-flex;
+  align-items: center;
+  font-size: 10px;
+  color: #16a34a;
+  font-weight: 600;
+  padding: 0 4px;
+  background-color: #f0fdf4;
+  border-radius: $dc-radius-sm;
+  border: 1px solid #bbf7d0;
+}
+
+.dc-json-row {
+  font-family: $dc-font-mono;
+  font-size: 12px;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  border-radius: $dc-radius-sm;
+  padding: 0 4px;
+  margin: 0 -4px;
+  transition: background-color 0.15s ease;
+
+  &:hover {
+    background-color: rgba(249, 250, 251, 0.8);
+
+    .dc-json-copy-btn {
+      opacity: 1;
+    }
+  }
+}
+
+.dc-json-node-btn {
+  color: $dc-text-secondary;
+  font-family: $dc-font-mono;
+  font-weight: 400;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  cursor: pointer;
+  outline: none;
+  border: none;
+  background: none;
+
+  &:hover {
+    color: #000000;
+  }
+}
+
+.dc-json-tree-branch {
+  padding-left: 24px;
+  border-left: 1px solid $dc-border;
+  margin: 4px 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  width: 100%;
+}
+
+.dc-json-tree-root-branch {
+  padding-left: 24px;
+  border-left: 2px solid $dc-border;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.dc-json-null {
+  color: $dc-text-light;
+  font-style: italic;
+}
+
+.dc-json-bool {
+  color: #9333ea;
+  font-weight: 400;
+}
+
+.dc-json-number-tag {
+  color: #c77d4c;
+  font-size: 11px;
+  margin-right: 6px;
+  font-weight: 400;
+}
+
+.dc-json-number-val {
+  color: #b91c1c;
+  font-weight: 400;
+}
+
+.dc-json-string-tag {
+  color: #c77d4c;
+  font-size: 11px;
+  margin-right: 6px;
+  font-weight: 400;
+}
+
+.dc-json-string-val {
+  color: #a33d26;
+  word-break: break-all;
+}
+
+.dc-json-key-name {
+  color: $dc-text-secondary;
+  font-weight: 400;
+  margin-right: 6px;
+}
+
+.dc-json-key-idx {
+  color: #9333ea;
+  font-weight: 400;
+  margin-right: 6px;
+}
+
+.dc-json-badge-count {
+  color: $dc-text-light;
+  font-family: $dc-font-mono;
+  font-size: 12px;
+  font-style: italic;
+  font-weight: 400;
+}

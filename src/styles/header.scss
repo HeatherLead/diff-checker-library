@@ -1,0 +1,38 @@
+@use './variables' as *;
+@use './mixins' as *;
+
+.dc-header {
+  background-color: #000000;
+  color: #ffffff;
+  padding: 12px 24px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-bottom: 1px solid #1f2937;
+  box-shadow: $dc-shadow-lg;
+  position: relative;
+  width: 100%;
+}
+
+.dc-header-logo-container {
+  display: flex;
+  align-items: center;
+}
+
+.dc-header-logo {
+  height: 32px;
+  object-fit: contain;
+}
+
+.dc-header-title {
+  font-size: 20px;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  color: #ffffff;
+  text-transform: uppercase;
+  text-align: center;
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+  margin: 0;
+}

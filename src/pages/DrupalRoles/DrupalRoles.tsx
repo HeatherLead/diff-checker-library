@@ -52,10 +52,10 @@ export const drupalRolesConfig = {
   getColumns: ({ handleCloneConfiguration, baseUrl1, baseUrl2 }: any) => {
     return {
       dataDiffColDefs: [
-        { field: 'tag', headerName: 'TAG', flex: 2, cellClass: 'font-normal text-gray-700', cellRenderer: (params: any) => renderTrimTooltip(params.value, 40) }
+        { field: 'tag', headerName: 'TAG', flex: 2, cellRenderer: (params: any) => renderTrimTooltip(params.value, 40) }
       ],
       site1ColDefs: [
-        { field: 'tag', headerName: 'TAG', flex: 2, cellClass: 'font-normal text-[#800040]', cellRenderer: (params: any) => renderTagLink(baseUrl1, 'drupal-roles', params.data.id || params.data.tag, params.value, 40) },
+        { field: 'tag', headerName: 'TAG', flex: 2, cellRenderer: (params: any) => renderTagLink(baseUrl1, 'drupal-roles', params.data.id || params.data.tag, params.value, 40) },
         {
           field: 'syncData',
           headerName: '',
@@ -66,7 +66,7 @@ export const drupalRolesConfig = {
         }
       ],
       site2ColDefs: [
-        { field: 'tag', headerName: 'TAG', flex: 2, cellClass: 'font-normal text-[#800040]', cellRenderer: (params: any) => renderTagLink(baseUrl2, 'drupal-roles', params.data.id || params.data.tag, params.value, 40) },
+        { field: 'tag', headerName: 'TAG', flex: 2, cellRenderer: (params: any) => renderTagLink(baseUrl2, 'drupal-roles', params.data.id || params.data.tag, params.value, 40) },
         {
           field: 'syncData',
           headerName: '',
@@ -94,7 +94,7 @@ const DrupalRoles: React.FC<DrupalRolesProps> = ({ activeOption = 'drupal_roles'
   } = useConfigurationDiff(activeOption);
 
   return (
-    <div className="space-y-6">
+    <div className="dc-page-container">
       {/* SECTION 1: DATA DIFF TABLE */}
       <DataDiffTable
         activeOption={activeOption}

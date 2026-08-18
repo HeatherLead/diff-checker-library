@@ -66,7 +66,7 @@ export const masterConfigConfig = {
   getColumns: ({ openDiffViewer, handleCloneConfiguration, baseUrl1, baseUrl2 }: any) => {
     return {
       dataDiffColDefs: [
-        { field: 'tag', headerName: 'TAG', flex: 1.5, cellClass: 'font-normal text-gray-700', cellRenderer: (params: any) => renderTrimTooltip(params.value, 35) },
+        { field: 'tag', headerName: 'TAG', flex: 1.5, cellRenderer: (params: any) => renderTrimTooltip(params.value, 35) },
         { field: 'rec1version', headerName: 'SITE VERSION', flex: 1 },
         { field: 'dt_status', headerName: 'MASTER CONFIG DIFF STATUS', flex: 1.5 },
         {
@@ -75,13 +75,13 @@ export const masterConfigConfig = {
           flex: 1.2,
           cellRenderer: (params: any) => params.value === 'View Diff' ? (
             <button onClick={() => openDiffViewer(params, 'other')} className="btn-gray">View Diff</button>
-          ) : <span className="text-gray-500 font-normal">{params.value}</span>
+          ) : <span className="dc-muted-text">{params.value}</span>
         },
         { field: 'site1count', headerName: 'SITE 1 COUNT', flex: 1 },
         { field: 'site2count', headerName: 'SITE 2 COUNT', flex: 1 }
       ],
       site1ColDefs: [
-        { field: 'tag', headerName: 'TAG', flex: 2, cellClass: 'font-normal text-[#800040]', cellRenderer: (params: any) => renderTagLink(baseUrl1, 'master-config', params.data.id || params.data.tag, params.value) },
+        { field: 'tag', headerName: 'TAG', flex: 2, cellRenderer: (params: any) => renderTagLink(baseUrl1, 'master-config', params.data.id || params.data.tag, params.value) },
         { field: 'version', headerName: 'SITE VERSION', flex: 1 },
         { field: 'sitecount', headerName: 'SITE COUNT', flex: 1 },
         {
@@ -94,7 +94,7 @@ export const masterConfigConfig = {
         }
       ],
       site2ColDefs: [
-        { field: 'tag', headerName: 'TAG', flex: 2, cellClass: 'font-normal text-[#800040]', cellRenderer: (params: any) => renderTagLink(baseUrl2, 'master-config', params.data.id || params.data.tag, params.value) },
+        { field: 'tag', headerName: 'TAG', flex: 2, cellRenderer: (params: any) => renderTagLink(baseUrl2, 'master-config', params.data.id || params.data.tag, params.value) },
         { field: 'version', headerName: 'SITE VERSION', flex: 1 },
         { field: 'sitecount', headerName: 'SITE COUNT', flex: 1 },
         {
@@ -124,7 +124,7 @@ const MasterConfig: React.FC<MasterConfigProps> = ({ activeOption = 'master_conf
   } = useConfigurationDiff(activeOption);
 
   return (
-    <div className="space-y-6">
+    <div className="dc-page-container">
       {/* SECTION 1: DATA DIFF TABLE */}
       <DataDiffTable
         activeOption={activeOption}

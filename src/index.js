@@ -1,4 +1,4 @@
-import './index.css';
+import './styles/index.scss';
 import DiffChecker from './DiffChecker';
 import Header from './components/Header';
 import NavigationRow from './components/NavigationRow';

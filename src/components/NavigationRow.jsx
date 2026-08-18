@@ -159,11 +159,11 @@ const NavigationRow = memo(({ activeOption: propActiveOption, onSelectOption: pr
   };
 
   return (
-    <div className="bg-white border-b border-gray-200 shadow-xs relative z-30" ref={navContainerRef}>
-      <div className="max-w-[1600px] mx-auto px-6 flex items-center justify-between">
+    <div className="dc-nav" ref={navContainerRef}>
+      <div className="dc-nav-inner">
 
         {/* Navigation Tabs List */}
-        <div className="flex items-center space-x-6 sm:space-x-10">
+        <div className="dc-nav-tabs">
           {TABS.map((tab) => {
             const isTabActive = activeTabId === tab.id;
             const isOpen = openDropdownId === tab.id;
@@ -174,10 +174,7 @@ const NavigationRow = memo(({ activeOption: propActiveOption, onSelectOption: pr
                   key={tab.id}
                   ref={(el) => (tabRefs.current[tab.id] = el)}
                   onClick={() => handleTabClick(tab)}
-                  className={`py-3.5 text-[13px] font-semibold transition-colors duration-200 cursor-pointer outline-none ${isTabActive
-                    ? 'text-[#820f4c]'
-                    : 'text-gray-700 hover:text-gray-900'
-                    }`}
+                  className={`dc-nav-tab-btn ${isTabActive ? 'active' : ''}`}
                 >
                   {tab.title}
                 </button>
@@ -185,19 +182,15 @@ const NavigationRow = memo(({ activeOption: propActiveOption, onSelectOption: pr
             }
 
             return (
-              <div key={tab.id} className="relative flex items-center">
+              <div key={tab.id} className="dc-nav-dropdown-wrapper">
                 <button
                   ref={(el) => (tabRefs.current[tab.id] = el)}
                   onClick={() => handleTabClick(tab)}
-                  className={`py-3.5 text-[13px] font-semibold flex items-center space-x-1.5 transition-colors duration-200 cursor-pointer outline-none ${isTabActive
-                    ? 'text-[#820f4c]'
-                    : 'text-gray-700 hover:text-gray-900'
-                    }`}
+                  className={`dc-nav-dropdown-btn ${isTabActive ? 'active' : ''}`}
                 >
                   <span>{tab.title}</span>
                   <svg
-                    className={`w-4 h-4 transition-transform duration-200 ${isOpen ? 'transform rotate-180 text-[#820f4c]' : 'text-gray-400'
-                      }`}
+                    className={`dc-nav-dropdown-icon ${isOpen ? 'open' : ''}`}
                     fill="none"
                     stroke="currentColor"
                     viewBox="0 0 24 24"
@@ -208,17 +201,14 @@ const NavigationRow = memo(({ activeOption: propActiveOption, onSelectOption: pr
 
                 {/* DROPDOWN MENU CARD */}
                 {isOpen && (
-                  <div className="absolute left-0 top-full mt-0 w-52 min-w-[180px] bg-white border border-gray-100 rounded-lg shadow-xl py-1 z-50 animate-in fade-in zoom-in-95 duration-150 overflow-hidden">
+                  <div className="dc-nav-dropdown-menu">
                     {tab.items.map((item) => {
                       const isOptionSelected = currentActiveOption === item.id;
                       return (
                         <button
                           key={item.id}
                           onClick={() => handleSelectItem(item)}
-                          className={`w-full text-left px-2 py-1 text-[13px] transition-colors duration-150 cursor-pointer ${isOptionSelected
-                            ? 'bg-[#820f4c] text-white font-medium'
-                            : 'text-gray-700 hover:bg-gray-100 hover:text-gray-900 font-medium'
-                            }`}
+                          className={`dc-nav-dropdown-item ${isOptionSelected ? 'active' : ''}`}
                         >
                           {item.label}
                         </button>
@@ -235,7 +225,7 @@ const NavigationRow = memo(({ activeOption: propActiveOption, onSelectOption: pr
 
       {/* ANIMATED ACTIVE PURPLE BORDER BOTTOM LINE (#820f4c) */}
       <span
-        className="absolute bottom-0 h-[3px] bg-[#820f4c] transition-all duration-300 ease-out pointer-events-none z-10 rounded-t-xs"
+        className="dc-nav-indicator"
         style={{
           left: `${indicatorStyle.left}px`,
           width: `${indicatorStyle.width}px`,

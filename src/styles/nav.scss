@@ -1,0 +1,143 @@
+@use './variables' as *;
+@use './mixins' as *;
+
+.dc-nav {
+  background-color: #ffffff;
+  border-bottom: 1px solid $dc-border;
+  box-shadow: $dc-shadow-xs;
+  position: relative;
+  z-index: 30;
+}
+
+.dc-nav-inner {
+  max-width: 1600px;
+  margin: 0 auto;
+  padding: 0 24px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.dc-nav-tabs {
+  display: flex;
+  align-items: center;
+  gap: 24px;
+
+  @media (min-width: 640px) {
+    gap: 40px;
+  }
+}
+
+.dc-nav-tab-btn {
+  padding: 14px 0;
+  font-size: 13px;
+  font-weight: 600;
+  transition: color 0.2s ease;
+  cursor: pointer;
+  outline: none;
+  border: none;
+  background: none;
+  color: $dc-text-secondary;
+  display: inline-flex;
+  align-items: center;
+
+  &:hover {
+    color: #111827;
+  }
+
+  &.active {
+    color: $dc-primary;
+  }
+}
+
+.dc-nav-dropdown-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.dc-nav-dropdown-btn {
+  padding: 14px 0;
+  font-size: 13px;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  transition: color 0.2s ease;
+  cursor: pointer;
+  outline: none;
+  border: none;
+  background: none;
+  color: $dc-text-secondary;
+
+  &:hover {
+    color: #111827;
+  }
+
+  &.active {
+    color: $dc-primary;
+  }
+}
+
+.dc-nav-dropdown-icon {
+  width: 16px;
+  height: 16px;
+  transition: transform 0.2s ease, color 0.2s ease;
+  color: $dc-text-light;
+
+  &.open {
+    transform: rotate(180deg);
+    color: $dc-primary;
+  }
+}
+
+.dc-nav-dropdown-menu {
+  position: absolute;
+  left: 0;
+  top: 100%;
+  margin-top: 0;
+  width: 208px;
+  min-width: 180px;
+  background-color: #ffffff;
+  border: 1px solid $dc-border-light;
+  border-radius: $dc-radius-lg;
+  box-shadow: $dc-shadow-xl;
+  padding: 4px 0;
+  z-index: 50;
+  animation: dc-zoom-in 0.15s ease-out;
+  overflow: hidden;
+}
+
+.dc-nav-dropdown-item {
+  width: 100%;
+  text-align: left;
+  padding: 6px 12px;
+  font-size: 13px;
+  font-weight: 500;
+  transition: background-color 0.15s ease, color 0.15s ease;
+  cursor: pointer;
+  border: none;
+  background: none;
+  color: $dc-text-secondary;
+
+  &:hover {
+    background-color: $dc-bg-hover;
+    color: #111827;
+  }
+
+  &.active {
+    background-color: $dc-primary;
+    color: #ffffff;
+  }
+}
+
+.dc-nav-indicator {
+  position: absolute;
+  bottom: 0;
+  height: 3px;
+  background-color: $dc-primary;
+  transition: all 0.3s cubic-bezier(0, 0, 0.2, 1);
+  pointer-events: none;
+  z-index: 10;
+  border-radius: 2px 2px 0 0;
+}

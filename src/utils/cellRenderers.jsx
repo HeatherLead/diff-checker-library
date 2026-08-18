@@ -59,7 +59,7 @@ export const renderTagLink = (baseUrl, typeSlug, id, val, maxChar = 35) => {
 
   if (!id) {
     return (
-      <span className="font-normal text-[#800040] cursor-pointer" title={str}>
+      <span className="dc-tag-span" title={str}>
         {display}
       </span>
     );
@@ -73,7 +73,7 @@ export const renderTagLink = (baseUrl, typeSlug, id, val, maxChar = 35) => {
 
   if (!cleanUrl) {
     return (
-      <span className="font-normal text-[#800040] cursor-pointer" title={str}>
+      <span className="dc-tag-span" title={str}>
         {display}
       </span>
     );
@@ -87,7 +87,7 @@ export const renderTagLink = (baseUrl, typeSlug, id, val, maxChar = 35) => {
       href={editUrl}
       target="_blank"
       rel="noreferrer"
-      className="font-normal text-[#800040] cursor-pointer no-underline hover:text-[#800040] inline-block"
+      className="dc-tag-link"
       title={str}
       onClick={(e) => e.stopPropagation()}
     >
@@ -98,7 +98,7 @@ export const renderTagLink = (baseUrl, typeSlug, id, val, maxChar = 35) => {
 
 // Common helper to render external edit links
 export const renderEditLink = (baseUrl, typeSlug, id, label = 'Edit') => {
-  if (!id) return <span className="btn-purple opacity-50 cursor-not-allowed">Edit</span>;
+  if (!id) return <span className="btn-purple" style={{ opacity: 0.5, cursor: 'not-allowed' }}>Edit</span>;
   let cleanUrl = typeof baseUrl === 'string' ? baseUrl.trim() : '';
   if (cleanUrl && !cleanUrl.startsWith('http://') && !cleanUrl.startsWith('https://')) {
     cleanUrl = `https://${cleanUrl}`;
@@ -112,7 +112,7 @@ export const renderEditLink = (baseUrl, typeSlug, id, label = 'Edit') => {
       href={editUrl}
       target="_blank"
       rel="noreferrer"
-      className={isEdit ? "btn-purple inline-flex items-center justify-center cursor-pointer" : "font-normal text-[#800040] cursor-pointer no-underline hover:text-[#800040]"}
+      className={isEdit ? "btn-purple" : "dc-tag-link"}
       onClick={(e) => e.stopPropagation()}
     >
       {label}

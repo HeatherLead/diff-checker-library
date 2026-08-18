@@ -58,7 +58,7 @@ export const roleDepartmentListConfig = {
   getColumns: ({ openDiffViewer, openDataViewer, handleCloneConfiguration, baseUrl1, baseUrl2 }: any) => {
     return {
       dataDiffColDefs: [
-        { field: 'tag', headerName: 'TAG', flex: 1.5, cellClass: 'font-normal text-gray-700', cellRenderer: (params: any) => renderTrimTooltip(params.value, 35) },
+        { field: 'tag', headerName: 'TAG', flex: 1.5, cellRenderer: (params: any) => renderTrimTooltip(params.value, 35) },
         { field: 'role_diff_status', headerName: 'ROLE DIFF STATUS', flex: 1.5 },
         {
           field: 'view_role_diff',
@@ -66,11 +66,11 @@ export const roleDepartmentListConfig = {
           flex: 1.2,
           cellRenderer: (params: any) => params.value === 'View Diff' ? (
             <button onClick={() => openDiffViewer(params, 'other')} className="btn-gray">View Diff</button>
-          ) : <span className="text-gray-500 font-normal">{params.value}</span>
+          ) : <span className="dc-muted-text">{params.value}</span>
         }
       ],
       site1ColDefs: [
-        { field: 'tag', headerName: 'ROLE', flex: 2, cellClass: 'font-normal text-[#800040]', cellRenderer: (params: any) => renderTagLink(baseUrl1, 'role-department-list', params.data.id || params.data.tag, params.value) },
+        { field: 'tag', headerName: 'ROLE', flex: 2, cellRenderer: (params: any) => renderTagLink(baseUrl1, 'role-department-list', params.data.id || params.data.tag, params.value) },
         {
           field: 'viewData',
           headerName: 'VIEW DATA',
@@ -89,7 +89,7 @@ export const roleDepartmentListConfig = {
         }
       ],
       site2ColDefs: [
-        { field: 'tag', headerName: 'TAG', flex: 2, cellClass: 'font-normal text-[#800040]', cellRenderer: (params: any) => renderTagLink(baseUrl2, 'role-department-list', params.data.id || params.data.tag, params.value) },
+        { field: 'tag', headerName: 'TAG', flex: 2, cellRenderer: (params: any) => renderTagLink(baseUrl2, 'role-department-list', params.data.id || params.data.tag, params.value) },
         {
           field: 'viewData',
           headerName: 'VIEW DATA',
@@ -125,7 +125,7 @@ const RoleDepartmentList: React.FC<RoleDepartmentListProps> = ({ activeOption = 
   } = useConfigurationDiff(activeOption);
 
   return (
-    <div className="space-y-6">
+    <div className="dc-page-container">
       {/* SECTION 1: DATA DIFF TABLE */}
       <DataDiffTable
         activeOption={activeOption}

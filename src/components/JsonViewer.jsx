@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
 
-
 const CopyButton = ({ value, label = "Copy" }) => {
   const [copied, setCopied] = useState(false);
 
@@ -25,16 +24,15 @@ const CopyButton = ({ value, label = "Copy" }) => {
       onClick={handleCopy}
       type="button"
       title={copied ? "Copied!" : label}
-      className="inline-flex items-center justify-center ml-1.5 p-0.5 text-blue-500 hover:text-blue-700 hover:bg-blue-50 rounded transition-all duration-150 focus:outline-none opacity-0 group-hover:opacity-100 cursor-pointer"
+      className="dc-json-copy-btn"
     >
       {copied ? (
-        <span className="inline-flex items-center text-[10px] text-green-600 font-semibold px-1 bg-green-50 rounded border border-green-200">
+        <span className="dc-json-copied-badge">
           ✓ Copied
         </span>
       ) : (
-        /* Clipboard icon with arrow matching screenshot style */
         <svg
-          className="w-3.5 h-3.5 text-[#3b82f6]"
+          style={{ width: '14px', height: '14px', color: '#3b82f6' }}
           fill="none"
           stroke="currentColor"
           strokeWidth="1.8"
@@ -61,8 +59,8 @@ export const JsonViewer = ({ data, rootKey = 'data' }) => {
   const renderValue = (val, path) => {
     if (val === null || val === undefined) {
       return (
-        <span className="inline-flex items-center font-mono group">
-          <span className="text-gray-400 italic">null</span>
+        <span style={{ display: 'inline-flex', alignItems: 'center', fontFamily: 'monospace' }}>
+          <span className="dc-json-null">null</span>
           <CopyButton value={val} label="Copy null" />
         </span>
       );
@@ -70,8 +68,8 @@ export const JsonViewer = ({ data, rootKey = 'data' }) => {
 
     if (typeof val === 'boolean') {
       return (
-        <span className="inline-flex items-center font-mono group">
-          <span className="text-purple-600 font-normal">{val ? 'true' : 'false'}</span>
+        <span style={{ display: 'inline-flex', alignItems: 'center', fontFamily: 'monospace' }}>
+          <span className="dc-json-bool">{val ? 'true' : 'false'}</span>
           <CopyButton value={val} label="Copy boolean" />
         </span>
       );
@@ -79,16 +77,15 @@ export const JsonViewer = ({ data, rootKey = 'data' }) => {
 
     if (typeof val === 'number') {
       return (
-        <span className="inline-flex items-center font-mono group">
-          <span className="text-[#c77d4c] text-[11px] mr-1.5 font-normal">number</span>
-          <span className="text-[#b91c1c] font-normal">{val}</span>
+        <span style={{ display: 'inline-flex', alignItems: 'center', fontFamily: 'monospace' }}>
+          <span className="dc-json-number-tag">number</span>
+          <span className="dc-json-number-val">{val}</span>
           <CopyButton value={val} label="Copy number" />
         </span>
       );
     }
 
     if (typeof val === 'string') {
-      // Check if string contains stringified JSON (e.g. datatable_structure or entity_config)
       let parsedJson = null;
       const trimmed = val.trim();
       if ((trimmed.startsWith('{') && trimmed.endsWith('}')) || (trimmed.startsWith('[') && trimmed.endsWith(']'))) {
@@ -104,9 +101,9 @@ export const JsonViewer = ({ data, rootKey = 'data' }) => {
       }
 
       return (
-        <span className="inline-flex items-center font-mono group">
-          <span className="text-[#c77d4c] text-[11px] mr-1.5 font-normal">string</span>
-          <span className="text-[#a33d26] break-all">"{val}"</span>
+        <span style={{ display: 'inline-flex', alignItems: 'center', fontFamily: 'monospace' }}>
+          <span className="dc-json-string-tag">string</span>
+          <span className="dc-json-string-val">"{val}"</span>
           <CopyButton value={val} label="Copy string value" />
         </span>
       );
@@ -116,16 +113,16 @@ export const JsonViewer = ({ data, rootKey = 'data' }) => {
       const isCollapsed = collapsed[path];
       const itemCount = val.length;
       return (
-        <div className="inline-block w-full">
-          <div className="inline-flex items-center group">
+        <div style={{ display: 'inline-block', width: '100%' }}>
+          <div style={{ display: 'inline-flex', alignItems: 'center' }}>
             <button
               onClick={() => toggleCollapse(path)}
-              className="text-gray-700 hover:text-gray-900 font-mono font-normal inline-flex items-center space-x-1 cursor-pointer focus:outline-none"
+              className="dc-json-node-btn"
               type="button"
             >
-              <span className="text-[10px] text-gray-500">{isCollapsed ? '►' : '▼'}</span>
-              <span className="text-gray-900 font-normal">[</span>
-              <span className="text-gray-400 font-mono text-xs italic font-normal">
+              <span style={{ fontSize: '10px', color: '#6b7280' }}>{isCollapsed ? '►' : '▼'}</span>
+              <span style={{ color: '#111827', fontWeight: 400 }}>[</span>
+              <span className="dc-json-badge-count">
                 {itemCount} {itemCount === 1 ? 'item' : 'items'}
               </span>
             </button>
@@ -133,10 +130,10 @@ export const JsonViewer = ({ data, rootKey = 'data' }) => {
           </div>
 
           {!isCollapsed && (
-            <div className="pl-6 border-l border-gray-200 my-1 space-y-1">
+            <div className="dc-json-tree-branch">
               {val.map((item, idx) => (
-                <div key={idx} className="font-mono text-xs group flex flex-wrap items-baseline hover:bg-gray-50/80 rounded px-1 -mx-1 transition-colors">
-                  <span className="text-purple-600 font-normal mr-1.5">{idx} :</span>
+                <div key={idx} className="dc-json-row">
+                  <span className="dc-json-key-idx">{idx} :</span>
                   {renderValue(item, `${path}_${idx}`)}
                 </div>
               ))}
@@ -150,16 +147,16 @@ export const JsonViewer = ({ data, rootKey = 'data' }) => {
       const keys = Object.keys(val);
       const isCollapsed = collapsed[path];
       return (
-        <div className="inline-block w-full">
-          <div className="inline-flex items-center group">
+        <div style={{ display: 'inline-block', width: '100%' }}>
+          <div style={{ display: 'inline-flex', alignItems: 'center' }}>
             <button
               onClick={() => toggleCollapse(path)}
-              className="text-gray-800 hover:text-black font-mono font-normal inline-flex items-center space-x-1 cursor-pointer focus:outline-none"
+              className="dc-json-node-btn"
               type="button"
             >
-              <span className="text-[10px] text-gray-500">{isCollapsed ? '►' : '▼'}</span>
-              <span className="text-gray-900 font-normal">&#123;</span>
-              <span className="text-gray-400 font-mono text-xs italic font-normal">
+              <span style={{ fontSize: '10px', color: '#6b7280' }}>{isCollapsed ? '►' : '▼'}</span>
+              <span style={{ color: '#111827', fontWeight: 400 }}>&#123;</span>
+              <span className="dc-json-badge-count">
                 {keys.length} {keys.length === 1 ? 'item' : 'items'}
               </span>
             </button>
@@ -167,10 +164,10 @@ export const JsonViewer = ({ data, rootKey = 'data' }) => {
           </div>
 
           {!isCollapsed && (
-            <div className="pl-6 border-l border-gray-200 my-1 space-y-1.5 w-full">
+            <div className="dc-json-tree-branch">
               {keys.map((key) => (
-                <div key={key} className="font-mono text-xs group flex flex-wrap items-baseline hover:bg-gray-50/80 rounded px-1 -mx-1 transition-colors">
-                  <span className="text-gray-800 font-normal mr-1.5">"{key}" :</span>
+                <div key={key} className="dc-json-row">
+                  <span className="dc-json-key-name">"{key}" :</span>
                   {renderValue(val[key], `${path}_${key}`)}
                 </div>
               ))}
@@ -181,7 +178,7 @@ export const JsonViewer = ({ data, rootKey = 'data' }) => {
     }
 
     return (
-      <span className="inline-flex items-center font-mono group">
+      <span style={{ display: 'inline-flex', alignItems: 'center', fontFamily: 'monospace' }}>
         <span>{String(val)}</span>
         <CopyButton value={val} label="Copy value" />
       </span>
@@ -193,17 +190,17 @@ export const JsonViewer = ({ data, rootKey = 'data' }) => {
   const isRootCollapsed = collapsed['root'];
 
   return (
-    <div className="font-mono text-xs text-gray-800 p-4 bg-white select-text overflow-y-auto max-h-full">
-      <div className="flex items-center space-x-2 mb-2 group font-normal">
+    <div className="dc-json-viewer">
+      <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px', fontWeight: 400 }}>
         <button
           onClick={() => toggleCollapse('root')}
-          className="inline-flex items-center space-x-1.5 text-gray-800 hover:text-black focus:outline-none cursor-pointer"
+          className="dc-json-node-btn"
           type="button"
         >
-          <span className="text-xs text-gray-500">{isRootCollapsed ? '►' : '▼'}</span>
-          <span className="text-gray-900 font-normal">"{rootKey}" :</span>
-          <span className="text-gray-900 font-normal">&#123;</span>
-          <span className="text-gray-400 text-xs font-normal italic">
+          <span style={{ fontSize: '12px', color: '#6b7280' }}>{isRootCollapsed ? '►' : '▼'}</span>
+          <span style={{ color: '#111827', fontWeight: 400 }}>"{rootKey}" :</span>
+          <span style={{ color: '#111827', fontWeight: 400 }}>&#123;</span>
+          <span className="dc-json-badge-count">
             {rootKeys.length} {rootKeys.length === 1 ? 'item' : 'items'}
           </span>
         </button>
@@ -211,10 +208,10 @@ export const JsonViewer = ({ data, rootKey = 'data' }) => {
       </div>
 
       {!isRootCollapsed && (
-        <div className="pl-6 border-l-2 border-gray-200 space-y-2">
+        <div className="dc-json-tree-root-branch">
           {rootKeys.map((key) => (
-            <div key={key} className="group flex flex-wrap items-baseline hover:bg-gray-50/80 rounded px-1 -mx-1 transition-colors">
-              <span className="text-gray-800 font-normal mr-1.5">"{key}" :</span>
+            <div key={key} className="dc-json-row">
+              <span className="dc-json-key-name">"{key}" :</span>
               {renderValue(rootObject[key], `root_${key}`)}
             </div>
           ))}

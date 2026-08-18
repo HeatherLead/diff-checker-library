@@ -1,0 +1,209 @@
+@use './variables' as *;
+@use './mixins' as *;
+
+.dc-table-card {
+  min-width: 0;
+}
+
+.dc-table-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-bottom: 1px solid $dc-border;
+  padding-bottom: 8px;
+  margin-bottom: 16px;
+}
+
+.dc-table-header-left {
+  width: 33.333%;
+}
+
+.dc-table-header-center {
+  width: 33.333%;
+  text-align: center;
+}
+
+.dc-table-header-center-wide {
+  width: 50%;
+  text-align: center;
+}
+
+.dc-table-header-spacer {
+  width: 25%;
+}
+
+.dc-table-header-right {
+  width: 33.333%;
+  display: flex;
+  justify-content: flex-end;
+}
+
+.dc-table-header-right-quarter {
+  width: 25%;
+  display: flex;
+  justify-content: flex-end;
+}
+
+.dc-table-title {
+  font-size: 14px;
+  font-weight: 700;
+  color: $dc-text-secondary;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin: 0;
+}
+
+.dc-table-url {
+  font-size: 12px;
+  color: $dc-link;
+  font-weight: 400;
+  text-decoration: none;
+  display: block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: 320px;
+  margin: 0 auto;
+
+  &:hover {
+    text-decoration: underline;
+  }
+}
+
+.dc-toggle-filter-btn {
+  font-size: 12px;
+  color: $dc-text-muted;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  cursor: pointer;
+  border: none;
+  background: none;
+  transition: color 0.15s ease;
+  user-select: none;
+
+  &:hover {
+    color: $dc-text-secondary;
+  }
+}
+
+.dc-arrow-rotate {
+  display: inline-block;
+  font-size: 10px;
+  transition: transform 0.3s ease-in-out;
+
+  &.up {
+    transform: rotate(0deg);
+  }
+
+  &.down {
+    transform: rotate(180deg);
+  }
+}
+
+.dc-grid-2col {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 24px;
+
+  @media (min-width: 768px) {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+.dc-records-count {
+  margin-top: 8px;
+  font-size: 12px;
+  font-style: italic;
+  font-weight: 400;
+  color: $dc-text-muted;
+}
+
+.dc-records-count-filtered {
+  margin-top: 8px;
+  font-size: 12px;
+  font-style: italic;
+  font-weight: 400;
+  color: $dc-danger;
+}
+
+// AG Grid Generator container classes
+.dc-grid-wrapper {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  position: relative;
+}
+
+.dc-grid-container {
+  width: 100%;
+  box-shadow: $dc-shadow-sm;
+  border: 1px solid $dc-border;
+  border-radius: $dc-radius-md;
+  overflow: hidden;
+  background-color: #ffffff;
+  font-size: 12px;
+  transition: all 0.3s ease-in-out;
+}
+
+// Header Context Menu
+.dc-grid-context-menu {
+  position: fixed;
+  z-index: 9999;
+  background-color: #ffffff;
+  border: 1px solid $dc-border;
+  border-radius: $dc-radius-md;
+  box-shadow: $dc-shadow-xl;
+  font-size: 12px;
+  padding: 4px 0;
+  width: 192px;
+  color: $dc-text-secondary;
+  font-weight: 400;
+  user-select: none;
+  animation: dc-zoom-in 0.15s ease-out;
+}
+
+.dc-grid-context-header {
+  padding: 6px 12px;
+  font-weight: 600;
+  font-size: 11px;
+  color: $dc-text-light;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  border-bottom: 1px solid $dc-border-light;
+  background-color: rgba(249, 250, 251, 0.5);
+  @include truncate;
+}
+
+.dc-grid-context-section {
+  padding: 4px 0;
+  border-bottom: 1px solid $dc-border-light;
+}
+
+.dc-grid-context-item {
+  width: 100%;
+  text-align: left;
+  padding: 6px 12px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  transition: background-color 0.15s ease, color 0.15s ease;
+  cursor: pointer;
+  border: none;
+  background: none;
+  color: $dc-text-secondary;
+  font-size: 12px;
+
+  &:hover {
+    background-color: #fde6f7;
+    color: #881337;
+  }
+
+  &.active {
+    font-weight: 600;
+    color: #881337;
+    background-color: rgba(253, 230, 247, 0.5);
+  }
+}
