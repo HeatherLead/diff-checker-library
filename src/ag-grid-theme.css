@@ -98,18 +98,72 @@
   text-transform: none;
 }
 
-/* Hide Header Hamburger Menu Button & Right-Side Resize Lines */
+/* Hide AG Grid Header Menu Button, Filter Button, Filter Icon & Column Separators */
 .ag-theme-alpine .ag-header-cell-menu-button,
+.ag-theme-alpine .ag-header-cell-filter-button,
 .ag-theme-alpine .ag-header-icon.ag-header-cell-menu-button,
+.ag-theme-alpine .ag-header-icon.ag-header-cell-filter-button,
+.ag-theme-alpine .ag-header-icon.ag-filter-icon,
+.ag-theme-alpine .ag-filter-icon,
+.ag-theme-alpine .ag-icon-filter,
+.ag-theme-alpine .ag-icon-menu,
+.ag-theme-alpine .ag-icon-menu-alt,
+.ag-theme-alpine [ref="eMenu"],
+.ag-theme-alpine [ref="eFilterButton"],
+.ag-theme-alpine [ref="eFilter"],
+.ag-theme-quartz .ag-header-cell-menu-button,
+.ag-theme-quartz .ag-header-cell-filter-button,
+.ag-theme-quartz .ag-header-icon.ag-header-cell-menu-button,
+.ag-theme-quartz .ag-header-icon.ag-header-cell-filter-button,
+.ag-theme-quartz .ag-header-icon.ag-filter-icon,
+.ag-theme-quartz .ag-filter-icon,
+.ag-theme-quartz .ag-icon-filter,
+.ag-theme-quartz .ag-icon-menu,
+.ag-theme-quartz [ref="eMenu"],
+.ag-theme-quartz [ref="eFilterButton"],
+.ag-theme-quartz [ref="eFilter"],
+.ag-header-cell-menu-button,
+.ag-header-cell-filter-button,
+.ag-header-icon.ag-header-cell-menu-button,
+.ag-header-icon.ag-header-cell-filter-button,
+.ag-header-icon.ag-filter-icon,
+.ag-filter-icon,
+.ag-icon-filter,
+.ag-icon-menu,
+.ag-header-cell [ref="eMenu"],
+.ag-header-cell [ref="eFilterButton"],
+.ag-header-cell [ref="eFilter"],
 .ag-theme-alpine .ag-header-cell-resize::after,
-.ag-theme-alpine .ag-header-column-separator {
+.ag-theme-alpine .ag-header-column-separator,
+.ag-theme-quartz .ag-header-cell-resize::after,
+.ag-theme-quartz .ag-header-column-separator,
+.ag-header-cell-resize::after,
+.ag-header-column-separator {
   display: none !important;
+  visibility: hidden !important;
+  opacity: 0 !important;
+  width: 0 !important;
+  height: 0 !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  pointer-events: none !important;
 }
 
 /* Floating Filter Inputs - Hide Filter Icon on Column Filter */
 .ag-theme-alpine .ag-floating-filter-button,
-.ag-theme-alpine .ag-floating-filter-button-button {
+.ag-theme-alpine .ag-floating-filter-button-button,
+.ag-theme-quartz .ag-floating-filter-button,
+.ag-theme-quartz .ag-floating-filter-button-button,
+.ag-floating-filter-button,
+.ag-floating-filter-button-button {
   display: none !important;
+  visibility: hidden !important;
+  opacity: 0 !important;
+  width: 0 !important;
+  height: 0 !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  pointer-events: none !important;
 }
 
 .ag-theme-alpine .ag-floating-filter-body {

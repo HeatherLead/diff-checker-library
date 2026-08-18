@@ -360,7 +360,10 @@ export const AGGridGenerator = ({
           cellRenderer: col.cellRenderer || DefaultCellRenderer,
           filter: isNonFilterable ? false : col.filter ?? "agTextColumnFilter",
           floatingFilter: !isNonFilterable,
-          menuTabs: isNonFilterable ? ["generalMenuTab"] : ["generalMenuTab", "filterMenuTab"],
+          suppressHeaderFilterButton: true,
+          suppressHeaderMenuButton: true,
+          suppressMenu: true,
+          menuTabs: [],
           floatingFilterComponentParams: {
             suppressFilterButton: true,
           },
@@ -382,7 +385,10 @@ export const AGGridGenerator = ({
             sortable: true,
             filter: isNonFilterable ? false : "agTextColumnFilter",
             floatingFilter: !isNonFilterable,
-            menuTabs: isNonFilterable ? ["generalMenuTab"] : ["generalMenuTab", "filterMenuTab"],
+            suppressHeaderFilterButton: true,
+            suppressHeaderMenuButton: true,
+            suppressMenu: true,
+            menuTabs: [],
             floatingFilterComponentParams: {
               suppressFilterButton: true,
             },
@@ -406,7 +412,10 @@ export const AGGridGenerator = ({
             sortable: true,
             filter: isNonFilterable ? false : "agTextColumnFilter",
             floatingFilter: !isNonFilterable,
-            menuTabs: isNonFilterable ? ["generalMenuTab"] : ["generalMenuTab", "filterMenuTab"],
+            suppressHeaderFilterButton: true,
+            suppressHeaderMenuButton: true,
+            suppressMenu: true,
+            menuTabs: [],
             floatingFilterComponentParams: {
               suppressFilterButton: true,
             },
@@ -434,6 +443,10 @@ export const AGGridGenerator = ({
             sortable: false,
             filter: false,
             floatingFilter: false,
+            suppressHeaderFilterButton: true,
+            suppressHeaderMenuButton: true,
+            suppressMenu: true,
+            menuTabs: [],
             headerTooltip: undefined,
             headerClass: "ag-selection-checkbox-header",
           },
@@ -480,7 +493,10 @@ export const AGGridGenerator = ({
       resizable: true,
       filter: "agTextColumnFilter",
       floatingFilter: true,
-      menuTabs: ["generalMenuTab", "filterMenuTab"],
+      suppressHeaderFilterButton: true,
+      suppressHeaderMenuButton: true,
+      suppressMenu: true,
+      menuTabs: [],
       flex: 1,
       minWidth: 110,
       headerClass: "font-normal text-gray-700",
@@ -615,6 +631,9 @@ export const AGGridGenerator = ({
           rowHeight={38}
           suppressCellFocus={true}
           suppressRowClickSelection={true}
+          suppressMenuHide={true}
+          suppressHeaderMenuButton={true}
+          suppressHeaderFilterButton={true}
           animateRows={true}
           tooltipShowDelay={tooltipShowDelay}
           tooltipHideDelay={tooltipHideDelay}

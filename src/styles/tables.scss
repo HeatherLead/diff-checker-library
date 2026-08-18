@@ -145,6 +145,30 @@
   background-color: #ffffff;
   font-size: 12px;
   transition: all 0.3s ease-in-out;
+
+  .ag-header-cell-menu-button,
+  .ag-header-cell-filter-button,
+  .ag-header-icon.ag-header-cell-menu-button,
+  .ag-header-icon.ag-header-cell-filter-button,
+  .ag-header-icon.ag-filter-icon,
+  .ag-filter-icon,
+  .ag-icon-filter,
+  .ag-icon-menu,
+  .ag-icon-menu-alt,
+  [ref="eMenu"],
+  [ref="eFilterButton"],
+  [ref="eFilter"],
+  .ag-floating-filter-button,
+  .ag-floating-filter-button-button {
+    display: none !important;
+    visibility: hidden !important;
+    opacity: 0 !important;
+    width: 0 !important;
+    height: 0 !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    pointer-events: none !important;
+  }
 }
 
 // Header Context Menu
