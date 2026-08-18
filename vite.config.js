@@ -17,22 +17,22 @@ function shimUseSyncExternalStore() {
             code = code.replace(esmPattern, (match, before, localName, after) => {
               let cleanBefore = before.trim().replace(/,\s*$/, '').replace(/^,\s*/, '');
               let cleanAfter = after.trim().replace(/,\s*$/, '').replace(/^,\s*/, '');
-              
+
               const defaultExportMatch = match.match(/import\s+(\w+)\s*,?\s*\{/);
               const defaultExport = defaultExportMatch ? defaultExportMatch[1] : '';
-              
+
               let reconstructedReact = '';
               const innerBrackets = [
-                cleanBefore.replace(/^[^\{]*\{\s*/, ''), 
+                cleanBefore.replace(/^[^\{]*\{\s*/, ''),
                 cleanAfter.replace(/\s*\}[^\}]*$/, '')
               ].filter(Boolean).join(', ').trim().replace(/^,\s*/, '').replace(/,\s*$/, '');
-              
+
               if (defaultExport) {
                 reconstructedReact = `import ${defaultExport}, { ${innerBrackets} } from "react";`;
               } else {
                 reconstructedReact = `import { ${innerBrackets} } from "react";`;
               }
-              
+
               const shimImport = `import { useSyncExternalStore as ${localName} } from "use-sync-external-store/shim";`;
               return `${reconstructedReact}\n${shimImport}`;
             });
@@ -64,13 +64,23 @@ export default defineConfig({
       formats: ['es', 'cjs'],
     },
     rollupOptions: {
-      external: ['react', 'react-dom', 'react-router-dom'],
+      external: [
+        'react',
+        'react-dom',
+        'react-router-dom',
+        'ag-grid-community',
+        'ag-grid-enterprise',
+        'ag-grid-react',
+      ],
       output: {
         exports: 'named',
         globals: {
           react: 'React',
           'react-dom': 'ReactDOM',
           'react-router-dom': 'ReactRouterDOM',
+          'ag-grid-community': 'agGridCommunity',
+          'ag-grid-enterprise': 'agGridEnterprise',
+          'ag-grid-react': 'AgGridReact',
         },
       },
     },

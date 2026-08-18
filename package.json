@@ -1,6 +1,6 @@
 {
   "name": "@ayushvc/diff-checker",
-  "version": "1.0.8",
+  "version": "1.1.0",
   "description": "Configurable Diff Checker component library with live API integration and dynamic sub-routing",
   "type": "module",
   "main": "./dist/diff-checker.cjs.js",
@@ -40,12 +40,12 @@
   "peerDependencies": {
     "react": ">=16.8.0 || ^18.0.0 || ^19.0.0",
     "react-dom": ">=16.8.0 || ^18.0.0 || ^19.0.0",
-    "react-router-dom": ">=6.0.0"
+    "react-router-dom": ">=6.0.0",
+    "ag-grid-community": "32.3.3",
+    "ag-grid-enterprise": "32.3.3",
+    "ag-grid-react": "32.3.3"
   },
   "dependencies": {
-    "ag-grid-community": "^31.3.4",
-    "ag-grid-enterprise": "^31.3.4",
-    "ag-grid-react": "^31.3.4",
     "axios": "^1.19.0",
     "lucide-react": "^1.31.0",
     "match-sorter": "^8.3.0",
