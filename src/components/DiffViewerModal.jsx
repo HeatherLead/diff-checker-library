@@ -146,7 +146,7 @@ export const DiffViewerModal = ({
         {/* Modal Content Body */}
         <div className="dc-diff-modal-body">
           {type === 'diff' ? (
-            <div className="diff-viewer-wrapper" style={{ fontSize: '12px', fontFamily: 'monospace', border: '1px solid #e5e7eb', borderRadius: '4px', overflow: 'hidden' }}>
+            <div className="diff-viewer-wrapper" style={{ fontSize: '12px', fontFamily: 'monospace', border: '1px solid #e5e7eb', borderRadius: '4px', overflow: 'auto', width: '100%' }}>
               <ReactDiffViewer
                 oldValue={leftFormatted}
                 newValue={rightFormatted}
@@ -174,6 +174,27 @@ export const DiffViewerModal = ({
                   line: {
                     fontSize: '12px',
                     lineHeight: '18px',
+                    textAlign: 'left',
+                    fontFamily: 'SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace',
+                  },
+                  content: {
+                    textAlign: 'left',
+                    justifyContent: 'flex-start',
+                    fontFamily: 'SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace',
+                  },
+                  contentText: {
+                    textAlign: 'left',
+                    fontFamily: 'SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace',
+                    whiteSpace: 'pre',
+                  },
+                  gutter: {
+                    textAlign: 'right',
+                    minWidth: '40px',
+                  },
+                  marker: {
+                    textAlign: 'center',
+                    width: '24px',
+                    minWidth: '24px',
                   },
                 }}
               />
