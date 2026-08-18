@@ -1,6 +1,5 @@
 import './styles/index.scss';
 import DiffChecker from './DiffChecker';
-import Header from './components/Header';
 import NavigationRow from './components/NavigationRow';
 import { AGGridGenerator } from './components/AGGridGenerator';
 import DataDiffTable from './components/DataDiffTable';
@@ -18,7 +17,6 @@ export * from './pages';
 
 export {
   DiffChecker,
-  Header,
   NavigationRow,
   AGGridGenerator,
   DataDiffTable,

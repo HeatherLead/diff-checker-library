@@ -46,16 +46,17 @@ import React from 'react';
 import { DiffChecker } from '@ayushvc/diff-checker';
 import '@ayushvc/diff-checker/style.css';
 
-const DiffCheckerPage = () => {
+export default function TestDiffChecker() {
+  const csrfToken = sessionStorage.getItem('x-csrf-token');
+
   return (
     <DiffChecker
-      base_url="https://your-backend-api.com"
-      base_path="/diff-checker"
+      base_url={configs["backend_url"]}
+      base_path="/test-diff-checker"
+      csrf_token={csrfToken}
     />
   );
-};
-
-export default DiffCheckerPage;
+}
 ```
 
 ### 2. Set Up React Router (v6)
@@ -88,6 +89,7 @@ export default App;
 | :--- | :--- | :--- | :--- |
 | `base_url` | `string` | `""` | Backend API host URL used to fetch configurations (`GET {base_url}/api/get-configuration?diff_tag=...`). |
 | `base_path` / `basePath` | `string` | `"/diff-checker"` | Base route path where the DiffChecker is mounted. |
+| `csrf_token` | `string` | `""` | CSRF token automatically sent in request headers (`'x-csrf-token': csrf_token`). |
 | `synced_by` | `string` | `""` | User identifier included in sync and clone request payloads. |
 | `headers` | `object` | `{}` | Custom HTTP headers (e.g. `Authorization`) forwarded in API requests. |
 | `initialOption` | `string` | `"datatables"` | Default active option ID on initial load. |

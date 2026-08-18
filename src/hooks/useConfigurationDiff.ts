@@ -1,4 +1,5 @@
 import { useState, useEffect, useMemo, useCallback, useRef } from 'react';
+import axios from 'axios';
 import { useDiffChecker } from '../context/DiffCheckerContext';
 import { getOptionConfig } from '../config';
 
@@ -33,6 +34,7 @@ export function useConfigurationDiff(diffTag: string, options: { autoFetch?: boo
   const apiBaseUrl = (ctx.apiBaseUrl || ctx.baseUrl1 || "").trim();
   const baseUrl1 = ctx.baseUrl1 || "";
   const baseUrl2 = ctx.baseUrl2 || "";
+  const csrfToken = ctx.csrf_token || "";
   const headers = ctx.headers || {};
   const setBaseUrl1 = ctx.setBaseUrl1 || (() => { });
   const setBaseUrl2 = ctx.setBaseUrl2 || (() => { });
@@ -86,25 +88,27 @@ export function useConfigurationDiff(diffTag: string, options: { autoFetch?: boo
     let fetchError = false;
 
     try {
-      const response = await fetch(getUrl, {
-        method: 'GET',
-        headers: {
-          'Accept': 'application/json',
-          ...headers,
-        },
-        credentials: 'include',
+      const reqHeaders: Record<string, string> = {
+        'Accept': 'application/json',
+        ...headers,
+      };
+      if (csrfToken && !reqHeaders['x-csrf-token']) {
+        reqHeaders['x-csrf-token'] = csrfToken;
+      }
+
+      const response = await axios.get(getUrl, {
+        headers: reqHeaders,
+        withCredentials: true,
       });
 
-      if (response.ok) {
-        result = await response.json();
-      } else {
-        console.warn(`[useConfigurationDiff] Fetch failed from ${getUrl} (status: ${response.status})`);
-        fetchError = true;
-      }
-    } catch (err) {
+      result = response.data;
+    } catch (err: any) {
       console.warn(`[useConfigurationDiff] Failed to fetch from API ${getUrl}:`, err);
       fetchError = true;
       setError(err);
+      if (err?.response?.data) {
+        result = err.response.data;
+      }
     }
 
     let site1: any[] = [];
@@ -188,7 +192,7 @@ export function useConfigurationDiff(diffTag: string, options: { autoFetch?: boo
     } else {
       showToast(result?.message || 'Data fetch successfully');
     }
-  }, [apiBaseUrl, apiTag, diffTag, headers, setBaseUrl1, setBaseUrl2, setBackendMetadata, showToast]);
+  }, [apiBaseUrl, apiTag, csrfToken, diffTag, headers, setBaseUrl1, setBaseUrl2, setBackendMetadata, showToast]);
 
   useEffect(() => {
     if (autoFetch) {

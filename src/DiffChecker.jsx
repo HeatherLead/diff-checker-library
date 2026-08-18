@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
-import Header from './components/Header';
+import axios from 'axios';
 import NavigationRow from './components/NavigationRow';
 import { TABS } from './constants/constants';
 import DiffViewerModal, { formatDiffContent, parseNestedJsonStrings } from './components/DiffViewerModal';
@@ -157,12 +157,23 @@ const resolveOptionFromPath = (pathname, basePath) => {
 export const DiffChecker = ({
   base_url = "",
   base_path = "/diff-checker",
+  csrf_token = "",
   synced_by = "",
   headers = {},
   initialOption = 'datatables',
   initialOptionLabel = 'DataTables',
   children
 }) => {
+  const activeCsrfToken = csrf_token || "";
+
+  const mergedHeaders = useMemo(() => {
+    const h = { ...headers };
+    if (activeCsrfToken) {
+      h['x-csrf-token'] = activeCsrfToken;
+    }
+    return h;
+  }, [headers, activeCsrfToken]);
+
   // Initialize activeOption from current URL pathname or props
   const initialResolved = typeof window !== 'undefined'
     ? resolveOptionFromPath(window.location.pathname, base_path)
@@ -291,17 +302,15 @@ export const DiffChecker = ({
     showToast(`Sending PATCH ${cleanTargetUrl}/api/sync-configuration...`);
 
     try {
-      const response = await fetch(`${cleanTargetUrl}/api/sync-configuration`, {
-        method: 'PATCH',
+      const response = await axios.patch(`${cleanTargetUrl}/api/sync-configuration`, payload, {
         headers: {
           'Content-Type': 'application/json',
-          ...headers,
+          ...mergedHeaders,
         },
-        credentials: 'include',
-        body: JSON.stringify(payload)
+        withCredentials: true,
       }).catch(() => null);
 
-      if (response && response.ok) {
+      if (response && response.status >= 200 && response.status < 300) {
         showToast(`Synced tag="${itemTag}" successfully!`);
       } else {
         showToast(`PATCH /api/sync-configuration sent for "${itemTag}"`);
@@ -310,7 +319,7 @@ export const DiffChecker = ({
       console.error('Sync error:', err);
       showToast(`Sync failed: ${err.message}`, true);
     }
-  }, [activeOption, backendMetadata.import_id, baseUrl2, headers, showToast, synced_by]);
+  }, [activeOption, backendMetadata.import_id, baseUrl2, mergedHeaders, showToast, synced_by]);
 
   // Clone Modal Trigger Handler
   const handleCloneConfiguration = useCallback((row, targetSiteUrl, direction = 'to_right') => {
@@ -356,17 +365,15 @@ export const DiffChecker = ({
     showToast(`Sending POST ${cleanTargetUrl}/api/clone-configuration (${direction === 'to_right' ? 'Copy to Right' : 'Copy to Left'})...`);
 
     try {
-      const response = await fetch(`${cleanTargetUrl}/api/clone-configuration`, {
-        method: 'POST',
+      const response = await axios.post(`${cleanTargetUrl}/api/clone-configuration`, payload, {
         headers: {
           'Content-Type': 'application/json',
-          ...headers,
+          ...mergedHeaders,
         },
-        credentials: 'include',
-        body: JSON.stringify(payload)
+        withCredentials: true,
       }).catch(() => null);
 
-      if (response && response.ok) {
+      if (response && response.status >= 200 && response.status < 300) {
         if (direction === 'to_right') {
           showToast(`Copied "${itemTag}" to Site 2 successfully!`);
         } else {
@@ -383,7 +390,7 @@ export const DiffChecker = ({
       console.error('Clone error:', err);
       showToast(`Clone failed: ${err.message}`, true);
     }
-  }, [activeOption, backendMetadata.import_id, baseUrl1, baseUrl2, headers, showToast, synced_by]);
+  }, [activeOption, backendMetadata.import_id, baseUrl1, baseUrl2, mergedHeaders, showToast, synced_by]);
 
   const handleSelectOption = useCallback((id, label) => {
     setActiveOption(id);
@@ -463,9 +470,10 @@ export const DiffChecker = ({
     baseUrl2,
     setBaseUrl2,
     basePath: base_path,
+    csrf_token: activeCsrfToken,
     syncedBy: synced_by,
     synced_by,
-    headers,
+    headers: mergedHeaders,
     activeOption,
     setActiveOption,
     activeOptionLabel,
@@ -482,8 +490,9 @@ export const DiffChecker = ({
     baseUrl1,
     baseUrl2,
     base_path,
+    activeCsrfToken,
     synced_by,
-    headers,
+    mergedHeaders,
     activeOption,
     activeOptionLabel,
     showToast,
@@ -500,7 +509,6 @@ export const DiffChecker = ({
     <DiffCheckerProvider value={contextValue}>
       <div className="dc-root">
         {/* Header with black bg, logo on right, title middle */}
-        <Header />
 
         {/* Navigation Options Row */}
         <NavigationRow activeOption={activeOption} onSelectOption={handleSelectOption} />

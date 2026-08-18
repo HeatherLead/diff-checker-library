@@ -3,7 +3,7 @@ import { useConfigurationDiff } from '../../hooks/useConfigurationDiff';
 import DataDiffTable from '../../components/DataDiffTable';
 import VersionMismatchTable from '../../components/VersionMismatchTable';
 import OnlySiteTable from '../../components/OnlySiteTable';
-import { renderTrimTooltip } from '../../utils/cellRenderers';
+import { renderTrimTooltip, renderTagLink } from '../../utils/cellRenderers';
 
 export const templatesConfig = {
   apiKey: 'input_file_tagging',
