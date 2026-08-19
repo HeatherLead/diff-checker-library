@@ -3,6 +3,7 @@ import { AGGridGenerator } from './AGGridGenerator';
 import { getOptionConfig } from '../config';
 import { useDiffChecker } from '../context/DiffCheckerContext';
 import { getFilterableColumns, filterRowsByColDefs } from '../utils/filterUtils';
+import { ensureAbsoluteUrl } from '../utils/cellRenderers';
 import TableFilterBar from './TableFilterBar';
 
 export const OnlySiteTable = memo(({
@@ -162,7 +163,7 @@ export const OnlySiteTable = memo(({
               ONLY SITE 1 DATATABLES
             </h3>
             <a
-              href={baseUrl1}
+              href={ensureAbsoluteUrl(baseUrl1)}
               target="_blank"
               rel="noreferrer"
               className="dc-table-url"
@@ -216,7 +217,7 @@ export const OnlySiteTable = memo(({
               ONLY SITE 2 DATATABLES
             </h3>
             <a
-              href={baseUrl2}
+              href={ensureAbsoluteUrl(baseUrl2)}
               target="_blank"
               rel="noreferrer"
               className="dc-table-url"

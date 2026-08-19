@@ -2,6 +2,7 @@ import React, { useState, useEffect, memo } from 'react';
 import { ArrowLeftRight, X } from 'lucide-react';
 import { useDiffChecker } from '../context/DiffCheckerContext';
 import useLockBodyScroll from '../hooks/useLockBodyScroll';
+import { ensureAbsoluteUrl } from '../utils/cellRenderers';
 
 export const SyncConfirmModal = memo(({
   isOpen,
@@ -118,7 +119,7 @@ export const SyncConfirmModal = memo(({
               </mark>
               <p className="dc-modal-site-url">
                 <a
-                  href={sourceUrl}
+                  href={ensureAbsoluteUrl(sourceUrl)}
                   target="_blank"
                   rel="noreferrer"
                   title={sourceUrl}
@@ -152,7 +153,7 @@ export const SyncConfirmModal = memo(({
               </mark>
               <p className="dc-modal-site-url">
                 <a
-                  href={targetUrl}
+                  href={ensureAbsoluteUrl(targetUrl)}
                   target="_blank"
                   rel="noreferrer"
                   title={targetUrl}

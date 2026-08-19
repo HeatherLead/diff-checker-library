@@ -406,15 +406,27 @@
       text-align: left !important;
       padding: 0 8px !important;
       white-space: pre !important;
+      font-family: $dc-font-mono, monospace !important;
+      font-size: 12px !important;
+      line-height: 18px !important;
 
-      pre, code, span, div {
+      pre, code, span, div, del, ins, mark, a {
         text-align: left !important;
         font-family: $dc-font-mono, monospace !important;
         font-size: 12px !important;
         line-height: 18px !important;
         white-space: pre !important;
         display: inline !important;
+        text-decoration: none !important;
       }
+    }
+
+    del, ins, mark {
+      text-decoration: none !important;
+      font-family: $dc-font-mono, monospace !important;
+      font-size: 12px !important;
+      line-height: 18px !important;
+      display: inline !important;
     }
 
     pre {
@@ -423,6 +435,8 @@
       padding: 0 !important;
       white-space: pre !important;
       font-family: $dc-font-mono, monospace !important;
+      font-size: 12px !important;
+      line-height: 18px !important;
     }
   }
 }

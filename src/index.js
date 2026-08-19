@@ -8,7 +8,7 @@ import OnlySiteTable from './components/OnlySiteTable';
 import DiffViewerModal from './components/DiffViewerModal';
 import { SyncConfirmModal } from './components/SyncConfirmModal';
 import { CopyToConfirmModal } from './components/CopyToConfirmModal';
-import { CONFIGS, getOptionConfig, renderTrimTooltip, renderTagLink, renderEditLink } from './config';
+import { CONFIGS, getOptionConfig, renderTrimTooltip, renderTagLink, renderEditLink, ensureAbsoluteUrl } from './config';
 import { useConfigurationDiff } from './hooks/useConfigurationDiff';
 import { DiffCheckerProvider, useDiffChecker } from './context/DiffCheckerContext';
 
@@ -33,6 +33,7 @@ export {
   renderTrimTooltip,
   renderTagLink,
   renderEditLink,
+  ensureAbsoluteUrl,
 };
 
 export default DiffChecker;

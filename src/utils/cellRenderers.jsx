@@ -1,4 +1,13 @@
-import React from 'react';
+// Common helper to ensure URLs have a protocol (defaults to https://) so browser treats them as absolute external links
+export const ensureAbsoluteUrl = (url) => {
+  if (!url || typeof url !== 'string') return '';
+  const trimmed = url.trim();
+  if (!trimmed) return '';
+  if (/^(?:https?:\/\/|\/\/)/i.test(trimmed)) {
+    return trimmed;
+  }
+  return `https://${trimmed}`;
+};
 
 // Common helper to trim and show tooltip for AG-Grid cells
 export const renderTrimTooltip = (val, maxChar = 27) => {
@@ -65,11 +74,7 @@ export const renderTagLink = (baseUrl, typeSlug, id, val, maxChar = 35) => {
     );
   }
 
-  let cleanUrl = typeof baseUrl === 'string' ? baseUrl.trim() : '';
-  if (cleanUrl && !cleanUrl.startsWith('http://') && !cleanUrl.startsWith('https://')) {
-    cleanUrl = `https://${cleanUrl}`;
-  }
-  cleanUrl = cleanUrl.replace(/\/+$/, '');
+  const cleanUrl = ensureAbsoluteUrl(baseUrl).replace(/\/+$/, '');
 
   if (!cleanUrl) {
     return (
@@ -99,11 +104,7 @@ export const renderTagLink = (baseUrl, typeSlug, id, val, maxChar = 35) => {
 // Common helper to render external edit links
 export const renderEditLink = (baseUrl, typeSlug, id, label = 'Edit') => {
   if (!id) return <span className="btn-purple" style={{ opacity: 0.5, cursor: 'not-allowed' }}>Edit</span>;
-  let cleanUrl = typeof baseUrl === 'string' ? baseUrl.trim() : '';
-  if (cleanUrl && !cleanUrl.startsWith('http://') && !cleanUrl.startsWith('https://')) {
-    cleanUrl = `https://${cleanUrl}`;
-  }
-  cleanUrl = cleanUrl.replace(/\/+$/, '');
+  const cleanUrl = ensureAbsoluteUrl(baseUrl).replace(/\/+$/, '');
   const editUrl = `${cleanUrl}/${typeSlug}/edit/${id}`;
   const isEdit = label === 'Edit' || label === 'edit';
 
