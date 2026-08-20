@@ -70,7 +70,7 @@ export const reactMenusConfig = {
   getColumns: ({ openDiffViewer, openDataViewer, handleCloneConfiguration, baseUrl1, baseUrl2 }: any) => {
     return {
       dataDiffColDefs: [
-        { field: 'tag', headerName: 'TAG', flex: 1.5, cellClass: 'font-normal text-gray-700', cellRenderer: (params: any) => renderTrimTooltip(params.value, 35) },
+        { field: 'tag', headerName: 'TAG', flex: 1.5, cellRenderer: (params: any) => renderTrimTooltip(params.value, 35) },
         { field: 'df_status', headerName: 'ROLES DIFF', flex: 1.5 },
         {
           field: 'otherDiff',
@@ -78,11 +78,11 @@ export const reactMenusConfig = {
           flex: 1.2,
           cellRenderer: (params: any) => params.value === 'View Diff' ? (
             <button onClick={() => openDiffViewer(params, 'other')} className="btn-gray">Other</button>
-          ) : <span className="text-gray-500 font-normal">{params.value}</span>
+          ) : <span className="dc-muted-text">{params.value}</span>
         }
       ],
       site1ColDefs: [
-        { field: 'tag', headerName: 'TAG', flex: 2, cellClass: 'font-normal text-[#800040]', cellRenderer: (params: any) => renderTagLink(baseUrl1, 'react-menus', params.data.id || params.data.tag, params.value) },
+        { field: 'tag', headerName: 'TAG', flex: 2, cellRenderer: (params: any) => renderTagLink(baseUrl1, 'react-menus', params.data.id || params.data.tag, params.value) },
         {
           field: 'viewData',
           headerName: 'VIEW DATA',
@@ -101,7 +101,7 @@ export const reactMenusConfig = {
         }
       ],
       site2ColDefs: [
-        { field: 'tag', headerName: 'TAG', flex: 2, cellClass: 'font-normal text-[#800040]', cellRenderer: (params: any) => renderTagLink(baseUrl2, 'react-menus', params.data.id || params.data.tag, params.value) },
+        { field: 'tag', headerName: 'TAG', flex: 2, cellRenderer: (params: any) => renderTagLink(baseUrl2, 'react-menus', params.data.id || params.data.tag, params.value) },
         {
           field: 'viewData',
           headerName: 'VIEW DATA',
@@ -137,7 +137,7 @@ const ReactMenus: React.FC<ReactMenusProps> = ({ activeOption = 'react_menus' })
   } = useConfigurationDiff(activeOption);
 
   return (
-    <div className="space-y-6">
+    <div className="dc-page-container">
       {/* SECTION 1: DATA DIFF TABLE */}
       <DataDiffTable
         activeOption={activeOption}

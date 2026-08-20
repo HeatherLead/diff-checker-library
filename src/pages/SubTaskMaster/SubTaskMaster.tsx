@@ -54,7 +54,7 @@ export const subTaskMasterConfig = {
   getColumns: () => {
     return {
       dataDiffColDefs: [
-        { field: 'task_name', headerName: 'TASK NAME', flex: 1.5, cellClass: 'font-normal text-gray-700', cellRenderer: (params: any) => renderTrimTooltip(params.value, 40) },
+        { field: 'task_name', headerName: 'TASK NAME', flex: 1.5, cellRenderer: (params: any) => renderTrimTooltip(params.value, 40) },
         { field: 'wf_code', headerName: 'WORKFLOW CODE', flex: 1.5, cellRenderer: (params: any) => renderTrimTooltip(params.value, 40) },
         { field: 'countSite1', headerName: 'SITE1 COUNT', flex: 1 },
         { field: 'countSite2', headerName: 'SITE2 COUNT', flex: 1 }
@@ -79,7 +79,7 @@ const SubTaskMaster: React.FC<SubTaskMasterProps> = ({ activeOption = 'subtask_m
   } = useConfigurationDiff(activeOption);
 
   return (
-    <div className="space-y-6">
+    <div className="dc-page-container">
       {/* SECTION 1: DATA DIFF TABLE */}
       <DataDiffTable
         activeOption={activeOption}

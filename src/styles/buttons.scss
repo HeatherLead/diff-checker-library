@@ -1,0 +1,94 @@
+@use './variables' as *;
+@use './mixins' as *;
+
+.btn-purple,
+.btn-edit,
+.btn-maroon-outline,
+.btn-sync {
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  padding: 3px 8px !important;
+  font-size: 11px !important;
+  font-weight: 500 !important;
+  color: $dc-primary !important;
+  background-color: transparent !important;
+  border: 1px solid #696969 !important;
+  border-radius: 2.8px !important;
+  cursor: pointer !important;
+  text-decoration: none !important;
+  line-height: 1.2 !important;
+  transition: background-color 0.15s ease, opacity 0.15s ease !important;
+
+  &:hover {
+    background-color: rgba(0, 0, 0, 0.04) !important;
+    opacity: 0.9 !important;
+  }
+}
+
+.btn-gray,
+.btn-view,
+.btn-diff {
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  padding: 3px 8px !important;
+  font-size: 11px !important;
+  font-weight: 500 !important;
+  color: $dc-text-gray-btn !important;
+  background-color: transparent !important;
+  border: 1px solid #696969 !important;
+  border-radius: 2.8px !important;
+  cursor: pointer !important;
+  text-decoration: none !important;
+  line-height: 1.2 !important;
+  transition: background-color 0.15s ease, opacity 0.15s ease !important;
+
+  &:hover {
+    background-color: rgba(0, 0, 0, 0.04) !important;
+    opacity: 0.9 !important;
+  }
+}
+
+.btn-maroon-solid {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 4px 12px;
+  font-size: 12px;
+  font-weight: 400;
+  color: #ffffff;
+  background-color: $dc-primary-hover;
+  border: 1px solid $dc-primary-hover;
+  border-radius: $dc-radius-sm;
+  box-shadow: $dc-shadow-sm;
+  cursor: pointer;
+  outline: none;
+  transition: background-color 0.15s ease;
+
+  &:hover {
+    background-color: $dc-primary-dark;
+    color: #ffffff;
+  }
+}
+
+.btn-gray-outline {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 4px 12px;
+  font-size: 12px;
+  font-weight: 400;
+  color: $dc-text-secondary;
+  background-color: #ffffff;
+  border: 1px solid $dc-border-dark;
+  border-radius: $dc-radius-sm;
+  box-shadow: $dc-shadow-sm;
+  cursor: pointer;
+  outline: none;
+  transition: background-color 0.15s ease;
+
+  &:hover {
+    background-color: $dc-bg-hover;
+  }
+}

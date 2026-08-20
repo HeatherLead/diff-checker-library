@@ -1,4 +1,5 @@
 import { useState, useEffect, useMemo, useCallback, useRef } from 'react';
+import axios from 'axios';
 import { useDiffChecker } from '../context/DiffCheckerContext';
 import { getOptionConfig } from '../config';
 
@@ -7,6 +8,25 @@ export interface UseConfigurationDiffOptions {
   autoFetch?: boolean;
 }
 
+const extractDataset = (container: any, possibleKeys: string[] = []): any[] => {
+  if (!container) return [];
+  if (Array.isArray(container)) return container;
+  if (typeof container === 'object') {
+    // 1. Check direct key match
+    for (const key of possibleKeys) {
+      if (key && Array.isArray(container[key])) {
+        return container[key];
+      }
+    }
+    // 2. Find first property that is an Array
+    const firstArrayVal = Object.values(container).find(Array.isArray);
+    if (Array.isArray(firstArrayVal)) {
+      return firstArrayVal as any[];
+    }
+  }
+  return [];
+};
+
 export function useConfigurationDiff(diffTag: string, options: { autoFetch?: boolean } = {}) {
   const { autoFetch = true } = options;
 
@@ -14,6 +34,7 @@ export function useConfigurationDiff(diffTag: string, options: { autoFetch?: boo
   const apiBaseUrl = (ctx.apiBaseUrl || ctx.baseUrl1 || "").trim();
   const baseUrl1 = ctx.baseUrl1 || "";
   const baseUrl2 = ctx.baseUrl2 || "";
+  const csrfToken = ctx.csrf_token || "";
   const headers = ctx.headers || {};
   const setBaseUrl1 = ctx.setBaseUrl1 || (() => { });
   const setBaseUrl2 = ctx.setBaseUrl2 || (() => { });
@@ -67,25 +88,27 @@ export function useConfigurationDiff(diffTag: string, options: { autoFetch?: boo
     let fetchError = false;
 
     try {
-      const response = await fetch(getUrl, {
-        method: 'GET',
-        headers: {
-          'Accept': 'application/json',
-          ...headers,
-        },
-        credentials: 'include',
+      const reqHeaders: Record<string, string> = {
+        'Accept': 'application/json',
+        ...headers,
+      };
+      if (csrfToken && !reqHeaders['x-csrf-token']) {
+        reqHeaders['x-csrf-token'] = csrfToken;
+      }
+
+      const response = await axios.get(getUrl, {
+        headers: reqHeaders,
+        withCredentials: true,
       });
 
-      if (response.ok) {
-        result = await response.json();
-      } else {
-        console.warn(`[useConfigurationDiff] Fetch failed from ${getUrl} (status: ${response.status})`);
-        fetchError = true;
-      }
-    } catch (err) {
+      result = response.data;
+    } catch (err: any) {
       console.warn(`[useConfigurationDiff] Failed to fetch from API ${getUrl}:`, err);
       fetchError = true;
       setError(err);
+      if (err?.response?.data) {
+        result = err.response.data;
+      }
     }
 
     let site1: any[] = [];
@@ -111,13 +134,43 @@ export function useConfigurationDiff(diffTag: string, options: { autoFetch?: boo
           target_url: payloadData.target_url || '',
         });
 
-        if (apiTag === 'datatables_config' || apiTag === 'datatables') {
-          site1 = payloadData.datatables_config || payloadData.site1 || payloadData.data || [];
-          site2 = payloadData.datatables_config_site2 || payloadData.site2 || payloadData.target_data || [];
+        const possibleKeys = [
+          apiTag,
+          diffTag,
+          'datatables_config',
+          'datatables',
+          'data',
+          'items',
+          'list'
+        ];
+
+        // Extract site1 (src_data)
+        if (payloadData.src_data !== undefined && payloadData.src_data !== null) {
+          site1 = extractDataset(payloadData.src_data, possibleKeys);
         } else {
-          const possibleData = payloadData[apiTag] || payloadData[diffTag] || payloadData.site1 || payloadData.data || payloadData.datatables_config;
-          site1 = Array.isArray(possibleData) ? possibleData : [];
-          site2 = payloadData[`${apiTag}_site2`] || payloadData[`${diffTag}_site2`] || payloadData.site2 || payloadData.target_data || [];
+          site1 = extractDataset(payloadData, possibleKeys);
+          if (!site1.length && Array.isArray(payloadData.site1)) {
+            site1 = payloadData.site1;
+          }
+        }
+
+        // Extract site2 (target_data)
+        if (payloadData.target_data !== undefined && payloadData.target_data !== null && typeof payloadData.target_data === 'object' && !Array.isArray(payloadData.target_data)) {
+          site2 = extractDataset(payloadData.target_data, possibleKeys);
+        } else if (Array.isArray(payloadData.target_data)) {
+          site2 = payloadData.target_data;
+        } else {
+          const targetKeys = [
+            `${apiTag}_site2`,
+            `${diffTag}_site2`,
+            'datatables_config_site2',
+            'site2',
+            ...possibleKeys
+          ];
+          site2 = extractDataset(payloadData, targetKeys);
+          if (!site2.length && Array.isArray(payloadData.site2)) {
+            site2 = payloadData.site2;
+          }
         }
       } else {
         if (fetchError || !result) {
@@ -135,11 +188,11 @@ export function useConfigurationDiff(diffTag: string, options: { autoFetch?: boo
     setIsLoading(false);
 
     if (isErrorState) {
-      showToast('An error occured', true);
+      showToast(result?.message || 'An error occured', true);
     } else {
-      showToast('Data fetch successfully');
+      showToast(result?.message || 'Data fetch successfully');
     }
-  }, [apiBaseUrl, apiTag, diffTag, headers, setBaseUrl1, setBaseUrl2, setBackendMetadata, showToast]);
+  }, [apiBaseUrl, apiTag, csrfToken, diffTag, headers, setBaseUrl1, setBaseUrl2, setBackendMetadata, showToast]);
 
   useEffect(() => {
     if (autoFetch) {

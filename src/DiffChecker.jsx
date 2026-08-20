@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
-import Header from './components/Header';
+import axios from 'axios';
 import NavigationRow from './components/NavigationRow';
 import { TABS } from './constants/constants';
 import DiffViewerModal, { formatDiffContent, parseNestedJsonStrings } from './components/DiffViewerModal';
@@ -52,11 +52,11 @@ const ToastMessage = ({ msg, isError }) => {
   const renderContent = () => {
     if (cleanMsg.toLowerCase().includes('data fetched successfully') || cleanMsg.toLowerCase().includes('fetched successfully') || cleanMsg.toLowerCase().includes('data fetch successfully')) {
       return (
-        <div className="flex flex-col items-center justify-center text-center">
-          <span className="text-[#6c757d] font-normal text-[17px] leading-snug tracking-wide">
+        <div className="dc-toast-text-block">
+          <span className="dc-toast-title">
             Response : Data Fetched
           </span>
-          <span className="text-[#6c757d] font-normal text-[17px] leading-snug tracking-wide">
+          <span className="dc-toast-title">
             Successfully
           </span>
         </div>
@@ -65,11 +65,11 @@ const ToastMessage = ({ msg, isError }) => {
 
     if (cleanMsg.toLowerCase().includes('an error occured') || cleanMsg.toLowerCase().includes('an error occurred')) {
       return (
-        <div className="flex flex-col items-center justify-center text-center">
-          <span className="text-[#6c757d] font-normal text-[17px] leading-snug tracking-wide">
+        <div className="dc-toast-text-block">
+          <span className="dc-toast-title">
             Response : An Error
           </span>
-          <span className="text-[#6c757d] font-normal text-[17px] leading-snug tracking-wide">
+          <span className="dc-toast-title">
             Occured
           </span>
         </div>
@@ -81,11 +81,11 @@ const ToastMessage = ({ msg, isError }) => {
       const before = parts[0]?.trim();
       const cleanedBefore = before.endsWith(',') || before.endsWith(':') ? before.slice(0, -1).trim() : before;
       return (
-        <div className="flex flex-col items-center justify-center text-center">
-          <span className="text-[#6c757d] font-normal text-[15px] leading-snug tracking-wide">
+        <div className="dc-toast-text-block">
+          <span className="dc-toast-subtitle">
             {cleanedBefore}
           </span>
-          <span className="text-[#6c757d] font-normal text-[15px] leading-snug tracking-wide">
+          <span className="dc-toast-subtitle">
             Successfully!
           </span>
         </div>
@@ -93,25 +93,25 @@ const ToastMessage = ({ msg, isError }) => {
     }
 
     return (
-      <div className="text-[#6c757d] font-normal text-[15px] leading-snug tracking-wide text-center">
+      <div className="dc-toast-subtitle">
         {cleanMsg}
       </div>
     );
   };
 
   return (
-    <div className="flex items-center gap-4 w-full pr-2">
+    <div className="dc-toast-msg-container">
       {errorState ? (
-        <div className="w-7 h-7 rounded-full bg-[#ef4444] flex items-center justify-center flex-shrink-0 shadow-[0_2px_8px_rgba(239,68,68,0.3)]">
+        <div className="dc-toast-icon-circle error">
           <X className="w-4 h-4 text-white" />
         </div>
       ) : (
-        <div className="w-7 h-7 rounded-full bg-[#00c853] flex items-center justify-center flex-shrink-0 shadow-[0_2px_8px_rgba(0,200,83,0.3)]">
+        <div className="dc-toast-icon-circle success">
           <Check className="w-4 h-4 text-white" />
         </div>
       )}
 
-      <div className="flex-1 flex justify-center">
+      <div className="dc-toast-content">
         {renderContent()}
       </div>
     </div>
@@ -157,12 +157,23 @@ const resolveOptionFromPath = (pathname, basePath) => {
 export const DiffChecker = ({
   base_url = "",
   base_path = "/diff-checker",
+  csrf_token = "",
   synced_by = "",
   headers = {},
   initialOption = 'datatables',
   initialOptionLabel = 'DataTables',
   children
 }) => {
+  const activeCsrfToken = csrf_token || "";
+
+  const mergedHeaders = useMemo(() => {
+    const h = { ...headers };
+    if (activeCsrfToken) {
+      h['x-csrf-token'] = activeCsrfToken;
+    }
+    return h;
+  }, [headers, activeCsrfToken]);
+
   // Initialize activeOption from current URL pathname or props
   const initialResolved = typeof window !== 'undefined'
     ? resolveOptionFromPath(window.location.pathname, base_path)
@@ -291,17 +302,15 @@ export const DiffChecker = ({
     showToast(`Sending PATCH ${cleanTargetUrl}/api/sync-configuration...`);
 
     try {
-      const response = await fetch(`${cleanTargetUrl}/api/sync-configuration`, {
-        method: 'PATCH',
+      const response = await axios.patch(`${cleanTargetUrl}/api/sync-configuration`, payload, {
         headers: {
           'Content-Type': 'application/json',
-          ...headers,
+          ...mergedHeaders,
         },
-        credentials: 'include',
-        body: JSON.stringify(payload)
+        withCredentials: true,
       }).catch(() => null);
 
-      if (response && response.ok) {
+      if (response && response.status >= 200 && response.status < 300) {
         showToast(`Synced tag="${itemTag}" successfully!`);
       } else {
         showToast(`PATCH /api/sync-configuration sent for "${itemTag}"`);
@@ -310,7 +319,7 @@ export const DiffChecker = ({
       console.error('Sync error:', err);
       showToast(`Sync failed: ${err.message}`, true);
     }
-  }, [activeOption, backendMetadata.import_id, baseUrl2, headers, showToast, synced_by]);
+  }, [activeOption, backendMetadata.import_id, baseUrl2, mergedHeaders, showToast, synced_by]);
 
   // Clone Modal Trigger Handler
   const handleCloneConfiguration = useCallback((row, targetSiteUrl, direction = 'to_right') => {
@@ -356,17 +365,15 @@ export const DiffChecker = ({
     showToast(`Sending POST ${cleanTargetUrl}/api/clone-configuration (${direction === 'to_right' ? 'Copy to Right' : 'Copy to Left'})...`);
 
     try {
-      const response = await fetch(`${cleanTargetUrl}/api/clone-configuration`, {
-        method: 'POST',
+      const response = await axios.post(`${cleanTargetUrl}/api/clone-configuration`, payload, {
         headers: {
           'Content-Type': 'application/json',
-          ...headers,
+          ...mergedHeaders,
         },
-        credentials: 'include',
-        body: JSON.stringify(payload)
+        withCredentials: true,
       }).catch(() => null);
 
-      if (response && response.ok) {
+      if (response && response.status >= 200 && response.status < 300) {
         if (direction === 'to_right') {
           showToast(`Copied "${itemTag}" to Site 2 successfully!`);
         } else {
@@ -383,7 +390,7 @@ export const DiffChecker = ({
       console.error('Clone error:', err);
       showToast(`Clone failed: ${err.message}`, true);
     }
-  }, [activeOption, backendMetadata.import_id, baseUrl1, baseUrl2, headers, showToast, synced_by]);
+  }, [activeOption, backendMetadata.import_id, baseUrl1, baseUrl2, mergedHeaders, showToast, synced_by]);
 
   const handleSelectOption = useCallback((id, label) => {
     setActiveOption(id);
@@ -463,9 +470,10 @@ export const DiffChecker = ({
     baseUrl2,
     setBaseUrl2,
     basePath: base_path,
+    csrf_token: activeCsrfToken,
     syncedBy: synced_by,
     synced_by,
-    headers,
+    headers: mergedHeaders,
     activeOption,
     setActiveOption,
     activeOptionLabel,
@@ -482,8 +490,9 @@ export const DiffChecker = ({
     baseUrl1,
     baseUrl2,
     base_path,
+    activeCsrfToken,
     synced_by,
-    headers,
+    mergedHeaders,
     activeOption,
     activeOptionLabel,
     showToast,
@@ -498,69 +507,68 @@ export const DiffChecker = ({
 
   return (
     <DiffCheckerProvider value={contextValue}>
-      <div className="min-h-screen bg-[#fafafa] flex flex-col font-sans text-gray-800">
+      <div className="dc-root">
         {/* Header with black bg, logo on right, title middle */}
-        <Header />
 
         {/* Navigation Options Row */}
         <NavigationRow activeOption={activeOption} onSelectOption={handleSelectOption} />
 
         {/* Main Container */}
-        <main className="max-w-[1600px] w-full mx-auto p-2 space-y-8 flex-1">
+        <main className="dc-main-container">
 
           {/* SECTION A: CONFIGURATION & BASE URLS */}
-          <section className="p-2">
-            <h2 className="text-center text-[1rem] leading-[1rem] font-bold uppercase tracking-widest pb-2 mb-4 underline">
+          <section className="dc-config-section">
+            <h2 className="dc-config-title">
               {activeOptionLabel.toUpperCase()} CONFIGURATION
             </h2>
 
-            <div className="flex flex-wrap items-center justify-center gap-4 text-xs font-normal text-gray-600">
-              <div className="flex flex-col space-y-1">
-                <label className="flex items-center space-x-1 font-normal text-gray-700">
+            <div className="dc-config-row">
+              <div className="dc-config-group">
+                <label className="dc-config-label">
                   <span>Source Backend</span>
-                  <span className="text-red-500">*</span>
+                  <span className="dc-required-star">*</span>
                 </label>
-                <div className="relative flex items-center">
+                <div className="dc-config-input-wrapper">
                   <input
                     type="text"
                     value={baseUrl1}
                     readOnly
-                    className="w-72 sm:w-80 px-3 py-1.5 border border-gray-300 rounded focus:ring-1 focus:ring-[#7a1c4b] focus:border-[#7a1c4b] outline-none text-gray-700 font-normal pr-8 bg-gray-50/50 cursor-default"
+                    className="dc-config-input"
                     placeholder="source-backend.example.com"
                   />
                   <a
                     href={formatUrl(baseUrl1)}
                     target="_blank"
                     rel="noreferrer"
-                    className="absolute right-2.5 text-gray-400 hover:text-gray-600 transition-colors flex items-center"
+                    className="dc-config-ext-link"
                     title="Open Source Backend"
                   >
-                    <SquareArrowOutUpRight className="w-4 h-4" />
+                    <SquareArrowOutUpRight style={{ width: '16px', height: '16px' }} />
                   </a>
                 </div>
               </div>
 
-              <div className="flex flex-col space-y-1">
-                <label className="flex items-center space-x-1 font-normal text-gray-700">
+              <div className="dc-config-group">
+                <label className="dc-config-label">
                   <span>Target Backend</span>
-                  <span className="text-red-500">*</span>
+                  <span className="dc-required-star">*</span>
                 </label>
-                <div className="relative flex items-center">
+                <div className="dc-config-input-wrapper">
                   <input
                     type="text"
                     value={baseUrl2}
                     readOnly
-                    className="w-72 sm:w-80 px-3 py-1.5 border border-gray-300 rounded focus:ring-1 focus:ring-[#7a1c4b] focus:border-[#7a1c4b] outline-none text-gray-700 font-normal pr-8 bg-gray-50/50 cursor-default"
+                    className="dc-config-input"
                     placeholder="target-backend.example.com"
                   />
                   <a
                     href={formatUrl(baseUrl2)}
                     target="_blank"
                     rel="noreferrer"
-                    className="absolute right-2.5 text-gray-400 hover:text-gray-600 transition-colors flex items-center"
+                    className="dc-config-ext-link"
                     title="Open Target Backend"
                   >
-                    <SquareArrowOutUpRight className="w-4 h-4" />
+                    <SquareArrowOutUpRight style={{ width: '16px', height: '16px' }} />
                   </a>
                 </div>
               </div>

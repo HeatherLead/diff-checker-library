@@ -11,64 +11,122 @@ export const dataTablesConfig = {
   rightDataKey: 'datatable_structure',
   hasVersionMismatch: true,
   compare: (site1Dataset: any[], site2Dataset: any[]) => {
-    const map1 = new Map();
-    const map2 = new Map();
-
-    (site1Dataset || []).forEach((item: any) => map1.set(item.tag, item));
-    (site2Dataset || []).forEach((item: any) => map2.set(item.tag, item));
-
     const dataDiff: any[] = [];
     const versionMismatch: any[] = [];
     const onlySite1: any[] = [];
     const onlySite2: any[] = [];
 
-    map1.forEach((item1: any, tag: string) => {
-      if (map2.has(tag)) {
-        const item2 = map2.get(tag);
+    const list1 = site1Dataset || [];
+    const list2 = site2Dataset || [];
 
-        if (item1.version && item2.version && item1.version !== item2.version) {
-          versionMismatch.push({
-            tag,
-            site1Version: item1.version,
-            site2Version: item2.version,
-            datatableDiff: item1.datatable_structure !== item2.datatable_structure ? 'View Diff' : 'No Diff',
-            queryDiff: item1.datatable_query !== item2.datatable_query ? 'View Diff' : 'No Diff',
-            raw1: item1,
-            raw2: item2
-          });
-        }
+    const tagsSite1 = new Set(list1.map((item: any) => item.tag?.trim()).filter(Boolean));
+    const tagsSite2 = new Set(list2.map((item: any) => item.tag?.trim()).filter(Boolean));
 
-        const hasStructDiff = item1.datatable_structure !== item2.datatable_structure;
-        const hasQueryDiff = item1.datatable_query !== item2.datatable_query;
-        const hasOtherDiff = item1.title !== item2.title || item1.status !== item2.status;
+    list1.forEach((record1: any) => {
+      const tag1 = record1.tag?.trim();
+
+      // 1. Same tag AND same version -> goes to Data Diff
+      const record2SameVersion = list2.find(
+        (record: any) => record.tag?.trim() === tag1 && record.version === record1.version
+      );
+
+      // 2. Same tag BUT different version -> goes to Version Mismatch
+      const record2DiffVersion = list2.find(
+        (record: any) => record?.tag?.trim() === tag1 && record?.version !== record1?.version
+      );
+
+      if (record2DiffVersion !== undefined) {
+        const hasStructDiff = record1.datatable_structure !== record2DiffVersion.datatable_structure;
+        const hasQueryDiff = record1.datatable_query !== record2DiffVersion.datatable_query;
+
+        versionMismatch.push({
+          rect1id: record1.id,
+          rect2id: record2DiffVersion.id,
+          tag: record1.tag,
+          site1Version: record1.version || '1.0',
+          site2Version: record2DiffVersion.version || '1.0',
+          rec1version: record1.version || '1.0',
+          rec2version: record2DiffVersion.version || '1.0',
+          dt_status: hasStructDiff ? "Diff Changes" : "No change",
+          query_status: hasQueryDiff ? "Diff Changes" : "No change",
+          datatableDiff: hasStructDiff ? "View Diff" : "No Diff",
+          queryDiff: hasQueryDiff ? "View Diff" : "No Diff",
+          raw1: record1,
+          raw2: record2DiffVersion
+        });
+      }
+
+      if (record2SameVersion !== undefined) {
+        const hasStructDiff = record1.datatable_structure !== record2SameVersion.datatable_structure;
+        const hasQueryDiff = record1.datatable_query !== record2SameVersion.datatable_query;
+
+        const ignoreKeys = [
+          "datatable_query",
+          "datatable_structure",
+          "id",
+          "tag",
+          "version",
+          "updated",
+          "updated_by",
+          "created",
+          "created_by",
+        ];
+        const clean1 = Object.fromEntries(
+          Object.entries(record1).filter(([k]) => !ignoreKeys.includes(k))
+        );
+        const clean2 = Object.fromEntries(
+          Object.entries(record2SameVersion).filter(([k]) => !ignoreKeys.includes(k))
+        );
+
+        const hasOtherDiff = JSON.stringify(clean1) !== JSON.stringify(clean2);
 
         dataDiff.push({
-          tag,
-          siteVersion: item1.version || item2.version || '1.0',
+          tag: record1.tag,
+          siteVersion: record1.version || '1.0',
+          rec1version: record1.version || '1.0',
+          rec2version: record2SameVersion.version || '1.0',
+          rect1id: record1.id,
+          rect2id: record2SameVersion.id,
+          id: record1.id,
+          dt_status: hasStructDiff ? "Diff Changes" : "No change",
+          query_status: hasQueryDiff ? "Diff Changes" : "No change",
+          other_status: hasOtherDiff ? "Diff Changes" : "No change",
           datatableDiff: hasStructDiff ? 'View Diff' : 'No Diff',
           queryDiff: hasQueryDiff ? 'View Diff' : 'No Diff',
           otherDiff: 'View Diff',
           hasOtherDiff,
-          raw1: item1,
-          raw2: item2
-        });
-      } else {
-        onlySite1.push({
-          tag,
-          version: item1.version || '1.0',
-          id: item1.id,
-          raw: item1
+          raw1: record1,
+          raw2: record2SameVersion,
+          others: {
+            record1: clean1,
+            record2: clean2
+          }
         });
       }
     });
 
-    map2.forEach((item2: any, tag: string) => {
-      if (!map1.has(tag)) {
+    // 3. Only Site 1
+    list1.forEach((item: any) => {
+      const tag = item.tag?.trim();
+      if (!tag || !tagsSite2.has(tag)) {
+        onlySite1.push({
+          tag: item.tag,
+          version: item.version || '1.0',
+          id: item.id,
+          raw: item
+        });
+      }
+    });
+
+    // 4. Only Site 2
+    list2.forEach((item: any) => {
+      const tag = item.tag?.trim();
+      if (!tag || !tagsSite1.has(tag)) {
         onlySite2.push({
-          tag: item2.tag || tag,
-          version: item2.version || '1.0',
-          id: item2.id,
-          raw: item2
+          tag: item.tag,
+          version: item.version || '1.0',
+          id: item.id,
+          raw: item
         });
       }
     });
@@ -78,7 +136,7 @@ export const dataTablesConfig = {
   getColumns: ({ openDiffViewer, openDataViewer, handleSyncConfiguration, handleCloneConfiguration, baseUrl1, baseUrl2 }: any) => {
     return {
       dataDiffColDefs: [
-        { field: 'tag', headerName: 'TAG', flex: 1.5, cellClass: 'font-normal text-gray-700', cellRenderer: (params: any) => renderTrimTooltip(params.value, 35) },
+        { field: 'tag', headerName: 'TAG', flex: 1.5, cellRenderer: (params: any) => renderTrimTooltip(params.value, 35) },
         { field: 'siteVersion', headerName: 'SITE VERSION', flex: 1 },
         {
           field: 'datatableDiff',
@@ -86,7 +144,7 @@ export const dataTablesConfig = {
           flex: 1.2,
           cellRenderer: (params: any) => params.value === 'View Diff' ? (
             <button onClick={() => openDiffViewer(params, 'structure')} className="btn-gray">View Diff</button>
-          ) : <span className="text-gray-500 font-normal">{params.value}</span>
+          ) : <span className="dc-muted-text">{params.value}</span>
         },
         {
           field: 'queryDiff',
@@ -94,7 +152,7 @@ export const dataTablesConfig = {
           flex: 1.2,
           cellRenderer: (params: any) => params.value === 'View Diff' ? (
             <button onClick={() => openDiffViewer(params, 'query')} className="btn-gray">View Diff</button>
-          ) : <span className="text-gray-500 font-normal">{params.value}</span>
+          ) : <span className="dc-muted-text">{params.value}</span>
         },
         {
           field: 'otherDiff',
@@ -132,16 +190,16 @@ export const dataTablesConfig = {
         }
       ],
       versionMismatchColDefs: [
-        { field: 'tag', headerName: 'TAG', flex: 2, cellClass: 'font-normal text-gray-700', cellRenderer: (params: any) => renderTrimTooltip(params.value, 35) },
-        { field: 'site1Version', headerName: 'SITE1 VERSION', flex: 1.5, cellRenderer: (params: any) => <span className="text-[#800040] font-normal text-sm">{params.value}</span> },
-        { field: 'site2Version', headerName: 'SITE2 VERSION', flex: 1.5, cellRenderer: (params: any) => <span className="text-[#800040] font-normal text-sm">{params.value}</span> },
+        { field: 'tag', headerName: 'TAG', flex: 2, cellRenderer: (params: any) => renderTrimTooltip(params.value, 35) },
+        { field: 'site1Version', headerName: 'SITE1 VERSION', flex: 1.5, cellRenderer: (params: any) => <span className="dc-tag-span" style={{ fontSize: '14px' }}>{params.value}</span> },
+        { field: 'site2Version', headerName: 'SITE2 VERSION', flex: 1.5, cellRenderer: (params: any) => <span className="dc-tag-span" style={{ fontSize: '14px' }}>{params.value}</span> },
         {
           field: 'datatableDiff',
           headerName: 'DATATABLE DIFF',
           flex: 1.5,
           cellRenderer: (params: any) => params.value === 'View Diff' ? (
             <button onClick={() => openDiffViewer(params, 'structure')} className="btn-gray">View Diff</button>
-          ) : <span className="text-gray-500 font-normal">{params.value}</span>
+          ) : <span className="dc-muted-text">{params.value}</span>
         },
         {
           field: 'queryDiff',
@@ -149,11 +207,11 @@ export const dataTablesConfig = {
           flex: 1.5,
           cellRenderer: (params: any) => params.value === 'View Diff' ? (
             <button onClick={() => openDiffViewer(params, 'query')} className="btn-gray">View Diff</button>
-          ) : <span className="text-gray-500 font-normal">{params.value}</span>
+          ) : <span className="dc-muted-text">{params.value}</span>
         }
       ],
       site1ColDefs: [
-        { field: 'tag', headerName: 'TAG', flex: 2, cellClass: 'font-normal text-[#800040]', cellRenderer: (params: any) => renderTagLink(baseUrl1, 'datatables-config', params.data.id, params.value) },
+        { field: 'tag', headerName: 'TAG', flex: 2, cellRenderer: (params: any) => renderTagLink(baseUrl1, 'datatables-config', params.data.id, params.value) },
         {
           field: 'viewData',
           headerName: 'VIEW DATA',
@@ -172,7 +230,7 @@ export const dataTablesConfig = {
         }
       ],
       site2ColDefs: [
-        { field: 'tag', headerName: 'TAG', flex: 2, cellClass: 'font-normal text-[#800040]', cellRenderer: (params: any) => renderTagLink(baseUrl2, 'datatables-config', params.data.id, params.value) },
+        { field: 'tag', headerName: 'TAG', flex: 2, cellRenderer: (params: any) => renderTagLink(baseUrl2, 'datatables-config', params.data.id, params.value) },
         {
           field: 'viewData',
           headerName: 'VIEW DATA',
@@ -210,7 +268,7 @@ const DataTables: React.FC<DataTablesProps> = ({ activeOption = 'datatables' }) 
   } = useConfigurationDiff(activeOption);
 
   return (
-    <div className="space-y-6">
+    <div className="dc-page-container">
       {/* SECTION 1: DATA DIFF TABLE */}
       <DataDiffTable
         activeOption={activeOption}

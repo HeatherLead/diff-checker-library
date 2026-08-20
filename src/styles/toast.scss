@@ -1,0 +1,134 @@
+@use './variables' as *;
+@use './mixins' as *;
+
+// React Toastify Custom Overrides
+:root {
+  --toastify-color-progress-light: #{$dc-success} !important;
+  --toastify-color-progress-success: #{$dc-success} !important;
+  --toastify-color-progress-error: #{$dc-danger} !important;
+  --toastify-color-progress-bgs: #ffffff !important;
+}
+
+.Toastify__toast-container {
+  width: 400px !important;
+  max-width: 90vw !important;
+  padding: 0 !important;
+}
+
+.Toastify__toast {
+  background-color: #ffffff !important;
+  border-radius: 10px !important;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08) !important;
+  border: 1px solid #f3f4f6 !important;
+  padding: 16px 20px !important;
+  min-height: auto !important;
+  font-family: inherit !important;
+  overflow: hidden !important;
+}
+
+.Toastify__toast-body {
+  padding: 0 !important;
+  margin: 0 !important;
+}
+
+.Toastify__progress-bar--wrp {
+  background: #ffffff !important;
+  background-image: none !important;
+}
+
+.Toastify__progress-bar {
+  height: 5px !important;
+  opacity: 1 !important;
+  background-image: none !important;
+}
+
+.Toastify__progress-bar--success,
+.Toastify__progress-bar-theme--light {
+  background: $dc-success !important;
+  background-color: $dc-success !important;
+  background-image: none !important;
+}
+
+.Toastify__progress-bar--error {
+  background: $dc-danger !important;
+  background-color: $dc-danger !important;
+  background-image: none !important;
+}
+
+.Toastify__close-button {
+  color: #9ca3af !important;
+  opacity: 1 !important;
+  align-self: flex-start !important;
+  margin-top: -6px !important;
+  margin-right: -6px !important;
+  transition: color 0.15s ease !important;
+
+  &:hover {
+    color: #4b5563 !important;
+  }
+}
+
+// Custom Toast Message Layout
+.dc-toast-msg-container {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  width: 100%;
+  padding-right: 8px;
+}
+
+.dc-toast-icon-circle {
+  width: 28px;
+  height: 28px;
+  border-radius: $dc-radius-full;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+
+  &.success {
+    background-color: $dc-success;
+    box-shadow: 0 2px 8px rgba(0, 200, 83, 0.3);
+  }
+
+  &.error {
+    background-color: $dc-danger;
+    box-shadow: 0 2px 8px rgba(239, 68, 68, 0.3);
+  }
+
+  svg {
+    width: 16px;
+    height: 16px;
+    color: #ffffff;
+  }
+}
+
+.dc-toast-content {
+  flex: 1;
+  display: flex;
+  justify-content: center;
+}
+
+.dc-toast-text-block {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+}
+
+.dc-toast-title {
+  color: #6c757d;
+  font-weight: 400;
+  font-size: 17px;
+  line-height: 1.35;
+  letter-spacing: 0.025em;
+}
+
+.dc-toast-subtitle {
+  color: #6c757d;
+  font-weight: 400;
+  font-size: 15px;
+  line-height: 1.35;
+  letter-spacing: 0.025em;
+}

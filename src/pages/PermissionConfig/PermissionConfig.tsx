@@ -79,7 +79,7 @@ export const permissionConfig = {
   getColumns: ({ openDiffViewer, openDataViewer, baseUrl1, baseUrl2 }: any) => {
     return {
       dataDiffColDefs: [
-        { field: 'tag', headerName: 'MODULE', flex: 1.5, cellClass: 'font-normal text-gray-700', cellRenderer: (params: any) => renderTrimTooltip(params.value, 30) },
+        { field: 'tag', headerName: 'MODULE', flex: 1.5, cellRenderer: (params: any) => renderTrimTooltip(params.value, 30) },
         { field: 'permission_label', headerName: 'PERMISSION', flex: 1.5, cellRenderer: (params: any) => renderTrimTooltip(params.data.permission_label, 30) },
         { field: 'role_diff_status', headerName: 'ROLE DIFF STATUS', flex: 1.5 },
         {
@@ -88,11 +88,11 @@ export const permissionConfig = {
           flex: 1.2,
           cellRenderer: (params: any) => params.value === 'View Diff' ? (
             <button onClick={() => openDiffViewer(params, 'other')} className="btn-gray">Show Diff</button>
-          ) : <span className="text-gray-500 font-normal">{params.value}</span>
+          ) : <span className="dc-muted-text">{params.value}</span>
         }
       ],
       site1ColDefs: [
-        { field: 'tag', headerName: 'MODULE', flex: 2, cellClass: 'font-normal text-[#800040]', cellRenderer: (params: any) => renderTagLink(baseUrl1, 'permission-config', params.data.id || params.data.tag, params.value, 30) },
+        { field: 'tag', headerName: 'MODULE', flex: 2, cellRenderer: (params: any) => renderTagLink(baseUrl1, 'permission-config', params.data.id || params.data.tag, params.value, 30) },
         { field: 'permission_label', headerName: 'PERMISSION', flex: 1.5, cellRenderer: (params: any) => renderTrimTooltip(params.data.permission_label, 30) },
         {
           field: 'viewData',
@@ -104,7 +104,7 @@ export const permissionConfig = {
         }
       ],
       site2ColDefs: [
-        { field: 'tag', headerName: 'MODULE', flex: 2, cellClass: 'font-normal text-[#800040]', cellRenderer: (params: any) => renderTagLink(baseUrl2, 'permission-config', params.data.id || params.data.tag, params.value, 30) },
+        { field: 'tag', headerName: 'MODULE', flex: 2, cellRenderer: (params: any) => renderTagLink(baseUrl2, 'permission-config', params.data.id || params.data.tag, params.value, 30) },
         { field: 'permission_label', headerName: 'PERMISSION', flex: 1.5, cellRenderer: (params: any) => renderTrimTooltip(params.data.permission_label, 30) },
         {
           field: 'viewData',
@@ -133,7 +133,7 @@ const PermissionConfig: React.FC<PermissionConfigProps> = ({ activeOption = 'per
   } = useConfigurationDiff(activeOption);
 
   return (
-    <div className="space-y-6">
+    <div className="dc-page-container">
       {/* SECTION 1: DATA DIFF TABLE */}
       <DataDiffTable
         activeOption={activeOption}

@@ -24,7 +24,7 @@ const SiteConfig: React.FC<SiteConfigProps> = ({ activeOption = 'site_config' })
   } = useConfigurationDiff(activeOption);
 
   return (
-    <div className="space-y-6">
+    <div className="dc-page-container">
       {/* SECTION 1: DATA DIFF TABLE */}
       <DataDiffTable
         activeOption={activeOption}

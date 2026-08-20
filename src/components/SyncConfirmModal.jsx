@@ -2,6 +2,7 @@ import React, { useState, useEffect, memo } from 'react';
 import { ArrowLeftRight, X } from 'lucide-react';
 import { useDiffChecker } from '../context/DiffCheckerContext';
 import useLockBodyScroll from '../hooks/useLockBodyScroll';
+import { ensureAbsoluteUrl } from '../utils/cellRenderers';
 
 export const SyncConfirmModal = memo(({
   isOpen,
@@ -81,47 +82,46 @@ export const SyncConfirmModal = memo(({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-md p-4 transition-all duration-300 animate-in fade-in duration-200 overscroll-contain">
+    <div className="dc-modal-overlay">
 
       {/* Modal Card */}
-      <div className="w-full max-w-[620px] bg-white rounded-xl shadow-2xl flex flex-col border border-gray-200 relative animate-in fade-in zoom-in-95 duration-200 overflow-hidden">
+      <div className="dc-modal-card">
 
         {/* Header */}
-        <div className="px-6 pt-5 pb-3 flex items-center justify-between border-b border-gray-100">
-          <h3 className="text-lg font-bold text-gray-800 tracking-wider">Confirm Data Sync</h3>
+        <div className="dc-modal-header">
+          <h3 className="dc-modal-title">Confirm Data Sync</h3>
           <button
             onClick={onClose}
-            className="text-gray-400 hover:text-gray-600 p-1.5 rounded-lg hover:bg-gray-100 transition-colors cursor-pointer outline-none"
+            className="dc-modal-close-btn"
             title="Close"
           >
-            <X className="w-5 h-5" />
+            <X style={{ width: '20px', height: '20px' }} />
           </button>
         </div>
 
         {/* Content Body */}
-        <form onSubmit={handleSubmit} className="px-6 py-5 flex flex-col gap-5">
+        <form onSubmit={handleSubmit} className="dc-modal-form">
 
-          <p className="text-gray-600 text-sm font-medium text-left">
+          <p className="dc-modal-desc">
             Are you sure you want confirm data Sync?
           </p>
 
           {/* Site comparison side-by-side container */}
-          <div className="border border-gray-200 rounded-lg p-4 bg-white flex flex-row items-center justify-between gap-3 relative shadow-xs">
+          <div className="dc-modal-compare-box">
 
             {/* Left Box (Source) */}
-            <div className="flex-1 min-w-0 p-3 bg-gray-50/70 rounded-lg border border-gray-100 text-left">
-              <span className="text-xs font-bold text-gray-500 uppercase tracking-wide">
+            <div className="dc-modal-compare-site">
+              <span className="dc-modal-site-label">
                 {getSiteLabel(sourceUrl, false)}
               </span>
-              <mark className="bg-yellow-100 text-yellow-800 px-1.5 py-0.5 rounded font-mono text-[11px] font-semibold ml-1">
+              <mark className="dc-modal-tag-badge">
                 (tag: {sourceTag})
               </mark>
-              <p className="mt-2 truncate">
+              <p className="dc-modal-site-url">
                 <a
-                  href={sourceUrl}
+                  href={ensureAbsoluteUrl(sourceUrl)}
                   target="_blank"
                   rel="noreferrer"
-                  className="text-indigo-600 hover:underline text-xs font-medium break-all"
                   title={sourceUrl}
                 >
                   {sourceUrl}
@@ -130,33 +130,32 @@ export const SyncConfirmModal = memo(({
             </div>
 
             {/* Separator / Swap Action Center overlay */}
-            <div className="w-10 flex-shrink-0 flex items-center justify-center relative h-12">
-              <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 z-10">
+            <div className="dc-modal-swap-wrapper">
+              <div style={{ position: 'absolute', left: '50%', top: '50%', transform: 'translate(-50%, -50%)', zIndex: 10 }}>
                 <button
                   type="button"
                   onClick={handleSwap}
-                  className="w-8 h-8 rounded-full border border-gray-200 bg-white flex items-center justify-center shadow-md hover:shadow-lg hover:border-[#820f4c] hover:text-[#820f4c] text-gray-500 transition-all cursor-pointer outline-none"
+                  className="dc-modal-swap-btn"
                   title="Swap Sync Direction"
                 >
-                  <ArrowLeftRight className="w-4 h-4" />
+                  <ArrowLeftRight style={{ width: '16px', height: '16px' }} />
                 </button>
               </div>
             </div>
 
             {/* Right Box (Target) */}
-            <div className="flex-1 min-w-0 p-3 bg-gray-50/70 rounded-lg border border-gray-100 text-left">
-              <span className="text-xs font-bold text-gray-500 uppercase tracking-wide">
+            <div className="dc-modal-compare-site">
+              <span className="dc-modal-site-label">
                 {getSiteLabel(targetUrl, true)}
               </span>
-              <mark className="bg-yellow-100 text-yellow-800 px-1.5 py-0.5 rounded font-mono text-[11px] font-semibold ml-1">
+              <mark className="dc-modal-tag-badge">
                 (tag: {targetTag})
               </mark>
-              <p className="mt-2 truncate">
+              <p className="dc-modal-site-url">
                 <a
-                  href={targetUrl}
+                  href={ensureAbsoluteUrl(targetUrl)}
                   target="_blank"
                   rel="noreferrer"
-                  className="text-indigo-600 hover:underline text-xs font-medium break-all"
                   title={targetUrl}
                 >
                   {targetUrl}
@@ -167,9 +166,9 @@ export const SyncConfirmModal = memo(({
           </div>
 
           {/* Yes Confirmation Input */}
-          <div className="flex flex-col gap-1.5 text-left">
-            <label htmlFor="confirmYes" className="text-xs font-semibold text-gray-700">
-              To confirm the sync, type "yes" <span className="text-red-500">*</span>
+          <div className="dc-modal-input-group">
+            <label htmlFor="confirmYes" className="dc-modal-label">
+              To confirm the sync, type "yes" <span style={{ color: '#ef4444' }}>*</span>
             </label>
             <input
               id="confirmYes"
@@ -178,15 +177,15 @@ export const SyncConfirmModal = memo(({
               value={confirmYes}
               onChange={(e) => setConfirmYes(e.target.value)}
               placeholder='type "yes"'
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-1 focus:ring-[#820f4c] focus:border-[#820f4c] outline-none text-sm text-gray-700 transition-colors bg-[#fafafa]"
+              className="dc-modal-input"
               autoComplete="off"
             />
           </div>
 
           {/* Sync By Name Input */}
-          <div className="flex flex-col gap-1.5 text-left">
-            <label htmlFor="syncBy" className="text-xs font-semibold text-gray-700">
-              Sync by <span className="text-red-500">*</span>
+          <div className="dc-modal-input-group">
+            <label htmlFor="syncBy" className="dc-modal-label">
+              Sync by <span style={{ color: '#ef4444' }}>*</span>
             </label>
             <input
               id="syncBy"
@@ -195,27 +194,24 @@ export const SyncConfirmModal = memo(({
               value={syncBy}
               onChange={(e) => setSyncBy(e.target.value)}
               placeholder="Enter your name"
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-1 focus:ring-[#820f4c] focus:border-[#820f4c] outline-none text-sm text-gray-700 transition-colors bg-[#fafafa]"
+              className="dc-modal-input"
               autoComplete="off"
             />
           </div>
 
           {/* Footer Actions */}
-          <div className="flex items-center justify-end gap-3 mt-2 border-t border-gray-100 pt-4">
+          <div className="dc-modal-footer">
             <button
               type="button"
               onClick={onClose}
-              className="px-5 py-1.5 text-xs font-medium text-gray-700 border border-gray-300 rounded hover:bg-gray-100 transition-colors duration-150 bg-white cursor-pointer inline-flex items-center justify-center shadow-xs outline-none"
+              className="dc-modal-btn-close"
             >
               Close
             </button>
             <button
               type="submit"
               disabled={!isFormValid || submitting}
-              className={`px-5 py-1.5 text-xs font-medium rounded border transition-colors duration-150 inline-flex items-center justify-center shadow-xs outline-none ${isFormValid && !submitting
-                ? 'text-[#820f4c] border-[#820f4c] bg-white hover:bg-[#820f4c] hover:text-white cursor-pointer'
-                : 'text-gray-300 border-gray-200 bg-gray-50 cursor-not-allowed'
-                }`}
+              className={`dc-modal-btn-action ${isFormValid && !submitting ? 'active' : 'disabled'}`}
             >
               {submitting ? 'Syncing...' : 'Sync'}
             </button>

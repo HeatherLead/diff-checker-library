@@ -64,7 +64,7 @@ export const dropdownConfigConfig = {
   getColumns: ({ openDiffViewer, openDataViewer, baseUrl1 }: any) => {
     return {
       dataDiffColDefs: [
-        { field: 'tag', headerName: 'TAG', flex: 1.5, cellClass: 'font-normal text-gray-700', cellRenderer: (params: any) => renderTrimTooltip(params.value, 35) },
+        { field: 'tag', headerName: 'TAG', flex: 1.5, cellRenderer: (params: any) => renderTrimTooltip(params.value, 35) },
         { field: 'rec1version', headerName: 'SITE VERSION', flex: 1 },
         { field: 'query_status', headerName: 'QUERY DIFF STATUS', flex: 1.5 },
         {
@@ -73,11 +73,11 @@ export const dropdownConfigConfig = {
           flex: 1.2,
           cellRenderer: (params: any) => params.data.query_status === 'Diff Changes' ? (
             <button onClick={() => openDiffViewer(params, 'structure')} className="btn-gray">View Diff</button>
-          ) : <span className="text-gray-500 font-normal">{params.data.query_status === 'No change' ? 'No diff' : ''}</span>
+          ) : <span className="dc-muted-text">{params.data.query_status === 'No change' ? 'No diff' : ''}</span>
         }
       ],
       site1ColDefs: [
-        { field: 'tag', headerName: 'TAG', flex: 2, cellClass: 'font-normal text-[#800040]', cellRenderer: (params: any) => renderTagLink(baseUrl1, 'dropdown-config', params.data.id || params.data.tag, params.value) },
+        { field: 'tag', headerName: 'TAG', flex: 2, cellRenderer: (params: any) => renderTagLink(baseUrl1, 'dropdown-config', params.data.id || params.data.tag, params.value) },
         { field: 'rec1version', headerName: 'SITE VERSION', flex: 1 },
         {
           field: 'view_query',
@@ -109,7 +109,7 @@ const DropdownConfig: React.FC<DropdownConfigProps> = ({ activeOption = 'dropdow
   } = useConfigurationDiff(activeOption);
 
   return (
-    <div className="space-y-6">
+    <div className="dc-page-container">
       {/* SECTION 1: DATA DIFF TABLE */}
       <DataDiffTable
         activeOption={activeOption}

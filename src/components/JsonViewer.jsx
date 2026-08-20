@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-
+import { Copy, Check } from 'lucide-react';
 
 const CopyButton = ({ value, label = "Copy" }) => {
   const [copied, setCopied] = useState(false);
@@ -25,27 +25,14 @@ const CopyButton = ({ value, label = "Copy" }) => {
       onClick={handleCopy}
       type="button"
       title={copied ? "Copied!" : label}
-      className="inline-flex items-center justify-center ml-1.5 p-0.5 text-blue-500 hover:text-blue-700 hover:bg-blue-50 rounded transition-all duration-150 focus:outline-none opacity-0 group-hover:opacity-100 cursor-pointer"
+      className="dc-json-copy-btn"
     >
       {copied ? (
-        <span className="inline-flex items-center text-[10px] text-green-600 font-semibold px-1 bg-green-50 rounded border border-green-200">
-          ✓ Copied
+        <span className="dc-json-copied-badge">
+          <Check size={11} style={{ marginRight: '2px' }} /> Copied
         </span>
       ) : (
-        /* Clipboard icon with arrow matching screenshot style */
-        <svg
-          className="w-3.5 h-3.5 text-[#3b82f6]"
-          fill="none"
-          stroke="currentColor"
-          strokeWidth="1.8"
-          viewBox="0 0 24 24"
-        >
-          <path
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"
-          />
-        </svg>
+        <Copy size={13} strokeWidth={1.8} style={{ color: '#3b82f6' }} />
       )}
     </button>
   );
@@ -58,133 +45,132 @@ export const JsonViewer = ({ data, rootKey = 'data' }) => {
     setCollapsed((prev) => ({ ...prev, [path]: !prev[path] }));
   };
 
-  const renderValue = (val, path) => {
+  const renderPrimitiveValue = (val) => {
     if (val === null || val === undefined) {
-      return (
-        <span className="inline-flex items-center font-mono group">
-          <span className="text-gray-400 italic">null</span>
-          <CopyButton value={val} label="Copy null" />
-        </span>
-      );
+      return <span className="dc-json-null">null</span>;
     }
-
     if (typeof val === 'boolean') {
-      return (
-        <span className="inline-flex items-center font-mono group">
-          <span className="text-purple-600 font-normal">{val ? 'true' : 'false'}</span>
-          <CopyButton value={val} label="Copy boolean" />
-        </span>
-      );
+      return <span className="dc-json-bool">{val ? 'true' : 'false'}</span>;
     }
-
     if (typeof val === 'number') {
       return (
-        <span className="inline-flex items-center font-mono group">
-          <span className="text-[#c77d4c] text-[11px] mr-1.5 font-normal">number</span>
-          <span className="text-[#b91c1c] font-normal">{val}</span>
-          <CopyButton value={val} label="Copy number" />
-        </span>
+        <>
+          <span className="dc-json-number-tag">number</span>
+          <span className="dc-json-number-val">{val}</span>
+        </>
       );
     }
-
     if (typeof val === 'string') {
-      // Check if string contains stringified JSON (e.g. datatable_structure or entity_config)
-      let parsedJson = null;
+      return (
+        <>
+          <span className="dc-json-string-tag">string</span>
+          <span className="dc-json-string-val">"{val}"</span>
+        </>
+      );
+    }
+    return <span>{String(val)}</span>;
+  };
+
+  const renderNode = (keyLabel, val, path, isIdx = false) => {
+    // Check if string contains stringified JSON
+    if (typeof val === 'string') {
       const trimmed = val.trim();
       if ((trimmed.startsWith('{') && trimmed.endsWith('}')) || (trimmed.startsWith('[') && trimmed.endsWith(']'))) {
         try {
-          parsedJson = JSON.parse(trimmed);
+          const parsed = JSON.parse(trimmed);
+          if (parsed && typeof parsed === 'object') {
+            return renderNode(keyLabel, parsed, path + '_parsed', isIdx);
+          }
         } catch (e) {
-          parsedJson = null;
+          // ignore parsing error, treat as plain string
         }
       }
-
-      if (parsedJson && typeof parsedJson === 'object') {
-        return renderValue(parsedJson, path + '_parsed');
-      }
-
-      return (
-        <span className="inline-flex items-center font-mono group">
-          <span className="text-[#c77d4c] text-[11px] mr-1.5 font-normal">string</span>
-          <span className="text-[#a33d26] break-all">"{val}"</span>
-          <CopyButton value={val} label="Copy string value" />
-        </span>
-      );
     }
 
+    // Array Node
     if (Array.isArray(val)) {
       const isCollapsed = collapsed[path];
       const itemCount = val.length;
       return (
-        <div className="inline-block w-full">
-          <div className="inline-flex items-center group">
+        <div key={path} className="dc-json-node-container">
+          <div className="dc-json-node-header">
             <button
               onClick={() => toggleCollapse(path)}
-              className="text-gray-700 hover:text-gray-900 font-mono font-normal inline-flex items-center space-x-1 cursor-pointer focus:outline-none"
+              className="dc-json-node-btn"
               type="button"
             >
-              <span className="text-[10px] text-gray-500">{isCollapsed ? '►' : '▼'}</span>
-              <span className="text-gray-900 font-normal">[</span>
-              <span className="text-gray-400 font-mono text-xs italic font-normal">
+              <span className="dc-json-arrow">{isCollapsed ? '►' : '▼'}</span>
+              {keyLabel !== undefined && (
+                <span className={isIdx ? "dc-json-key-idx" : "dc-json-key-name"}>
+                  {isIdx ? `${keyLabel} :` : `"${keyLabel}" :`}
+                </span>
+              )}
+              <span className="dc-json-bracket">[</span>
+              <span className="dc-json-badge-count">
                 {itemCount} {itemCount === 1 ? 'item' : 'items'}
               </span>
             </button>
-            <CopyButton value={val} label="Copy array object" />
+            <CopyButton value={val} label="Copy array" />
           </div>
 
           {!isCollapsed && (
-            <div className="pl-6 border-l border-gray-200 my-1 space-y-1">
-              {val.map((item, idx) => (
-                <div key={idx} className="font-mono text-xs group flex flex-wrap items-baseline hover:bg-gray-50/80 rounded px-1 -mx-1 transition-colors">
-                  <span className="text-purple-600 font-normal mr-1.5">{idx} :</span>
-                  {renderValue(item, `${path}_${idx}`)}
-                </div>
-              ))}
+            <div className="dc-json-tree-branch">
+              {val.map((item, idx) => renderNode(idx, item, `${path}_${idx}`, true))}
             </div>
           )}
         </div>
       );
     }
 
-    if (typeof val === 'object') {
+    // Object Node
+    if (val !== null && typeof val === 'object') {
       const keys = Object.keys(val);
       const isCollapsed = collapsed[path];
+      const itemCount = keys.length;
       return (
-        <div className="inline-block w-full">
-          <div className="inline-flex items-center group">
+        <div key={path} className="dc-json-node-container">
+          <div className="dc-json-node-header">
             <button
               onClick={() => toggleCollapse(path)}
-              className="text-gray-800 hover:text-black font-mono font-normal inline-flex items-center space-x-1 cursor-pointer focus:outline-none"
+              className="dc-json-node-btn"
               type="button"
             >
-              <span className="text-[10px] text-gray-500">{isCollapsed ? '►' : '▼'}</span>
-              <span className="text-gray-900 font-normal">&#123;</span>
-              <span className="text-gray-400 font-mono text-xs italic font-normal">
-                {keys.length} {keys.length === 1 ? 'item' : 'items'}
+              <span className="dc-json-arrow">{isCollapsed ? '►' : '▼'}</span>
+              {keyLabel !== undefined && (
+                <span className={isIdx ? "dc-json-key-idx" : "dc-json-key-name"}>
+                  {isIdx ? `${keyLabel} :` : `"${keyLabel}" :`}
+                </span>
+              )}
+              <span className="dc-json-bracket">&#123;</span>
+              <span className="dc-json-badge-count">
+                {itemCount} {itemCount === 1 ? 'item' : 'items'}
               </span>
             </button>
             <CopyButton value={val} label="Copy object" />
           </div>
 
           {!isCollapsed && (
-            <div className="pl-6 border-l border-gray-200 my-1 space-y-1.5 w-full">
-              {keys.map((key) => (
-                <div key={key} className="font-mono text-xs group flex flex-wrap items-baseline hover:bg-gray-50/80 rounded px-1 -mx-1 transition-colors">
-                  <span className="text-gray-800 font-normal mr-1.5">"{key}" :</span>
-                  {renderValue(val[key], `${path}_${key}`)}
-                </div>
-              ))}
+            <div className="dc-json-tree-branch">
+              {keys.map((key) => renderNode(key, val[key], `${path}_${key}`, false))}
             </div>
           )}
         </div>
       );
     }
 
+    // Primitive Row
     return (
-      <span className="inline-flex items-center font-mono group">
-        <span>{String(val)}</span>
+      <div key={path} className="dc-json-row">
+        {keyLabel !== undefined && (
+          <span className={isIdx ? "dc-json-key-idx" : "dc-json-key-name"}>
+            {isIdx ? `${keyLabel} :` : `"${keyLabel}" :`}
+          </span>
+        )}
+        <span className="dc-json-val-wrapper">
+          {renderPrimitiveValue(val)}
+        </span>
         <CopyButton value={val} label="Copy value" />
-      </span>
+      </div>
     );
   };
 
@@ -193,35 +179,33 @@ export const JsonViewer = ({ data, rootKey = 'data' }) => {
   const isRootCollapsed = collapsed['root'];
 
   return (
-    <div className="font-mono text-xs text-gray-800 p-4 bg-white select-text overflow-y-auto max-h-full">
-      <div className="flex items-center space-x-2 mb-2 group font-normal">
-        <button
-          onClick={() => toggleCollapse('root')}
-          className="inline-flex items-center space-x-1.5 text-gray-800 hover:text-black focus:outline-none cursor-pointer"
-          type="button"
-        >
-          <span className="text-xs text-gray-500">{isRootCollapsed ? '►' : '▼'}</span>
-          <span className="text-gray-900 font-normal">"{rootKey}" :</span>
-          <span className="text-gray-900 font-normal">&#123;</span>
-          <span className="text-gray-400 text-xs font-normal italic">
-            {rootKeys.length} {rootKeys.length === 1 ? 'item' : 'items'}
-          </span>
-        </button>
-        <CopyButton value={rootObject} label="Copy root object" />
-      </div>
-
-      {!isRootCollapsed && (
-        <div className="pl-6 border-l-2 border-gray-200 space-y-2">
-          {rootKeys.map((key) => (
-            <div key={key} className="group flex flex-wrap items-baseline hover:bg-gray-50/80 rounded px-1 -mx-1 transition-colors">
-              <span className="text-gray-800 font-normal mr-1.5">"{key}" :</span>
-              {renderValue(rootObject[key], `root_${key}`)}
-            </div>
-          ))}
+    <div className="dc-json-viewer">
+      <div className="dc-json-node-container">
+        <div className="dc-json-node-header">
+          <button
+            onClick={() => toggleCollapse('root')}
+            className="dc-json-node-btn"
+            type="button"
+          >
+            <span className="dc-json-arrow">{isRootCollapsed ? '►' : '▼'}</span>
+            <span className="dc-json-key-name">"{rootKey}" :</span>
+            <span className="dc-json-bracket">&#123;</span>
+            <span className="dc-json-badge-count">
+              {rootKeys.length} {rootKeys.length === 1 ? 'item' : 'items'}
+            </span>
+          </button>
+          <CopyButton value={rootObject} label="Copy root object" />
         </div>
-      )}
+
+        {!isRootCollapsed && (
+          <div className="dc-json-tree-root-branch">
+            {rootKeys.map((key) => renderNode(key, rootObject[key], `root_${key}`, false))}
+          </div>
+        )}
+      </div>
     </div>
   );
 };
 
 export default JsonViewer;
+
