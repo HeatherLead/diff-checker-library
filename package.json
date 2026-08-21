@@ -9,11 +9,7 @@
   "style": "./dist/style.css",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/ayushvc/diff-checker.git"
-  },
-  "publishConfig": {
-    "registry": "https://npm.pkg.github.com",
-    "access": "restricted"
+    "url": "https://devops.vcgdigital.net/VectorDigitalLabs/TMS-WCMS/_git/diff-checker-library"
   },
   "exports": {
     ".": {
