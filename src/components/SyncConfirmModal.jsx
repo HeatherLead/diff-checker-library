@@ -1,5 +1,5 @@
 import React, { useState, useEffect, memo } from 'react';
-import { ArrowLeftRight, X } from 'lucide-react';
+import { ArrowRight, X } from 'lucide-react';
 import { useDiffChecker } from '../context/DiffCheckerContext';
 import useLockBodyScroll from '../hooks/useLockBodyScroll';
 import { ensureAbsoluteUrl } from '../utils/cellRenderers';
@@ -19,7 +19,6 @@ export const SyncConfirmModal = memo(({
   const baseUrl2 = propBaseUrl2 !== undefined ? propBaseUrl2 : ctx.baseUrl2;
   const defaultSyncedBy = ctx.syncedBy || '';
 
-  const [direction, setDirection] = useState('site1_to_site2'); // 'site1_to_site2' or 'site2_to_site1'
   const [confirmYes, setConfirmYes] = useState('');
   const [syncBy, setSyncBy] = useState(defaultSyncedBy);
   const [submitting, setSubmitting] = useState(false);
@@ -29,34 +28,23 @@ export const SyncConfirmModal = memo(({
     if (isOpen) {
       setConfirmYes('');
       setSyncBy(defaultSyncedBy);
-      setDirection('site1_to_site2');
       setSubmitting(false);
     }
   }, [isOpen, row, defaultSyncedBy]);
 
   if (!isOpen || !row) return null;
 
-  // Resolve source and target variables based on selected sync direction
-  const sourceTag = direction === 'site1_to_site2'
-    ? (row.raw1?.tag || row.raw1?.tag_name || row.raw1?.module || row.tag || '')
-    : (row.raw2?.tag || row.raw2?.tag_name || row.raw2?.module || row.tag || '');
+  const sourceTag = row.raw1?.tag || row.raw1?.tag_name || row.raw1?.module || row.tag || '';
+  const targetTag = row.raw2?.tag || row.raw2?.tag_name || row.raw2?.module || row.tag || '';
 
-  const targetTag = direction === 'site1_to_site2'
-    ? (row.raw2?.tag || row.raw2?.tag_name || row.raw2?.module || row.tag || '')
-    : (row.raw1?.tag || row.raw1?.tag_name || row.raw1?.module || row.tag || '');
-
-  const sourceUrl = direction === 'site1_to_site2' ? baseUrl1 : baseUrl2;
-  const targetUrl = direction === 'site1_to_site2' ? baseUrl2 : baseUrl1;
-
-  const handleSwap = () => {
-    setDirection((prev) => (prev === 'site1_to_site2' ? 'site2_to_site1' : 'site1_to_site2'));
-  };
+  const sourceUrl = baseUrl1;
+  const targetUrl = baseUrl2;
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (confirmYes.trim().toLowerCase() === 'yes' && syncBy.trim().length > 0) {
       setSubmitting(true);
-      const sourceItem = direction === 'site1_to_site2' ? (row.raw1 || row) : (row.raw2 || row);
+      const sourceItem = row.raw1 || row;
       try {
         await onConfirm(sourceItem, targetUrl, syncBy.trim());
       } catch (err) {
@@ -129,17 +117,10 @@ export const SyncConfirmModal = memo(({
               </p>
             </div>
 
-            {/* Separator / Swap Action Center overlay */}
+            {/* Direction Indicator */}
             <div className="dc-modal-swap-wrapper">
-              <div style={{ position: 'absolute', left: '50%', top: '50%', transform: 'translate(-50%, -50%)', zIndex: 10 }}>
-                <button
-                  type="button"
-                  onClick={handleSwap}
-                  className="dc-modal-swap-btn"
-                  title="Swap Sync Direction"
-                >
-                  <ArrowLeftRight style={{ width: '16px', height: '16px' }} />
-                </button>
+              <div className="dc-modal-arrow-circle">
+                <ArrowRight style={{ width: '16px', height: '16px' }} />
               </div>
             </div>
 

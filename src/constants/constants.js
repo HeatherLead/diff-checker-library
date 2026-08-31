@@ -82,8 +82,11 @@ export const VIEW_DIFF_FIELDS = [
   "queryDiff",
   "otherDiff",
   "role_diff",
+  "view_role_diff",
   "excel_diff",
-  "validator_diff"
+  "validator_diff",
+  "display_msg_diff",
+  "custom_form_diff"
 ];
 
 export const DIFF_CHANGES_FIELDS = [
@@ -92,7 +95,11 @@ export const DIFF_CHANGES_FIELDS = [
   "role_diff_status",
   "wf_status",
   "query_status",
-  "msg_diff"
+  "msg_diff",
+  "other_status",
+  "other_diff",
+  "excel_diff_status",
+  "validator_diff_status"
 ];
 
 export const TABS = [
@@ -145,7 +152,7 @@ export const TABS = [
   {
     id: "utilities_modules",
     type: "dropdown",
-    title: "utilities & modules",
+    title: "Utilities & Modules",
     items: [
       { id: "subtask_master", label: "SubTask Master", path: "/subtask-master" },
       { id: "custom_form", label: "Custom Form", path: "/custom-form" },

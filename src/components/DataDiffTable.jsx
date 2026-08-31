@@ -2,9 +2,8 @@ import React, { useState, useMemo, useCallback, memo } from 'react';
 import { AGGridGenerator } from './AGGridGenerator';
 import { getOptionConfig } from '../config';
 import { useDiffChecker } from '../context/DiffCheckerContext';
-import { getFilterableColumns, filterRowsByColDefs } from '../utils/filterUtils';
+import { getFilterableColumns, filterRowsByColDefs, isDiffRow } from '../utils/filterUtils';
 import TableFilterBar from './TableFilterBar';
-import { VIEW_DIFF_FIELDS, DIFF_CHANGES_FIELDS } from '../constants/constants';
 
 const noop = () => { };
 
@@ -25,7 +24,7 @@ export const DataDiffTable = memo(({
   const baseUrl1 = propBaseUrl1 !== undefined ? propBaseUrl1 : ctx.baseUrl1;
   const baseUrl2 = propBaseUrl2 !== undefined ? propBaseUrl2 : ctx.baseUrl2;
 
-  const [showDataDiffFilters, setShowDataDiffFilters] = useState(false);
+  const [showDataDiffFilters, setShowDataDiffFilters] = useState(true);
   const [filterInputs, setFilterInputs] = useState({});
   const [appliedFilters, setAppliedFilters] = useState({});
   const [dataDiffFilterMode, setDataDiffFilterMode] = useState('only_diff');
@@ -70,12 +69,7 @@ export const DataDiffTable = memo(({
     let list = filterRowsByColDefs(dataDiffRows, appliedFilters, filterableCols);
 
     if (dataDiffFilterMode === 'only_diff') {
-      list = list.filter((r) => {
-        return (
-          VIEW_DIFF_FIELDS.some((field) => r[field] === 'View Diff') ||
-          DIFF_CHANGES_FIELDS.some((field) => r[field] === 'Diff Changes')
-        );
-      });
+      list = list.filter(isDiffRow);
     }
     return list;
   }, [dataDiffRows, appliedFilters, filterableCols, dataDiffFilterMode]);
@@ -135,8 +129,15 @@ export const DataDiffTable = memo(({
         maxHeight="460px"
       />
 
-      <div className="dc-records-count-filtered">
-        Filtered Records: {filteredDataDiffRows.length} records | Actual Records: {dataDiffRows.length} records
+      <div className="dc-records-footer">
+        <div className="dc-records-count-filtered">
+          Filtered Records: {filteredDataDiffRows.length} records | Actual Records: {dataDiffRows.length} records
+        </div>
+        {filteredDataDiffRows.length > 0 && (
+          <div className="dc-records-total-count">
+            <span>Total Records: <span>{filteredDataDiffRows.length}</span></span>
+          </div>
+        )}
       </div>
     </section>
   );

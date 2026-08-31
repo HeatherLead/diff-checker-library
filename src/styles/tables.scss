@@ -3,6 +3,10 @@
 
 .dc-table-card {
   min-width: 0;
+  padding: 14px;
+  box-shadow: 0 0 20px 0 rgba(0, 0, 0, 0.2), 0 5px 5px 0 rgba(0, 0, 0, 0.24);
+  background: white;
+  border-radius: 7px;
 }
 
 .dc-table-header {
@@ -111,8 +115,15 @@
   }
 }
 
-.dc-records-count {
+.dc-records-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
   margin-top: 8px;
+  padding: 0 4px;
+}
+
+.dc-records-count {
   font-size: 12px;
   font-style: italic;
   font-weight: 400;
@@ -120,11 +131,21 @@
 }
 
 .dc-records-count-filtered {
-  margin-top: 8px;
   font-size: 12px;
   font-style: italic;
   font-weight: 400;
   color: $dc-danger;
+}
+
+.dc-records-total-count {
+  font-size: 12px;
+  color: #6b7280;
+  font-weight: 400;
+
+  span {
+    color: #1f2937;
+    font-weight: 400;
+  }
 }
 
 // AG Grid Generator container classes

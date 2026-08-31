@@ -3,7 +3,7 @@ import ReactDiffViewer from 'react-diff-viewer-continued';
 import JsonViewer from './JsonViewer';
 import { Copy } from 'lucide-react';
 import useLockBodyScroll from '../hooks/useLockBodyScroll';
-import { ensureAbsoluteUrl } from '../utils/cellRenderers';
+import { ensureAbsoluteUrl, getEditPageUrl } from '../utils/cellRenderers';
 
 export const parseNestedJsonStrings = (val) => {
   if (val === null || val === undefined) return val;
@@ -71,6 +71,12 @@ export const DiffViewerModal = ({
   rightVersion = '1.0',
   baseUrl1 = '',
   baseUrl2 = '',
+  leftEditUrl = '',
+  rightEditUrl = '',
+  leftId = '',
+  rightId = '',
+  typeSlug = '',
+  activeOption = '',
   leftData = '',
   rightData = '',
   jsonData = null,
@@ -81,6 +87,9 @@ export const DiffViewerModal = ({
 
   const leftFormatted = formatDiffContent(leftData);
   const rightFormatted = formatDiffContent(rightData);
+
+  const resolvedLeftUrl = leftEditUrl || getEditPageUrl(baseUrl1, typeSlug || activeOption, leftId || tag);
+  const resolvedRightUrl = rightEditUrl || getEditPageUrl(baseUrl2, typeSlug || activeOption, rightId || tag);
 
   return (
     <div className="dc-modal-overlay">
@@ -97,7 +106,7 @@ export const DiffViewerModal = ({
                   Left Side - Tag: <span>{tag}</span> (v.{leftVersion})
                 </h4>
                 <a
-                  href={ensureAbsoluteUrl(baseUrl1)}
+                  href={resolvedLeftUrl}
                   target="_blank"
                   rel="noreferrer"
                   className="dc-diff-side-url"
@@ -112,7 +121,7 @@ export const DiffViewerModal = ({
                   Right Side - Tag: <span>{tag}</span> (v.{rightVersion})
                 </h4>
                 <a
-                  href={ensureAbsoluteUrl(baseUrl2)}
+                  href={resolvedRightUrl}
                   target="_blank"
                   rel="noreferrer"
                   className="dc-diff-side-url"

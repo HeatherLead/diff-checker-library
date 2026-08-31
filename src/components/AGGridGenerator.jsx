@@ -606,11 +606,6 @@ export const AGGridGenerator = ({
 
   return (
     <div className="dc-grid-wrapper">
-      {enableTotalRowCount && totalRowCount > 0 && (
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '0 4px', fontSize: '12px', color: '#6b7280', fontWeight: 400 }}>
-          <span>Total Records: <span style={{ color: '#1f2937', fontWeight: 400 }}>{totalRowCount}</span></span>
-        </div>
-      )}
       <div
         ref={gridContainerRef}
         className={`dc-grid-container ${themeClass} ${isFilterVisible ? 'ag-floating-filter-visible' : 'ag-floating-filter-hidden'}`}

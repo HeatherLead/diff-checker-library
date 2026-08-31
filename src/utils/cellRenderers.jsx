@@ -101,11 +101,36 @@ export const renderTagLink = (baseUrl, typeSlug, id, val, maxChar = 35) => {
   );
 };
 
+export const OPTION_SLUG_MAP = {
+  datatables: 'datatables-config',
+  task_entity: 'task-entity-config',
+  custom_form: 'custom-form-config',
+  workflow_config: 'workflow-config',
+  attachment_tag_list: 'attachment-tag-list',
+  templates: 'templates',
+  role_department_list: 'role-department-list',
+  react_menus: 'react-menus',
+  master_config: 'master-config',
+  site_config: 'master-config',
+  drupal_roles: 'drupal-roles',
+  dropdown_config: 'dropdown-config',
+  permission_config: 'permission-config',
+  subtask_master: 'subtask-master',
+};
+
+export const getEditPageUrl = (baseUrl, typeSlugOrOption, id) => {
+  if (!baseUrl) return '#';
+  const cleanUrl = ensureAbsoluteUrl(baseUrl).replace(/\/+$/, '');
+  if (!cleanUrl) return '#';
+  const slug = OPTION_SLUG_MAP[typeSlugOrOption] || typeSlugOrOption || 'datatables-config';
+  if (!id) return cleanUrl;
+  return `${cleanUrl}/${slug}/edit/${id}`;
+};
+
 // Common helper to render external edit links
 export const renderEditLink = (baseUrl, typeSlug, id, label = 'Edit') => {
   if (!id) return <span className="btn-purple" style={{ opacity: 0.5, cursor: 'not-allowed' }}>Edit</span>;
-  const cleanUrl = ensureAbsoluteUrl(baseUrl).replace(/\/+$/, '');
-  const editUrl = `${cleanUrl}/${typeSlug}/edit/${id}`;
+  const editUrl = getEditPageUrl(baseUrl, typeSlug, id);
   const isEdit = label === 'Edit' || label === 'edit';
 
   return (
@@ -120,3 +145,4 @@ export const renderEditLink = (baseUrl, typeSlug, id, label = 'Edit') => {
     </a>
   );
 };
+

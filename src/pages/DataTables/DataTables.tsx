@@ -93,7 +93,7 @@ export const dataTablesConfig = {
           other_status: hasOtherDiff ? "Diff Changes" : "No change",
           datatableDiff: hasStructDiff ? 'View Diff' : 'No Diff',
           queryDiff: hasQueryDiff ? 'View Diff' : 'No Diff',
-          otherDiff: 'View Diff',
+          otherDiff: hasOtherDiff ? 'View Diff' : 'No Diff',
           hasOtherDiff,
           raw1: record1,
           raw2: record2SameVersion,

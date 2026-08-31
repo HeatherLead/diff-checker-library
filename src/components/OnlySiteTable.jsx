@@ -144,8 +144,15 @@ export const OnlySiteTable = memo(({
             />
           </div>
 
-          <div className="dc-records-count">
-            Total Records: {filteredSite1Rows.length} records
+          <div className="dc-records-footer">
+            <div className="dc-records-count">
+              Total Records: {filteredSite1Rows.length} records
+            </div>
+            {filteredSite1Rows.length > 0 && (
+              <div className="dc-records-total-count">
+                <span>Total Records: <span>{filteredSite1Rows.length}</span></span>
+              </div>
+            )}
           </div>
         </section>
       </div>
@@ -203,8 +210,15 @@ export const OnlySiteTable = memo(({
           />
         </div>
 
-        <div className="dc-records-count">
-          Total Records: {filteredSite1Rows.length} records
+        <div className="dc-records-footer">
+          <div className="dc-records-count">
+            Total Records: {filteredSite1Rows.length} records
+          </div>
+          {filteredSite1Rows.length > 0 && (
+            <div className="dc-records-total-count">
+              <span>Total Records: <span>{filteredSite1Rows.length}</span></span>
+            </div>
+          )}
         </div>
       </section>
 
@@ -257,8 +271,15 @@ export const OnlySiteTable = memo(({
           />
         </div>
 
-        <div className="dc-records-count">
-          Total Records: {filteredSite2Rows.length} records
+        <div className="dc-records-footer">
+          <div className="dc-records-count">
+            Total Records: {filteredSite2Rows.length} records
+          </div>
+          {filteredSite2Rows.length > 0 && (
+            <div className="dc-records-total-count">
+              <span>Total Records: <span>{filteredSite2Rows.length}</span></span>
+            </div>
+          )}
         </div>
       </section>
     </div>

@@ -54,10 +54,7 @@ const ToastMessage = ({ msg, isError }) => {
       return (
         <div className="dc-toast-text-block">
           <span className="dc-toast-title">
-            Response : Data Fetched
-          </span>
-          <span className="dc-toast-title">
-            Successfully
+            Data Fetched Successfully
           </span>
         </div>
       );
@@ -67,10 +64,7 @@ const ToastMessage = ({ msg, isError }) => {
       return (
         <div className="dc-toast-text-block">
           <span className="dc-toast-title">
-            Response : An Error
-          </span>
-          <span className="dc-toast-title">
-            Occured
+            An Error Occured
           </span>
         </div>
       );
@@ -431,6 +425,9 @@ export const DiffChecker = ({
       rightContent = formatDiffContent(val2);
     }
 
+    const leftId = raw1.id || params.data?.rect1id || params.data?.id || params.data?.tag || '';
+    const rightId = raw2.id || params.data?.rect2id || params.data?.id || params.data?.tag || '';
+
     setModalConfig({
       isOpen: true,
       type: 'diff',
@@ -439,6 +436,9 @@ export const DiffChecker = ({
       rightVersion: raw2.version || params.data?.site2Version || params.data?.siteVersion || '1.1',
       leftData: leftContent,
       rightData: rightContent,
+      leftId,
+      rightId,
+      activeOption,
       jsonData: null
     });
   }, [activeOption]);
@@ -518,11 +518,12 @@ export const DiffChecker = ({
 
           {/* SECTION A: CONFIGURATION & BASE URLS */}
           <section className="dc-config-section">
-            <h2 className="dc-config-title">
-              {activeOptionLabel.toUpperCase()} CONFIGURATION
-            </h2>
-
             <div className="dc-config-row">
+              <h2 className="dc-config-title">
+                {activeOptionLabel.toUpperCase()} CONFIGURATION
+              </h2>
+
+
               <div className="dc-config-group">
                 <label className="dc-config-label">
                   <span>Source Backend</span>
@@ -534,7 +535,7 @@ export const DiffChecker = ({
                     value={baseUrl1}
                     readOnly
                     className="dc-config-input"
-                    placeholder="source-backend.example.com"
+                    placeholder="source-backend"
                   />
                   <a
                     href={formatUrl(baseUrl1)}
@@ -559,7 +560,7 @@ export const DiffChecker = ({
                     value={baseUrl2}
                     readOnly
                     className="dc-config-input"
-                    placeholder="target-backend.example.com"
+                    placeholder="target-backend"
                   />
                   <a
                     href={formatUrl(baseUrl2)}
@@ -590,6 +591,9 @@ export const DiffChecker = ({
           rightVersion={modalConfig.rightVersion}
           baseUrl1={baseUrl1}
           baseUrl2={baseUrl2}
+          leftId={modalConfig.leftId}
+          rightId={modalConfig.rightId}
+          activeOption={modalConfig.activeOption || activeOption}
           leftData={modalConfig.leftData}
           rightData={modalConfig.rightData}
           jsonData={modalConfig.jsonData}
