@@ -2,7 +2,7 @@ import React, { useState, useEffect, memo } from 'react';
 import { ArrowRight, X } from 'lucide-react';
 import { useDiffChecker } from '../context/DiffCheckerContext';
 import useLockBodyScroll from '../hooks/useLockBodyScroll';
-import { ensureAbsoluteUrl } from '../utils/cellRenderers';
+import { ensureAbsoluteUrl, getEditPageUrl } from '../utils/cellRenderers';
 
 export const SyncConfirmModal = memo(({
   isOpen,
@@ -10,6 +10,8 @@ export const SyncConfirmModal = memo(({
   row,
   baseUrl1: propBaseUrl1,
   baseUrl2: propBaseUrl2,
+  activeOption: propActiveOption,
+  typeSlug: propTypeSlug,
   onConfirm
 }) => {
   useLockBodyScroll(isOpen);
@@ -17,6 +19,8 @@ export const SyncConfirmModal = memo(({
   const ctx = useDiffChecker();
   const baseUrl1 = propBaseUrl1 !== undefined ? propBaseUrl1 : ctx.baseUrl1;
   const baseUrl2 = propBaseUrl2 !== undefined ? propBaseUrl2 : ctx.baseUrl2;
+  const activeOption = propActiveOption || ctx.activeOption || '';
+  const typeSlug = propTypeSlug || ctx.typeSlug || activeOption || '';
   const defaultSyncedBy = ctx.syncedBy || '';
 
   const [confirmYes, setConfirmYes] = useState('');
@@ -34,11 +38,20 @@ export const SyncConfirmModal = memo(({
 
   if (!isOpen || !row) return null;
 
+  const raw1 = row.raw1 || (row.raw && !row.raw2 ? row.raw : {}) || row;
+  const raw2 = row.raw2 || {};
+
   const sourceTag = row.raw1?.tag || row.raw1?.tag_name || row.raw1?.module || row.tag || '';
   const targetTag = row.raw2?.tag || row.raw2?.tag_name || row.raw2?.module || row.tag || '';
 
+  const sourceId = row.rect1id || row.id1 || row.raw1?.id || row.id || sourceTag || '';
+  const targetId = row.rect2id || row.id2 || row.raw2?.id || row.id || targetTag || '';
+
   const sourceUrl = baseUrl1;
   const targetUrl = baseUrl2;
+
+  const resolvedSourceUrl = row.sourceEditUrl || row.leftEditUrl || getEditPageUrl(sourceUrl, typeSlug || activeOption, sourceId || sourceTag);
+  const resolvedTargetUrl = row.targetEditUrl || row.rightEditUrl || getEditPageUrl(targetUrl, typeSlug || activeOption, targetId || targetTag);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -107,10 +120,10 @@ export const SyncConfirmModal = memo(({
               </mark>
               <p className="dc-modal-site-url">
                 <a
-                  href={ensureAbsoluteUrl(sourceUrl)}
+                  href={resolvedSourceUrl}
                   target="_blank"
                   rel="noreferrer"
-                  title={sourceUrl}
+                  title={resolvedSourceUrl}
                 >
                   {sourceUrl}
                 </a>
@@ -134,10 +147,10 @@ export const SyncConfirmModal = memo(({
               </mark>
               <p className="dc-modal-site-url">
                 <a
-                  href={ensureAbsoluteUrl(targetUrl)}
+                  href={resolvedTargetUrl}
                   target="_blank"
                   rel="noreferrer"
-                  title={targetUrl}
+                  title={resolvedTargetUrl}
                 >
                   {targetUrl}
                 </a>

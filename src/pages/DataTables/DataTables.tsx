@@ -105,7 +105,7 @@ export const dataTablesConfig = {
       }
     });
 
-    // 3. Only Site 1
+    // 3. Only Source
     list1.forEach((item: any) => {
       const tag = item.tag?.trim();
       if (!tag || !tagsSite2.has(tag)) {
@@ -118,7 +118,7 @@ export const dataTablesConfig = {
       }
     });
 
-    // 4. Only Site 2
+    // 4. Only TARGET
     list2.forEach((item: any) => {
       const tag = item.tag?.trim();
       if (!tag || !tagsSite1.has(tag)) {
@@ -164,7 +164,7 @@ export const dataTablesConfig = {
         },
         {
           field: 'site1Config',
-          headerName: 'SITE 1 CONFIG',
+          headerName: 'SOURCE CONFIG',
           flex: 1,
           cellRenderer: (params: any) => {
             const id = params.data.raw1?.id || params.data.rect1id || params.data.id || "38";
@@ -173,7 +173,7 @@ export const dataTablesConfig = {
         },
         {
           field: 'site2Config',
-          headerName: 'SITE 2 CONFIG',
+          headerName: 'TARGET CONFIG',
           flex: 1,
           cellRenderer: (params: any) => {
             const id = params.data.raw2?.id || params.data.rect2id || params.data.id || "38";

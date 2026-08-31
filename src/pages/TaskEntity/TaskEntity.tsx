@@ -122,13 +122,13 @@ export const taskEntityConfig = {
         },
         {
           field: 'site1Config',
-          headerName: 'SITE 1 CONFIG',
+          headerName: 'SOURCE CONFIG',
           flex: 1,
           cellRenderer: (params: any) => renderEditLink(baseUrl1, 'task-entity-config', params.data.rect1id, 'Edit')
         },
         {
           field: 'site2Config',
-          headerName: 'SITE 2 CONFIG',
+          headerName: 'TARGET CONFIG',
           flex: 1,
           cellRenderer: (params: any) => renderEditLink(baseUrl2, 'task-entity-config', params.data.rect2id, 'Edit')
         },

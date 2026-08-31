@@ -6,9 +6,9 @@
   border-bottom: 1px solid $dc-border;
   box-shadow: $dc-shadow-xs;
   position: relative;
-  z-index: 30;
+  z-index: 50;
   width: 100%;
-  overflow: hidden;
+  overflow-y: visible;
 }
 
 .dc-nav-inner {
@@ -18,7 +18,7 @@
   display: flex;
   align-items: center;
   overflow-x: auto;
-  overflow-y: hidden;
+  overflow-y: visible;
   -webkit-overflow-scrolling: touch;
   scrollbar-width: none;
   -ms-overflow-style: none;
@@ -27,8 +27,9 @@
     display: none;
   }
 
-  @media (min-width: 640px) {
+  @media (min-width: 900px) {
     padding: 0 24px;
+    overflow: visible;
   }
 }
 
@@ -138,7 +139,7 @@
   border-radius: $dc-radius-lg;
   box-shadow: $dc-shadow-xl;
   padding: 4px 0;
-  z-index: 50;
+  z-index: 100;
   animation: dc-zoom-in 0.15s ease-out;
   overflow: hidden;
 

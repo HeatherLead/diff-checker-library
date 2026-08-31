@@ -122,13 +122,13 @@ export const customFormConfig = {
         },
         {
           field: 'site1Config',
-          headerName: 'SITE 1 CONFIG',
+          headerName: 'SOURCE CONFIG',
           flex: 1,
           cellRenderer: (params: any) => renderEditLink(baseUrl1, 'custom-form-config', params.data.rect1id, 'Edit')
         },
         {
           field: 'site2Config',
-          headerName: 'SITE 2 CONFIG',
+          headerName: 'TARGET CONFIG',
           flex: 1,
           cellRenderer: (params: any) => renderEditLink(baseUrl2, 'custom-form-config', params.data.rect2id, 'Edit')
         },

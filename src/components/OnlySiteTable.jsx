@@ -161,13 +161,13 @@ export const OnlySiteTable = memo(({
 
   return (
     <div className="dc-grid-2col">
-      {/* Left Side: ONLY SITE 1 DATATABLES */}
+      {/* Left Side: ONLY SOURCE DATATABLES */}
       <section className="dc-table-card">
         <div className="dc-table-header">
           <div className="dc-table-header-spacer"></div>
           <div className="dc-table-header-center-wide">
             <h3 className="dc-table-title">
-              ONLY SITE 1 DATATABLES
+              ONLY SOURCE DATATABLES
             </h3>
             <a
               href={ensureAbsoluteUrl(baseUrl1)}
@@ -189,7 +189,7 @@ export const OnlySiteTable = memo(({
           </div>
         </div>
 
-        {/* Global Filter Bar for Site 1 */}
+        {/* Global Filter Bar for Source */}
         <TableFilterBar
           showFilters={showSite1Filters}
           filterableCols={site1FilterableCols}
@@ -222,13 +222,13 @@ export const OnlySiteTable = memo(({
         </div>
       </section>
 
-      {/* Right Side: ONLY SITE 2 DATATABLES */}
+      {/* Right Side: ONLY TARGET DATATABLES */}
       <section className="dc-table-card">
         <div className="dc-table-header">
           <div className="dc-table-header-spacer"></div>
           <div className="dc-table-header-center-wide">
             <h3 className="dc-table-title">
-              ONLY SITE 2 DATATABLES
+              ONLY TARGET DATATABLES
             </h3>
             <a
               href={ensureAbsoluteUrl(baseUrl2)}
@@ -250,7 +250,7 @@ export const OnlySiteTable = memo(({
           </div>
         </div>
 
-        {/* Global Filter Bar for Site 2 */}
+        {/* Global Filter Bar for TARGET */}
         <TableFilterBar
           showFilters={showSite2Filters}
           filterableCols={site2FilterableCols}

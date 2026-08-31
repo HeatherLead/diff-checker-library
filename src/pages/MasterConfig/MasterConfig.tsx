@@ -77,8 +77,8 @@ export const masterConfigConfig = {
             <button onClick={() => openDiffViewer(params, 'other')} className="btn-gray">View Diff</button>
           ) : <span className="dc-muted-text">{params.value}</span>
         },
-        { field: 'site1count', headerName: 'SITE 1 COUNT', flex: 1 },
-        { field: 'site2count', headerName: 'SITE 2 COUNT', flex: 1 }
+        { field: 'site1count', headerName: 'SOURCE COUNT', flex: 1 },
+        { field: 'site2count', headerName: 'TARGET COUNT', flex: 1 }
       ],
       site1ColDefs: [
         { field: 'tag', headerName: 'TAG', flex: 2, cellRenderer: (params: any) => renderTagLink(baseUrl1, 'master-config', params.data.id || params.data.tag, params.value) },

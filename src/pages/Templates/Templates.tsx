@@ -56,18 +56,6 @@ export const templatesConfig = {
       try { return JSON.parse(jsonStr); } catch (e) { return {}; }
     };
 
-    const filterRecord = (rec: any) => {
-      const filtered: Record<string, any> = Object.fromEntries(
-        Object.entries(rec).filter(
-          ([key]) => !["tag_name", "tag_id", "template_id", "created_by", "updated_by", "updated", "created"].includes(key)
-        )
-      );
-      if (filtered.file_base64 && typeof filtered.file_base64 === "string") {
-        filtered.file_base64 = parseCSVToCleanedArray(filtered.file_base64);
-      }
-      return filtered;
-    };
-
     map1.forEach((record1: any) => {
       if (!record1.tag_name) return;
       const tag1 = record1.tag_name.trim();
@@ -77,10 +65,6 @@ export const templatesConfig = {
       );
 
       if (record2Exact !== undefined) {
-        const clean1 = filterRecord(record1);
-        const clean2 = filterRecord(record2Exact);
-        const hasDiff = JSON.stringify(clean1) !== JSON.stringify(clean2);
-
         const excel1 = { excel_diff: record1.file_base64 ? parseCSVToCleanedArray(record1.file_base64) : [] };
         const excel2 = { excel_diff: record2Exact.file_base64 ? parseCSVToCleanedArray(record2Exact.file_base64) : [] };
         const hasExcelDiff = JSON.stringify(excel1) !== JSON.stringify(excel2);
@@ -89,7 +73,12 @@ export const templatesConfig = {
         const val2 = record2Exact.validator_json ? parseValidatorJson(record2Exact.validator_json) : {};
         const hasValDiff = JSON.stringify(val1) !== JSON.stringify(val2);
 
+        const hasDiff = hasExcelDiff || hasValDiff;
+
         dataDiff.push({
+          rect1id: record1.tag_id || record1.id,
+          rect2id: record2Exact.tag_id || record2Exact.id,
+          id: record1.tag_id || record1.id,
           tag: tag1,
           bo_type: (record1.business_unit || "").trim(),
           rec1version: record1.version || "",
@@ -109,7 +98,7 @@ export const templatesConfig = {
           onlySite1.push({
             tag: tag1,
             bo_type: (record1.business_unit || "").trim(),
-            id: record1.id,
+            id: record1.tag_id || record1.id,
             raw: record1
           });
         }
@@ -123,7 +112,7 @@ export const templatesConfig = {
         onlySite2.push({
           tag: tag2,
           bo_type: (record2.business_unit || "").trim(),
-          id: record2.id,
+          id: record2.tag_id || record2.id,
           raw: record2
         });
       }
@@ -162,7 +151,7 @@ export const templatesConfig = {
         }
       ],
       site1ColDefs: [
-        { field: 'tag', headerName: 'TAG', flex: 2, cellRenderer: (params: any) => renderTagLink(baseUrl1, 'templates', params.data.id, params.value) },
+        { field: 'tag', headerName: 'TAG', flex: 2, cellRenderer: (params: any) => renderTagLink(baseUrl1, 'input-file-tag', params.data.raw?.tag_id || params.data.id, params.value) },
         { field: 'bo_type', headerName: 'BO TYPE', flex: 1 },
         {
           field: 'viewData',
@@ -182,7 +171,7 @@ export const templatesConfig = {
         }
       ],
       site2ColDefs: [
-        { field: 'tag', headerName: 'TAG', flex: 2, cellRenderer: (params: any) => renderTagLink(baseUrl2, 'templates', params.data.id, params.value) },
+        { field: 'tag', headerName: 'TAG', flex: 2, cellRenderer: (params: any) => renderTagLink(baseUrl2, 'input-file-tag', params.data.raw?.tag_id || params.data.id, params.value) },
         { field: 'bo_type', headerName: 'BO TYPE', flex: 1 },
         {
           field: 'viewData',

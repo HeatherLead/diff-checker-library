@@ -189,8 +189,6 @@ export function useConfigurationDiff(diffTag: string, options: { autoFetch?: boo
 
     if (isErrorState) {
       showToast(result?.message || 'An error occured', true);
-    } else {
-      showToast(result?.message || 'Data fetch successfully');
     }
   }, [apiBaseUrl, apiTag, csrfToken, diffTag, headers, setBaseUrl1, setBaseUrl2, setBackendMetadata, showToast]);
 

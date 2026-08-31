@@ -18,8 +18,8 @@ export const isFilterableColumn = (col) => {
     headerLower === 'view data' ||
     headerLower === 'view query' ||
     headerLower === 'view role diff' ||
-    headerLower === 'site 1 config' ||
-    headerLower === 'site 2 config' ||
+    headerLower === 'source config' ||
+    headerLower === 'target config' ||
     headerLower === 'display msg' ||
     headerLower === 'excel diff' ||
     headerLower === 'validator diff' ||
@@ -49,8 +49,8 @@ export const formatFilterLabel = (headerName) => {
     .split(/\s+/)
     .map(word => {
       if (/^BO$/i.test(word)) return 'BO';
-      if (/^SITE1$/i.test(word)) return 'Site 1';
-      if (/^SITE2$/i.test(word)) return 'Site 2';
+      if (/^SITE1$/i.test(word)) return 'Source';
+      if (/^SITE2$/i.test(word)) return 'Target';
       return word.charAt(0).toUpperCase() + word.slice(1).toLowerCase();
     })
     .join(' ');

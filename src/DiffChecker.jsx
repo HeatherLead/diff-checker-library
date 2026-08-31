@@ -7,6 +7,7 @@ import { SquareArrowOutUpRight, Check, X } from 'lucide-react';
 import { SyncConfirmModal } from './components/SyncConfirmModal';
 import { CopyToConfirmModal } from './components/CopyToConfirmModal';
 import { getOptionConfig } from './config';
+import { ensureAbsoluteUrl } from './utils/cellRenderers';
 import { toast, ToastContainer, Bounce } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import { DiffCheckerProvider } from './context/DiffCheckerContext';
@@ -369,15 +370,15 @@ export const DiffChecker = ({
 
       if (response && response.status >= 200 && response.status < 300) {
         if (direction === 'to_right') {
-          showToast(`Copied "${itemTag}" to Site 2 successfully!`);
+          showToast(`Copied "${itemTag}" to Target successfully!`);
         } else {
-          showToast(`Copied "${itemTag}" to Site 1 successfully!`);
+          showToast(`Copied "${itemTag}" to Source successfully!`);
         }
       } else {
         if (direction === 'to_right') {
-          showToast(`Copied "${itemTag}" to Site 2`);
+          showToast(`Copied "${itemTag}" to Target`);
         } else {
-          showToast(`Copied "${itemTag}" to Site 1`);
+          showToast(`Copied "${itemTag}" to Source`);
         }
       }
     } catch (err) {
@@ -425,8 +426,38 @@ export const DiffChecker = ({
       rightContent = formatDiffContent(val2);
     }
 
-    const leftId = raw1.id || params.data?.rect1id || params.data?.id || params.data?.tag || '';
-    const rightId = raw2.id || params.data?.rect2id || params.data?.id || params.data?.tag || '';
+    const leftId = raw1.tag_id || raw1.id || params.data?.rect1id || params.data?.id || params.data?.tag || '';
+    const rightId = raw2.tag_id || raw2.id || params.data?.rect2id || params.data?.id || params.data?.tag || '';
+
+    let leftEditUrl = '';
+    let rightEditUrl = '';
+
+    if (activeOption === 'templates') {
+      const leftTagId = raw1.tag_id || params.data?.rect1id || raw1.id || params.data?.id || '';
+      const rightTagId = raw2.tag_id || params.data?.rect2id || raw2.id || params.data?.id || '';
+      const tagName = params.data?.tag || raw1.tag_name || raw2.tag_name || '';
+
+      if (fieldType === 'validator') {
+        if (baseUrl1 && leftTagId) {
+          const clean1 = ensureAbsoluteUrl(baseUrl1).replace(/\/+$/, '');
+          leftEditUrl = `${clean1}/update-validation-json/${leftTagId}?tag_name=${encodeURIComponent(tagName)}`;
+        }
+        if (baseUrl2 && rightTagId) {
+          const clean2 = ensureAbsoluteUrl(baseUrl2).replace(/\/+$/, '');
+          rightEditUrl = `${clean2}/update-validation-json/${rightTagId}?tag_name=${encodeURIComponent(tagName)}`;
+        }
+      } else {
+        // excel or default templates diff
+        if (baseUrl1 && leftTagId) {
+          const clean1 = ensureAbsoluteUrl(baseUrl1).replace(/\/+$/, '');
+          leftEditUrl = `${clean1}/input-file-tag/edit/${leftTagId}`;
+        }
+        if (baseUrl2 && rightTagId) {
+          const clean2 = ensureAbsoluteUrl(baseUrl2).replace(/\/+$/, '');
+          rightEditUrl = `${clean2}/input-file-tag/edit/${rightTagId}`;
+        }
+      }
+    }
 
     setModalConfig({
       isOpen: true,
@@ -438,10 +469,12 @@ export const DiffChecker = ({
       rightData: rightContent,
       leftId,
       rightId,
+      leftEditUrl,
+      rightEditUrl,
       activeOption,
       jsonData: null
     });
-  }, [activeOption]);
+  }, [activeOption, baseUrl1, baseUrl2]);
 
   // Open Data (JSON Tree View) Modal handler
   const openDataViewer = useCallback((params) => {
@@ -591,6 +624,8 @@ export const DiffChecker = ({
           rightVersion={modalConfig.rightVersion}
           baseUrl1={baseUrl1}
           baseUrl2={baseUrl2}
+          leftEditUrl={modalConfig.leftEditUrl}
+          rightEditUrl={modalConfig.rightEditUrl}
           leftId={modalConfig.leftId}
           rightId={modalConfig.rightId}
           activeOption={modalConfig.activeOption || activeOption}
@@ -606,6 +641,7 @@ export const DiffChecker = ({
           row={syncModalConfig.row}
           baseUrl1={baseUrl1}
           baseUrl2={baseUrl2}
+          activeOption={activeOption}
           onConfirm={executeSync}
         />
 
@@ -617,6 +653,7 @@ export const DiffChecker = ({
           direction={cloneModalConfig.direction}
           baseUrl1={baseUrl1}
           baseUrl2={baseUrl2}
+          activeOption={activeOption}
           onConfirm={executeClone}
         />
 
