@@ -191,8 +191,8 @@ export const dataTablesConfig = {
       ],
       versionMismatchColDefs: [
         { field: 'tag', headerName: 'TAG', flex: 2, cellRenderer: (params: any) => renderTrimTooltip(params.value, 35) },
-        { field: 'site1Version', headerName: 'SITE1 VERSION', flex: 1.5, cellRenderer: (params: any) => <span className="dc-tag-span" style={{ fontSize: '14px' }}>{params.value}</span> },
-        { field: 'site2Version', headerName: 'SITE2 VERSION', flex: 1.5, cellRenderer: (params: any) => <span className="dc-tag-span" style={{ fontSize: '14px' }}>{params.value}</span> },
+        { field: 'site1Version', headerName: 'SITE1 VERSION', flex: 1.5, cellRenderer: (params: any) => <span className="dc-tag-span" style={{ fontSize: '12px' }}>{params.value}</span> },
+        { field: 'site2Version', headerName: 'SITE2 VERSION', flex: 1.5, cellRenderer: (params: any) => <span className="dc-tag-span" style={{ fontSize: '12px' }}>{params.value}</span> },
         {
           field: 'datatableDiff',
           headerName: 'DATATABLE DIFF',

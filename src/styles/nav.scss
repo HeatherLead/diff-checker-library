@@ -7,31 +7,54 @@
   box-shadow: $dc-shadow-xs;
   position: relative;
   z-index: 30;
+  width: 100%;
+  overflow: hidden;
 }
 
 .dc-nav-inner {
   max-width: 1600px;
   margin: 0 auto;
-  padding: 0 24px;
+  padding: 0 16px;
   display: flex;
   align-items: center;
-  justify-content: space-between;
+  overflow-x: auto;
+  overflow-y: hidden;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+
+  &::-webkit-scrollbar {
+    display: none;
+  }
+
+  @media (min-width: 640px) {
+    padding: 0 24px;
+  }
 }
 
 .dc-nav-tabs {
   display: flex;
   align-items: center;
-  gap: 24px;
+  gap: 18px;
+  flex-wrap: nowrap;
+  white-space: nowrap;
+  min-width: max-content;
 
   @media (min-width: 640px) {
+    gap: 32px;
+  }
+
+  @media (min-width: 1024px) {
     gap: 40px;
   }
 }
 
 .dc-nav-tab-btn {
-  padding: 14px 0;
+  padding: 12px 0;
   font-size: 13px;
   font-weight: 600;
+  white-space: nowrap;
+  flex-shrink: 0;
   transition: color 0.2s ease;
   cursor: pointer;
   outline: none;
@@ -40,6 +63,10 @@
   color: $dc-text-secondary;
   display: inline-flex;
   align-items: center;
+
+  @media (min-width: 640px) {
+    padding: 14px 0;
+  }
 
   &:hover {
     color: #111827;
@@ -54,12 +81,15 @@
   position: relative;
   display: flex;
   align-items: center;
+  flex-shrink: 0;
 }
 
 .dc-nav-dropdown-btn {
-  padding: 14px 0;
+  padding: 12px 0;
   font-size: 13px;
   font-weight: 600;
+  white-space: nowrap;
+  flex-shrink: 0;
   display: flex;
   align-items: center;
   gap: 6px;
@@ -69,6 +99,10 @@
   border: none;
   background: none;
   color: $dc-text-secondary;
+
+  @media (min-width: 640px) {
+    padding: 14px 0;
+  }
 
   &:hover {
     color: #111827;
@@ -98,6 +132,7 @@
   margin-top: 0;
   width: 208px;
   min-width: 180px;
+  max-width: calc(100vw - 32px);
   background-color: #ffffff;
   border: 1px solid $dc-border-light;
   border-radius: $dc-radius-lg;
@@ -106,6 +141,11 @@
   z-index: 50;
   animation: dc-zoom-in 0.15s ease-out;
   overflow: hidden;
+
+  &.dc-nav-dropdown-menu-right {
+    left: auto;
+    right: 0;
+  }
 }
 
 .dc-nav-dropdown-item {
@@ -140,4 +180,4 @@
   pointer-events: none;
   z-index: 10;
   border-radius: 2px 2px 0 0;
-}
+}

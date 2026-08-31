@@ -44,44 +44,80 @@ body {
 
 // Configuration Section (Base URLs)
 .dc-config-section {
-  padding: 8px 8px 0 8px;
-}
+  padding: 8px 12px;
+  width: 100%;
+  display: flex;
+  justify-content: center;
 
-.dc-config-title {
-  height: 100%;
-  text-align: center;
-  font-size: 1rem;
-  line-height: 0.5rem;
-  font-weight: 500;
-  text-transform: uppercase;
-  margin: 0;
-  text-decoration: underline;
-  color: $dc-text-primary;
+  @media (min-width: 900px) {
+    justify-content: flex-start;
+  }
 }
 
 .dc-config-row {
   display: flex;
-  flex-wrap: wrap;
+  flex-direction: column;
   align-items: center;
-  justify-content: space-evenly;
-  gap: 16px;
+  gap: 12px;
   font-size: 12px;
   font-weight: 400;
   color: $dc-text-muted;
+
+  @media (min-width: 900px) {
+    flex-direction: row;
+    flex-wrap: nowrap;
+    align-items: center;
+    justify-content: flex-start;
+    gap: 20px;
+    width: max-content;
+    max-width: 100%;
+  }
+}
+
+.dc-config-title {
+  text-align: center;
+  font-size: 13px;
+  line-height: 1.2;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin: 0;
+  color: $dc-text-primary;
+  white-space: nowrap;
+  flex-shrink: 0;
+
+  @media (min-width: 900px) {
+    text-align: left;
+  }
 }
 
 .dc-config-group {
   display: flex;
-  // flex-direction: column;
+  flex-direction: column;
+  align-items: center;
   gap: 4px;
+
+  @media (min-width: 900px) {
+    flex-direction: row;
+    align-items: center;
+    gap: 8px;
+  }
 }
 
 .dc-config-label {
   display: flex;
   align-items: center;
+  justify-content: center;
   gap: 4px;
-  font-weight: 400;
+  font-size: 12px;
+  font-weight: 500;
   color: $dc-text-secondary;
+  white-space: nowrap;
+  flex-shrink: 0;
+
+  @media (min-width: 900px) {
+    justify-content: flex-start;
+  }
 
   .dc-required-star {
     color: $dc-danger;
@@ -95,21 +131,21 @@ body {
 }
 
 .dc-config-input {
-  width: 288px;
-  padding: 6px 32px 6px 12px;
+  width: 180px;
+  padding: 5px 30px 5px 10px;
   border: 1px solid $dc-border-dark;
   border-radius: $dc-radius-sm;
   outline: none;
-  color: $dc-text-secondary;
+  color: $dc-text-primary;
   font-weight: 400;
-  background-color: rgba(249, 250, 251, 0.5);
+  background-color: #ffffff;
   cursor: default;
   font-size: 12px;
   font-family: inherit;
-  transition: border-color 0.15s;
+  transition: border-color 0.15s, box-shadow 0.15s;
 
-  @media (min-width: 640px) {
-    width: 320px;
+  @media (min-width: 900px) {
+    width: 210px;
   }
 
   &:focus {
@@ -120,7 +156,7 @@ body {
 
 .dc-config-ext-link {
   position: absolute;
-  right: 10px;
+  right: 8px;
   color: $dc-text-light;
   display: flex;
   align-items: center;

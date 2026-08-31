@@ -12,7 +12,7 @@
   --ag-header-column-separator-color: transparent;
   --ag-row-border-color: #f0f0f0;
   --ag-border-color: #e2e8f0;
-  --ag-font-size: 13px;
+  --ag-font-size: 12px;
   --ag-grid-size: 6px;
   --ag-font-family: 'Roboto', sans-serif;
   --ag-row-hover-color: #f8fafc;
@@ -327,6 +327,7 @@
 .ag-cell {
   display: flex !important;
   align-items: center !important;
+  font-size: 12px !important;
 }
 
 .btn-maroon-outline,
@@ -348,7 +349,7 @@
   height: 27px !important;
   margin: auto !important;
   padding: 0 4px !important;
-  font-size: 0.875rem !important;
+  font-size: 12px !important;
   font-weight: normal !important;
   line-height: 1 !important;
   border-radius: 2.8px !important;

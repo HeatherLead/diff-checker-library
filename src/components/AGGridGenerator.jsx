@@ -469,7 +469,7 @@ export const AGGridGenerator = ({
           state: [{ colId, sort: "asc" }],
           defaultState: { sort: null }
         }),
-        icon: '<span style="font-size: 14px; font-weight: normal;">↑</span>'
+        icon: '<span style="font-size: 12px; font-weight: normal;">↑</span>'
       },
       {
         name: "Sort Descending",
@@ -477,7 +477,7 @@ export const AGGridGenerator = ({
           state: [{ colId, sort: "desc" }],
           defaultState: { sort: null }
         }),
-        icon: '<span style="font-size: 14px; font-weight: normal;">↓</span>'
+        icon: '<span style="font-size: 12px; font-weight: normal;">↓</span>'
       },
       "separator",
       "pinSubMenu",

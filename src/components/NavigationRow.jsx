@@ -46,6 +46,7 @@ const NavigationRow = memo(({ activeOption: propActiveOption, onSelectOption: pr
   const [openDropdownId, setOpenDropdownId] = useState(null);
   const tabRefs = useRef({});
   const navContainerRef = useRef(null);
+  const navInnerRef = useRef(null);
   const [indicatorStyle, setIndicatorStyle] = useState({ left: 0, width: 0, opacity: 0 });
 
   // Clean base path without trailing slash
@@ -109,14 +110,25 @@ const NavigationRow = memo(({ activeOption: propActiveOption, onSelectOption: pr
 
   useLayoutEffect(() => {
     updateIndicator();
+    const activeEl = tabRefs.current[activeTabId];
+    if (activeEl && typeof activeEl.scrollIntoView === 'function') {
+      activeEl.scrollIntoView({ behavior: 'smooth', inline: 'nearest', block: 'nearest' });
+    }
   }, [currentActiveOption, activeTabId]);
 
   useEffect(() => {
     window.addEventListener('resize', updateIndicator);
+    const navInner = navInnerRef.current;
+    if (navInner) {
+      navInner.addEventListener('scroll', updateIndicator, { passive: true });
+    }
     const animId = requestAnimationFrame(updateIndicator);
-    const timer = setTimeout(updateIndicator, 100);
+    const timer = setTimeout(updateIndicator, 150);
     return () => {
       window.removeEventListener('resize', updateIndicator);
+      if (navInner) {
+        navInner.removeEventListener('scroll', updateIndicator);
+      }
       cancelAnimationFrame(animId);
       clearTimeout(timer);
     };
@@ -160,13 +172,14 @@ const NavigationRow = memo(({ activeOption: propActiveOption, onSelectOption: pr
 
   return (
     <div className="dc-nav" ref={navContainerRef}>
-      <div className="dc-nav-inner">
+      <div className="dc-nav-inner" ref={navInnerRef}>
 
         {/* Navigation Tabs List */}
         <div className="dc-nav-tabs">
-          {TABS.map((tab) => {
+          {TABS.map((tab, index) => {
             const isTabActive = activeTabId === tab.id;
             const isOpen = openDropdownId === tab.id;
+            const isRightAligned = index >= TABS.length - 2;
 
             if (tab.type === 'single') {
               return (
@@ -201,7 +214,7 @@ const NavigationRow = memo(({ activeOption: propActiveOption, onSelectOption: pr
 
                 {/* DROPDOWN MENU CARD */}
                 {isOpen && (
-                  <div className="dc-nav-dropdown-menu">
+                  <div className={`dc-nav-dropdown-menu ${isRightAligned ? 'dc-nav-dropdown-menu-right' : ''}`}>
                     {tab.items.map((item) => {
                       const isOptionSelected = currentActiveOption === item.id;
                       return (
