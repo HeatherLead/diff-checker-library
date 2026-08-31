@@ -10,13 +10,13 @@ export const reactMenusConfig = {
   leftDataKey: 'other_diff',
   rightDataKey: 'other_diff',
   hasVersionMismatch: false,
-  compare: (site1Dataset: any, site2Dataset: any) => {
+  compare: (sourceDataset: any, targetDataset: any) => {
     const dataDiff: any[] = [];
-    const onlySite1: any[] = [];
-    const onlySite2: any[] = [];
+    const onlySource: any[] = [];
+    const onlyTarget: any[] = [];
 
-    const list1 = Object.values(site1Dataset || {}) as any[];
-    const list2 = Object.values(site2Dataset || {}) as any[];
+    const list1 = Object.values(sourceDataset || {}) as any[];
+    const list2 = Object.values(targetDataset || {}) as any[];
 
     list1.forEach((s1_val: any) => {
       const s2_val = list2.find((s2: any) => s2.url === s1_val.url);
@@ -33,14 +33,14 @@ export const reactMenusConfig = {
 
         dataDiff.push({
           tag: s1_val.title,
-          df_status: hasDiff ? "Diff Changes" : "No change",
+          df_status: hasDiff ? "Diff Changes" : "No diff",
           otherDiff: hasDiff ? "View Diff" : "No Diff",
           url: s1_val.url,
           raw1: s1_val,
           raw2: s2_val
         });
       } else {
-        onlySite1.push({
+        onlySource.push({
           tag: s1_val.title,
           id: s1_val.id || s1_val.url || s1_val.title,
           roles: s1_val.roles,
@@ -54,7 +54,7 @@ export const reactMenusConfig = {
     list2.forEach((s2_val: any) => {
       const s1_val = list1.find((s1: any) => s1.url === s2_val.url);
       if (!s1_val) {
-        onlySite2.push({
+        onlyTarget.push({
           tag: s2_val.title,
           id: s2_val.id || s2_val.url || s2_val.title,
           roles: s2_val.roles,
@@ -65,9 +65,56 @@ export const reactMenusConfig = {
       }
     });
 
-    return { dataDiff, versionMismatch: [], onlySite1, onlySite2 };
+    return {
+      dataDiff,
+      versionMismatch: [],
+      onlySource,
+      onlyTarget,
+      onlySite1: onlySource,
+      onlySite2: onlyTarget
+    };
   },
   getColumns: ({ openDiffViewer, openDataViewer, handleCloneConfiguration, baseUrl1, baseUrl2 }: any) => {
+    const sourceColDefs = [
+      { field: 'tag', headerName: 'TAG', flex: 2, cellRenderer: (params: any) => renderTagLink(baseUrl1, 'react-menus', params.data.id || params.data.tag, params.value) },
+      {
+        field: 'viewData',
+        headerName: 'VIEW DATA',
+        flex: 1.2,
+        cellRenderer: (params: any) => (
+          <button onClick={() => openDataViewer(params)} className="btn-gray">View Data</button>
+        )
+      },
+      {
+        field: 'syncData',
+        headerName: '',
+        flex: 1.2,
+        cellRenderer: (params: any) => (
+          <button onClick={() => handleCloneConfiguration(params.data.raw, baseUrl2, 'to_right')} className="btn-gray">Copy to Right</button>
+        )
+      }
+    ];
+
+    const targetColDefs = [
+      { field: 'tag', headerName: 'TAG', flex: 2, cellRenderer: (params: any) => renderTagLink(baseUrl2, 'react-menus', params.data.id || params.data.tag, params.value) },
+      {
+        field: 'viewData',
+        headerName: 'VIEW DATA',
+        flex: 1.2,
+        cellRenderer: (params: any) => (
+          <button onClick={() => openDataViewer(params)} className="btn-gray">View Data</button>
+        )
+      },
+      {
+        field: 'syncData',
+        headerName: '',
+        flex: 1.2,
+        cellRenderer: (params: any) => (
+          <button onClick={() => handleCloneConfiguration(params.data.raw, baseUrl1, 'to_left')} className="btn-gray">Copy to Left</button>
+        )
+      }
+    ];
+
     return {
       dataDiffColDefs: [
         { field: 'tag', headerName: 'TAG', flex: 1.5, cellRenderer: (params: any) => renderTrimTooltip(params.value, 35) },
@@ -81,44 +128,10 @@ export const reactMenusConfig = {
           ) : <span className="dc-muted-text">{params.value}</span>
         }
       ],
-      site1ColDefs: [
-        { field: 'tag', headerName: 'TAG', flex: 2, cellRenderer: (params: any) => renderTagLink(baseUrl1, 'react-menus', params.data.id || params.data.tag, params.value) },
-        {
-          field: 'viewData',
-          headerName: 'VIEW DATA',
-          flex: 1.2,
-          cellRenderer: (params: any) => (
-            <button onClick={() => openDataViewer(params)} className="btn-gray">View Data</button>
-          )
-        },
-        {
-          field: 'syncData',
-          headerName: '',
-          flex: 1.2,
-          cellRenderer: (params: any) => (
-            <button onClick={() => handleCloneConfiguration(params.data.raw, baseUrl2, 'to_right')} className="btn-gray">Copy to Right</button>
-          )
-        }
-      ],
-      site2ColDefs: [
-        { field: 'tag', headerName: 'TAG', flex: 2, cellRenderer: (params: any) => renderTagLink(baseUrl2, 'react-menus', params.data.id || params.data.tag, params.value) },
-        {
-          field: 'viewData',
-          headerName: 'VIEW DATA',
-          flex: 1.2,
-          cellRenderer: (params: any) => (
-            <button onClick={() => openDataViewer(params)} className="btn-gray">View Data</button>
-          )
-        },
-        {
-          field: 'syncData',
-          headerName: '',
-          flex: 1.2,
-          cellRenderer: (params: any) => (
-            <button onClick={() => handleCloneConfiguration(params.data.raw, baseUrl1, 'to_left')} className="btn-gray">Copy to Left</button>
-          )
-        }
-      ]
+      sourceColDefs,
+      targetColDefs,
+      site1ColDefs: sourceColDefs,
+      site2ColDefs: targetColDefs
     };
   }
 };
@@ -131,8 +144,8 @@ const ReactMenus: React.FC<ReactMenusProps> = ({ activeOption = 'react_menus' })
   const {
     dataDiffRows,
     versionMismatchRows,
-    onlySite1Rows,
-    onlySite2Rows,
+    onlySourceRows,
+    onlyTargetRows,
     config,
   } = useConfigurationDiff(activeOption);
 
@@ -155,8 +168,8 @@ const ReactMenus: React.FC<ReactMenusProps> = ({ activeOption = 'react_menus' })
       {/* SECTION 3: SIDE-BY-SIDE ONLY SITE TABLES */}
       <OnlySiteTable
         activeOption={activeOption}
-        onlySite1Rows={onlySite1Rows}
-        onlySite2Rows={onlySite2Rows}
+        onlySourceRows={onlySourceRows}
+        onlyTargetRows={onlyTargetRows}
       />
     </div>
   );

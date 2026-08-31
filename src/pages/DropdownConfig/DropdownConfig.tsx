@@ -12,12 +12,12 @@ export const dropdownConfigConfig = {
   hasVersionMismatch: false,
   hasOnlySiteTables: false,
   hasNonMatchTable: true,
-  compare: (site1Dataset: any[], site2Dataset: any[]) => {
+  compare: (sourceDataset: any[], targetDataset: any[]) => {
     const dataDiff: any[] = [];
     const nonMatch: any[] = [];
 
-    const map1 = site1Dataset || [];
-    const map2 = site2Dataset || [];
+    const map1 = sourceDataset || [];
+    const map2 = targetDataset || [];
 
     map1.forEach((record1: any) => {
       const record2 = map2.find((o: any) => o.tag === record1.tag);
@@ -25,10 +25,11 @@ export const dropdownConfigConfig = {
       if (record2) {
         const hasDiff = record1.dropdown_query !== record2.dropdown_query;
         dataDiff.push({
+          id: record1.id || record2.id || record1.tag,
           tag: record1.tag,
           rec1version: record1.version,
           rec2version: record2.version,
-          query_status: hasDiff ? "Diff Changes" : "No change",
+          query_status: hasDiff ? "Diff Changes" : "No diff",
           dropdown_query: record1.dropdown_query,
           raw1: record1,
           raw2: record2
@@ -59,9 +60,29 @@ export const dropdownConfigConfig = {
       }
     });
 
-    return { dataDiff, versionMismatch: [], onlySite1: nonMatch, onlySite2: [] };
+    return {
+      dataDiff,
+      versionMismatch: [],
+      onlySource: nonMatch,
+      onlyTarget: [],
+      onlySite1: nonMatch,
+      onlySite2: []
+    };
   },
   getColumns: ({ openDiffViewer, openDataViewer, baseUrl1 }: any) => {
+    const sourceColDefs = [
+      { field: 'tag', headerName: 'TAG', flex: 2, cellRenderer: (params: any) => renderTagLink(baseUrl1, 'dropdown-config', params.data.id || params.data.tag, params.value) },
+      { field: 'rec1version', headerName: 'SITE VERSION', flex: 1 },
+      {
+        field: 'view_query',
+        headerName: 'VIEW QUERY',
+        flex: 1.2,
+        cellRenderer: (params: any) => (
+          <button onClick={() => openDataViewer({ data: { tag: params.data.tag, raw: { query: params.data.query } } })} className="btn-gray">View</button>
+        )
+      }
+    ];
+
     return {
       dataDiffColDefs: [
         { field: 'tag', headerName: 'TAG', flex: 1.5, cellRenderer: (params: any) => renderTrimTooltip(params.value, 35) },
@@ -73,21 +94,12 @@ export const dropdownConfigConfig = {
           flex: 1.2,
           cellRenderer: (params: any) => params.data.query_status === 'Diff Changes' ? (
             <button onClick={() => openDiffViewer(params, 'structure')} className="btn-gray">View Diff</button>
-          ) : <span className="dc-muted-text">{params.data.query_status === 'No change' ? 'No diff' : ''}</span>
+          ) : <span className="dc-muted-text">{params.data.query_status === 'No diff' ? 'No diff' : ''}</span>
         }
       ],
-      site1ColDefs: [
-        { field: 'tag', headerName: 'TAG', flex: 2, cellRenderer: (params: any) => renderTagLink(baseUrl1, 'dropdown-config', params.data.id || params.data.tag, params.value) },
-        { field: 'rec1version', headerName: 'SITE VERSION', flex: 1 },
-        {
-          field: 'view_query',
-          headerName: 'VIEW QUERY',
-          flex: 1.2,
-          cellRenderer: (params: any) => (
-            <button onClick={() => openDataViewer({ data: { tag: params.data.tag, raw: { query: params.data.query } } })} className="btn-gray">View</button>
-          )
-        }
-      ],
+      sourceColDefs,
+      targetColDefs: [],
+      site1ColDefs: sourceColDefs,
       site2ColDefs: []
     };
   }
@@ -103,8 +115,8 @@ const DropdownConfig: React.FC<DropdownConfigProps> = ({ activeOption = 'dropdow
   const {
     dataDiffRows,
     versionMismatchRows,
-    onlySite1Rows,
-    onlySite2Rows,
+    onlySourceRows,
+    onlyTargetRows,
     config,
   } = useConfigurationDiff(activeOption);
 
@@ -127,8 +139,8 @@ const DropdownConfig: React.FC<DropdownConfigProps> = ({ activeOption = 'dropdow
       {/* SECTION 3: SIDE-BY-SIDE ONLY SITE TABLES */}
       <OnlySiteTable
         activeOption={activeOption}
-        onlySite1Rows={onlySite1Rows}
-        onlySite2Rows={onlySite2Rows}
+        onlySourceRows={onlySourceRows}
+        onlyTargetRows={onlyTargetRows}
       />
     </div>
   );

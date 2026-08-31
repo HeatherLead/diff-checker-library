@@ -10,21 +10,22 @@ export const masterConfigConfig = {
   leftDataKey: 'master_config',
   rightDataKey: 'master_config',
   hasVersionMismatch: false,
-  compare: (site1Dataset: any, site2Dataset: any) => {
+  compare: (sourceDataset: any, targetDataset: any) => {
     const dataDiff: any[] = [];
-    const onlySite1: any[] = [];
-    const onlySite2: any[] = [];
+    const onlySource: any[] = [];
+    const onlyTarget: any[] = [];
 
-    const map1 = site1Dataset || {};
-    const map2 = site2Dataset || {};
+    const map1 = sourceDataset || {};
+    const map2 = targetDataset || {};
 
     for (const key in map1) {
       if (map1.hasOwnProperty(key) && !map2.hasOwnProperty(key) && key !== undefined) {
-        onlySite1.push({
+        onlySource.push({
           tag: key,
           id: map1[key]?.id || key,
           version: map1[key]?.version,
           sitecount: map1[key]?.data_count || "NA",
+          sourceCount: map1[key]?.data_count || "NA",
           raw: map1[key]
         });
       }
@@ -32,11 +33,12 @@ export const masterConfigConfig = {
 
     for (const key in map2) {
       if (map2.hasOwnProperty(key) && !map1.hasOwnProperty(key) && key !== undefined) {
-        onlySite2.push({
+        onlyTarget.push({
           tag: key,
           id: map2[key]?.id || key,
           version: map2[key]?.version,
           sitecount: map2[key]?.data_count || "NA",
+          targetCount: map2[key]?.data_count || "NA",
           raw: map2[key]
         });
       }
@@ -51,19 +53,56 @@ export const masterConfigConfig = {
           tag: key,
           rec1version: item1?.version,
           rec2version: item2?.version,
-          dt_status: hasDiff ? "Diff Changes" : "No change",
+          dt_status: hasDiff ? "Diff Changes" : "No diff",
           datatableDiff: hasDiff ? "View Diff" : "No Diff",
           site1count: item1?.data_count || "NA",
           site2count: item2?.data_count || "NA",
+          sourceCount: item1?.data_count || "NA",
+          targetCount: item2?.data_count || "NA",
           raw1: item1,
           raw2: item2
         });
       }
     }
 
-    return { dataDiff, versionMismatch: [], onlySite1, onlySite2 };
+    return {
+      dataDiff,
+      versionMismatch: [],
+      onlySource,
+      onlyTarget,
+      onlySite1: onlySource,
+      onlySite2: onlyTarget
+    };
   },
   getColumns: ({ openDiffViewer, handleCloneConfiguration, baseUrl1, baseUrl2 }: any) => {
+    const sourceColDefs = [
+      { field: 'tag', headerName: 'TAG', flex: 2, cellRenderer: (params: any) => renderTagLink(baseUrl1, 'master-config', params.data.id || params.data.tag, params.value) },
+      { field: 'version', headerName: 'SITE VERSION', flex: 1 },
+      { field: 'sitecount', headerName: 'SITE COUNT', flex: 1 },
+      {
+        field: 'syncData',
+        headerName: '',
+        flex: 1.2,
+        cellRenderer: (params: any) => (
+          <button onClick={() => handleCloneConfiguration(params.data.raw, baseUrl2, 'to_right')} className="btn-gray">Copy to Right</button>
+        )
+      }
+    ];
+
+    const targetColDefs = [
+      { field: 'tag', headerName: 'TAG', flex: 2, cellRenderer: (params: any) => renderTagLink(baseUrl2, 'master-config', params.data.id || params.data.tag, params.value) },
+      { field: 'version', headerName: 'SITE VERSION', flex: 1 },
+      { field: 'sitecount', headerName: 'SITE COUNT', flex: 1 },
+      {
+        field: 'syncData',
+        headerName: '',
+        flex: 1.2,
+        cellRenderer: (params: any) => (
+          <button onClick={() => handleCloneConfiguration(params.data.raw, baseUrl1, 'to_left')} className="btn-gray">Copy to Left</button>
+        )
+      }
+    ];
+
     return {
       dataDiffColDefs: [
         { field: 'tag', headerName: 'TAG', flex: 1.5, cellRenderer: (params: any) => renderTrimTooltip(params.value, 35) },
@@ -80,32 +119,10 @@ export const masterConfigConfig = {
         { field: 'site1count', headerName: 'SOURCE COUNT', flex: 1 },
         { field: 'site2count', headerName: 'TARGET COUNT', flex: 1 }
       ],
-      site1ColDefs: [
-        { field: 'tag', headerName: 'TAG', flex: 2, cellRenderer: (params: any) => renderTagLink(baseUrl1, 'master-config', params.data.id || params.data.tag, params.value) },
-        { field: 'version', headerName: 'SITE VERSION', flex: 1 },
-        { field: 'sitecount', headerName: 'SITE COUNT', flex: 1 },
-        {
-          field: 'syncData',
-          headerName: '',
-          flex: 1.2,
-          cellRenderer: (params: any) => (
-            <button onClick={() => handleCloneConfiguration(params.data.raw, baseUrl2, 'to_right')} className="btn-gray">Copy to Right</button>
-          )
-        }
-      ],
-      site2ColDefs: [
-        { field: 'tag', headerName: 'TAG', flex: 2, cellRenderer: (params: any) => renderTagLink(baseUrl2, 'master-config', params.data.id || params.data.tag, params.value) },
-        { field: 'version', headerName: 'SITE VERSION', flex: 1 },
-        { field: 'sitecount', headerName: 'SITE COUNT', flex: 1 },
-        {
-          field: 'syncData',
-          headerName: '',
-          flex: 1.2,
-          cellRenderer: (params: any) => (
-            <button onClick={() => handleCloneConfiguration(params.data.raw, baseUrl1, 'to_left')} className="btn-gray">Copy to Left</button>
-          )
-        }
-      ]
+      sourceColDefs,
+      targetColDefs,
+      site1ColDefs: sourceColDefs,
+      site2ColDefs: targetColDefs
     };
   }
 };
@@ -118,8 +135,8 @@ const MasterConfig: React.FC<MasterConfigProps> = ({ activeOption = 'master_conf
   const {
     dataDiffRows,
     versionMismatchRows,
-    onlySite1Rows,
-    onlySite2Rows,
+    onlySourceRows,
+    onlyTargetRows,
     config,
   } = useConfigurationDiff(activeOption);
 
@@ -142,8 +159,8 @@ const MasterConfig: React.FC<MasterConfigProps> = ({ activeOption = 'master_conf
       {/* SECTION 3: SIDE-BY-SIDE ONLY SITE TABLES */}
       <OnlySiteTable
         activeOption={activeOption}
-        onlySite1Rows={onlySite1Rows}
-        onlySite2Rows={onlySite2Rows}
+        onlySourceRows={onlySourceRows}
+        onlyTargetRows={onlyTargetRows}
       />
     </div>
   );

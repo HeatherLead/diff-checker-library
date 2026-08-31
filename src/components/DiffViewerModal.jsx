@@ -100,10 +100,10 @@ export const DiffViewerModal = ({
         {type === 'diff' ? (
           <div className="dc-modal-header-diff">
             <div className="dc-diff-grid-headers">
-              {/* Left Side Header */}
+              {/* Source Header */}
               <div>
                 <h4 className="dc-diff-side-title">
-                  Left Side - Tag: <span>{tag}</span> (v.{leftVersion})
+                  Source - Tag: <span>{tag}</span> (v.{leftVersion})
                 </h4>
                 <a
                   href={resolvedLeftUrl}
@@ -115,10 +115,10 @@ export const DiffViewerModal = ({
                 </a>
               </div>
 
-              {/* Right Side Header */}
+              {/* Target Header */}
               <div>
                 <h4 className="dc-diff-side-title">
-                  Right Side - Tag: <span>{tag}</span> (v.{rightVersion})
+                  Target - Tag: <span>{tag}</span> (v.{rightVersion})
                 </h4>
                 <a
                   href={resolvedRightUrl}

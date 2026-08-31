@@ -18,8 +18,8 @@ const SiteConfig: React.FC<SiteConfigProps> = ({ activeOption = 'site_config' })
   const {
     dataDiffRows,
     versionMismatchRows,
-    onlySite1Rows,
-    onlySite2Rows,
+    onlySourceRows,
+    onlyTargetRows,
     config,
   } = useConfigurationDiff(activeOption);
 
@@ -42,8 +42,8 @@ const SiteConfig: React.FC<SiteConfigProps> = ({ activeOption = 'site_config' })
       {/* SECTION 3: SIDE-BY-SIDE ONLY SITE TABLES */}
       <OnlySiteTable
         activeOption={activeOption}
-        onlySite1Rows={onlySite1Rows}
-        onlySite2Rows={onlySite2Rows}
+        onlySourceRows={onlySourceRows}
+        onlyTargetRows={onlyTargetRows}
       />
     </div>
   );

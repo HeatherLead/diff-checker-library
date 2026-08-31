@@ -46,8 +46,8 @@ export function useConfigurationDiff(diffTag: string, options: { autoFetch?: boo
   const showToast = ctx.showToast || (() => { });
 
   const [isLoading, setIsLoading] = useState(false);
-  const [site1Data, setSite1Data] = useState<any[]>([]);
-  const [site2Data, setSite2Data] = useState<any[]>([]);
+  const [sourceData, setSourceData] = useState<any[]>([]);
+  const [targetData, setTargetData] = useState<any[]>([]);
   const [error, setError] = useState<any>(null);
 
   const lastFetchedKeyRef = useRef<string | null>(null);
@@ -111,8 +111,8 @@ export function useConfigurationDiff(diffTag: string, options: { autoFetch?: boo
       }
     }
 
-    let site1: any[] = [];
-    let site2: any[] = [];
+    let sourceDataset: any[] = [];
+    let targetDataset: any[] = [];
     let isErrorState = false;
 
     try {
@@ -144,32 +144,35 @@ export function useConfigurationDiff(diffTag: string, options: { autoFetch?: boo
           'list'
         ];
 
-        // Extract site1 (src_data)
+        // Extract source (src_data)
         if (payloadData.src_data !== undefined && payloadData.src_data !== null) {
-          site1 = extractDataset(payloadData.src_data, possibleKeys);
+          sourceDataset = extractDataset(payloadData.src_data, possibleKeys);
         } else {
-          site1 = extractDataset(payloadData, possibleKeys);
-          if (!site1.length && Array.isArray(payloadData.site1)) {
-            site1 = payloadData.site1;
+          sourceDataset = extractDataset(payloadData, possibleKeys);
+          if (!sourceDataset.length && Array.isArray(payloadData.site1)) {
+            sourceDataset = payloadData.site1;
           }
         }
 
-        // Extract site2 (target_data)
+        // Extract target (target_data)
         if (payloadData.target_data !== undefined && payloadData.target_data !== null && typeof payloadData.target_data === 'object' && !Array.isArray(payloadData.target_data)) {
-          site2 = extractDataset(payloadData.target_data, possibleKeys);
+          targetDataset = extractDataset(payloadData.target_data, possibleKeys);
         } else if (Array.isArray(payloadData.target_data)) {
-          site2 = payloadData.target_data;
+          targetDataset = payloadData.target_data;
         } else {
           const targetKeys = [
             `${apiTag}_site2`,
             `${diffTag}_site2`,
+            `${apiTag}_target`,
+            `${diffTag}_target`,
             'datatables_config_site2',
             'site2',
+            'target',
             ...possibleKeys
           ];
-          site2 = extractDataset(payloadData, targetKeys);
-          if (!site2.length && Array.isArray(payloadData.site2)) {
-            site2 = payloadData.site2;
+          targetDataset = extractDataset(payloadData, targetKeys);
+          if (!targetDataset.length && Array.isArray(payloadData.site2)) {
+            targetDataset = payloadData.site2;
           }
         }
       } else {
@@ -183,8 +186,8 @@ export function useConfigurationDiff(diffTag: string, options: { autoFetch?: boo
       setError(err);
     }
 
-    setSite1Data(site1 || []);
-    setSite2Data(site2 || []);
+    setSourceData(sourceDataset || []);
+    setTargetData(targetDataset || []);
     setIsLoading(false);
 
     if (isErrorState) {
@@ -199,25 +202,27 @@ export function useConfigurationDiff(diffTag: string, options: { autoFetch?: boo
   }, [apiTag, autoFetch, fetchData]);
 
   // Compute dataset diffs
-  const { dataDiffRows, versionMismatchRows, onlySite1Rows, onlySite2Rows } = useMemo(() => {
+  const { dataDiffRows, versionMismatchRows, onlySourceRows, onlyTargetRows } = useMemo(() => {
     if (!config || typeof config.compare !== 'function') {
-      return { dataDiffRows: [], versionMismatchRows: [], onlySite1Rows: [], onlySite2Rows: [] };
+      return { dataDiffRows: [], versionMismatchRows: [], onlySourceRows: [], onlyTargetRows: [] };
     }
-    const res = config.compare(site1Data, site2Data) || {};
+    const res = config.compare(sourceData, targetData) || {};
+    const srcRows = res.onlySourceRows || res.onlySource || res.onlySite1Rows || res.onlySite1 || [];
+    const tgtRows = res.onlyTargetRows || res.onlyTarget || res.onlySite2Rows || res.onlySite2 || [];
     return {
       dataDiffRows: res.dataDiffRows || res.dataDiff || [],
       versionMismatchRows: res.versionMismatchRows || res.versionMismatch || [],
-      onlySite1Rows: res.onlySite1Rows || res.onlySite1 || [],
-      onlySite2Rows: res.onlySite2Rows || res.onlySite2 || [],
+      onlySourceRows: srcRows,
+      onlyTargetRows: tgtRows,
     };
-  }, [config, site1Data, site2Data]);
+  }, [config, sourceData, targetData]);
 
   // Generate column definitions
   const columns = useMemo(() => {
     if (!config || typeof config.getColumns !== 'function') {
-      return { dataDiffColDefs: [], versionMismatchColDefs: [], site1ColDefs: [], site2ColDefs: [] };
+      return { dataDiffColDefs: [], versionMismatchColDefs: [], sourceColDefs: [], targetColDefs: [], site1ColDefs: [], site2ColDefs: [] };
     }
-    return config.getColumns({
+    const rawCols = config.getColumns({
       openDiffViewer,
       openDataViewer,
       handleSyncConfiguration,
@@ -225,20 +230,37 @@ export function useConfigurationDiff(diffTag: string, options: { autoFetch?: boo
       showToast,
       baseUrl1,
       baseUrl2,
-    });
+    }) || {};
+
+    const sourceColDefs = rawCols.sourceColDefs || rawCols.site1ColDefs || [];
+    const targetColDefs = rawCols.targetColDefs || rawCols.site2ColDefs || [];
+
+    return {
+      ...rawCols,
+      sourceColDefs,
+      targetColDefs,
+      site1ColDefs: sourceColDefs,
+      site2ColDefs: targetColDefs,
+    };
   }, [config, openDiffViewer, openDataViewer, handleSyncConfiguration, handleCloneConfiguration, showToast, baseUrl1, baseUrl2]);
 
   return {
     isLoading,
     error,
-    site1Data,
-    site2Data,
-    setSite1Data,
-    setSite2Data,
+    sourceData,
+    targetData,
+    site1Data: sourceData,
+    site2Data: targetData,
+    setSourceData,
+    setTargetData,
+    setSite1Data: setSourceData,
+    setSite2Data: setTargetData,
     dataDiffRows,
     versionMismatchRows,
-    onlySite1Rows,
-    onlySite2Rows,
+    onlySourceRows,
+    onlyTargetRows,
+    onlySite1Rows: onlySourceRows,
+    onlySite2Rows: onlyTargetRows,
     columns,
     refetch: () => fetchData(true),
     config,

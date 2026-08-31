@@ -10,16 +10,29 @@ export const roleDepartmentListConfig = {
   leftDataKey: 'attachment',
   rightDataKey: 'attachment',
   hasVersionMismatch: false,
-  compare: (site1Dataset: any[], site2Dataset: any[]) => {
+  compare: (sourceDataset: any[], targetDataset: any[]) => {
     const dataDiff: any[] = [];
-    const onlySite1: any[] = [];
-    const onlySite2: any[] = [];
+    const onlySource: any[] = [];
+    const onlyTarget: any[] = [];
 
-    const map1 = site1Dataset || [];
-    const map2 = site2Dataset || [];
+    const map1Map = new Map();
+    (sourceDataset || []).forEach((item: any) => {
+      const key = (item.role || item.tag || item.id || '').trim();
+      if (key && !map1Map.has(key)) {
+        map1Map.set(key, item);
+      }
+    });
 
-    map1.forEach((record1: any) => {
-      const record2 = map2.find((r: any) => r.role?.trim() === record1.role?.trim());
+    const map2Map = new Map();
+    (targetDataset || []).forEach((item: any) => {
+      const key = (item.role || item.tag || item.id || '').trim();
+      if (key && !map2Map.has(key)) {
+        map2Map.set(key, item);
+      }
+    });
+
+    map1Map.forEach((record1: any, key: string) => {
+      const record2 = map2Map.get(key);
 
       if (record2) {
         const clean1 = Object.fromEntries(Object.entries(record1).filter(([k]) => !["updated", "updated_by", "created", "created_by"].includes(k)));
@@ -27,35 +40,82 @@ export const roleDepartmentListConfig = {
         const hasDiff = JSON.stringify(clean1) !== JSON.stringify(clean2);
 
         dataDiff.push({
-          tag: record1.role?.trim(),
-          role_diff_status: hasDiff ? "Diff Changes" : "No change",
+          id: record1.id || record2.id || key,
+          tag: record1.role?.trim() || key,
+          role_diff_status: hasDiff ? "Diff Changes" : "No diff",
           view_role_diff: hasDiff ? "View Diff" : "No diff",
           raw1: record1,
           raw2: record2
         });
       } else {
-        onlySite1.push({
-          tag: record1.role?.trim(),
-          id: record1.id || record1.role?.trim(),
+        onlySource.push({
+          tag: record1.role?.trim() || key,
+          id: record1.id || key,
           raw: record1
         });
       }
     });
 
-    map2.forEach((record2: any) => {
-      const record1 = map1.find((r: any) => r.role?.trim() === record2.role?.trim());
-      if (!record1) {
-        onlySite2.push({
-          tag: record2.role?.trim(),
-          id: record2.id || record2.role?.trim(),
+    map2Map.forEach((record2: any, key: string) => {
+      if (!map1Map.has(key)) {
+        onlyTarget.push({
+          tag: record2.role?.trim() || key,
+          id: record2.id || key,
           raw: record2
         });
       }
     });
 
-    return { dataDiff, versionMismatch: [], onlySite1, onlySite2 };
+    return {
+      dataDiff,
+      versionMismatch: [],
+      onlySource,
+      onlyTarget,
+      onlySite1: onlySource,
+      onlySite2: onlyTarget
+    };
   },
   getColumns: ({ openDiffViewer, openDataViewer, handleCloneConfiguration, baseUrl1, baseUrl2 }: any) => {
+    const sourceColDefs = [
+      { field: 'tag', headerName: 'ROLE', flex: 2, cellRenderer: (params: any) => renderTagLink(baseUrl1, 'role-department-list', params.data.id || params.data.tag, params.value) },
+      {
+        field: 'viewData',
+        headerName: 'VIEW DATA',
+        flex: 1.2,
+        cellRenderer: (params: any) => (
+          <button onClick={() => openDataViewer(params)} className="btn-gray">View Data</button>
+        )
+      },
+      {
+        field: 'syncData',
+        headerName: '',
+        flex: 1.2,
+        cellRenderer: (params: any) => (
+          <button onClick={() => handleCloneConfiguration(params.data.raw, baseUrl2, 'to_right')} className="btn-gray">Copy to Right</button>
+        )
+      }
+    ];
+
+    const targetColDefs = [
+      { field: 'tag', headerName: 'TAG', flex: 2, cellRenderer: (params: any) => renderTagLink(baseUrl2, 'role-department-list', params.data.id || params.data.tag, params.value) },
+      {
+        field: 'viewData',
+        headerName: 'VIEW DATA',
+        flex: 1.2,
+        cellRenderer: (params: any) => (
+          <button onClick={() => openDataViewer(params)} className="btn-gray">View Data</button>
+        )
+      },
+      {
+        field: 'syncData',
+        headerName: '',
+        flex: 1.2,
+        cellRenderer: (params: any) => (
+          <button onClick={() => handleCloneConfiguration(params.data.raw, baseUrl1, 'to_left')} className="btn-gray">Copy to Left</button>
+        )
+      }
+    ];
+
     return {
       dataDiffColDefs: [
         { field: 'tag', headerName: 'TAG', flex: 1.5, cellRenderer: (params: any) => renderTrimTooltip(params.value, 35) },
@@ -69,44 +129,10 @@ export const roleDepartmentListConfig = {
           ) : <span className="dc-muted-text">{params.value}</span>
         }
       ],
-      site1ColDefs: [
-        { field: 'tag', headerName: 'ROLE', flex: 2, cellRenderer: (params: any) => renderTagLink(baseUrl1, 'role-department-list', params.data.id || params.data.tag, params.value) },
-        {
-          field: 'viewData',
-          headerName: 'VIEW DATA',
-          flex: 1.2,
-          cellRenderer: (params: any) => (
-            <button onClick={() => openDataViewer(params)} className="btn-gray">View Data</button>
-          )
-        },
-        {
-          field: 'syncData',
-          headerName: '',
-          flex: 1.2,
-          cellRenderer: (params: any) => (
-            <button onClick={() => handleCloneConfiguration(params.data.raw, baseUrl2, 'to_right')} className="btn-gray">Copy to Right</button>
-          )
-        }
-      ],
-      site2ColDefs: [
-        { field: 'tag', headerName: 'TAG', flex: 2, cellRenderer: (params: any) => renderTagLink(baseUrl2, 'role-department-list', params.data.id || params.data.tag, params.value) },
-        {
-          field: 'viewData',
-          headerName: 'VIEW DATA',
-          flex: 1.2,
-          cellRenderer: (params: any) => (
-            <button onClick={() => openDataViewer(params)} className="btn-gray">View Data</button>
-          )
-        },
-        {
-          field: 'syncData',
-          headerName: '',
-          flex: 1.2,
-          cellRenderer: (params: any) => (
-            <button onClick={() => handleCloneConfiguration(params.data.raw, baseUrl1, 'to_left')} className="btn-gray">Copy to Left</button>
-          )
-        }
-      ]
+      sourceColDefs,
+      targetColDefs,
+      site1ColDefs: sourceColDefs,
+      site2ColDefs: targetColDefs
     };
   }
 };
@@ -119,8 +145,8 @@ const RoleDepartmentList: React.FC<RoleDepartmentListProps> = ({ activeOption = 
   const {
     dataDiffRows,
     versionMismatchRows,
-    onlySite1Rows,
-    onlySite2Rows,
+    onlySourceRows,
+    onlyTargetRows,
     config,
   } = useConfigurationDiff(activeOption);
 
@@ -143,8 +169,8 @@ const RoleDepartmentList: React.FC<RoleDepartmentListProps> = ({ activeOption = 
       {/* SECTION 3: SIDE-BY-SIDE ONLY SITE TABLES */}
       <OnlySiteTable
         activeOption={activeOption}
-        onlySite1Rows={onlySite1Rows}
-        onlySite2Rows={onlySite2Rows}
+        onlySourceRows={onlySourceRows}
+        onlyTargetRows={onlyTargetRows}
       />
     </div>
   );

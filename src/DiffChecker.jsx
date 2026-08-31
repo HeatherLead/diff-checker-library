@@ -271,7 +271,7 @@ export const DiffChecker = ({
 
     const rawItem = item.raw1 || item.raw2 || item.raw || item;
     const itemTag = item.tag || rawItem.tag || rawItem.tag_name || rawItem.module || rawItem.entity_type || "";
-    const itemVersion = item.siteVersion || item.site1Version || item.version || rawItem.version || "1.0";
+    const itemVersion = item.sourceVersion || item.targetVersion || item.siteVersion || item.site1Version || item.version || rawItem.version || "1.0";
     const itemBoType = item.bo_type || rawItem.bo_type || "";
 
     const rawId = item.id || rawItem.id || backendMetadata.import_id || 12;
@@ -334,7 +334,7 @@ export const DiffChecker = ({
 
     const rawItem = item.raw || item.raw1 || item.raw2 || item;
     const itemTag = item.tag || rawItem.tag || rawItem.tag_name || rawItem.module || rawItem.entity_type || "";
-    const itemVersion = item.version || rawItem.version || item.siteVersion || item.rec1version || item.entity_version || "1.0";
+    const itemVersion = item.version || rawItem.version || item.sourceVersion || item.targetVersion || item.siteVersion || item.rec1version || item.entity_version || "1.0";
     const itemBoType = item.bo_type || rawItem.bo_type || "";
 
     const rawId = item.id || rawItem.id || backendMetadata.import_id || "12";
@@ -463,8 +463,8 @@ export const DiffChecker = ({
       isOpen: true,
       type: 'diff',
       tag: params.data?.tag,
-      leftVersion: raw1.version || params.data?.site1Version || params.data?.siteVersion || '1.1',
-      rightVersion: raw2.version || params.data?.site2Version || params.data?.siteVersion || '1.1',
+      leftVersion: raw1.version || params.data?.sourceVersion || params.data?.site1Version || params.data?.siteVersion || '1.1',
+      rightVersion: raw2.version || params.data?.targetVersion || params.data?.site2Version || params.data?.siteVersion || '1.1',
       leftData: leftContent,
       rightData: rightContent,
       leftId,

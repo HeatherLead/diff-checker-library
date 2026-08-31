@@ -49,8 +49,8 @@ export const formatFilterLabel = (headerName) => {
     .split(/\s+/)
     .map(word => {
       if (/^BO$/i.test(word)) return 'BO';
-      if (/^SITE1$/i.test(word)) return 'Source';
-      if (/^SITE2$/i.test(word)) return 'Target';
+      if (/^(SITE1|SOURCE)$/i.test(word)) return 'Source';
+      if (/^(SITE2|TARGET)$/i.test(word)) return 'Target';
       return word.charAt(0).toUpperCase() + word.slice(1).toLowerCase();
     })
     .join(' ');
@@ -119,7 +119,10 @@ export const isDiffRow = (r) => {
   }
 
   // 2. Count comparisons (e.g. SubTaskMaster)
-  if (r.countSite1 !== undefined && r.countSite2 !== undefined && r.countSite1 !== r.countSite2) {
+  if (
+    (r.countSource !== undefined && r.countTarget !== undefined && r.countSource !== r.countTarget) ||
+    (r.countSite1 !== undefined && r.countSite2 !== undefined && r.countSite1 !== r.countSite2)
+  ) {
     return true;
   }
 
@@ -150,7 +153,6 @@ export const isDiffRow = (r) => {
         (key.toLowerCase().includes('diff') || key.toLowerCase().includes('status')) &&
         (lower.includes('diff') || lower.includes('change')) &&
         !lower.includes('no diff') &&
-        !lower.includes('no change') &&
         !lower.includes('no match')
       ) {
         return true;

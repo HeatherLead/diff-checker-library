@@ -505,14 +505,6 @@ export const AGGridGenerator = ({
     [defaultColDef]
   );
 
-  const getRowId = useCallback(
-    (params) => {
-      const resolved = resolveGridRowKey(params.data);
-      return resolved || String(params.defaultId);
-    },
-    []
-  );
-
   const handleGridReady = useCallback(
     (params) => {
       gridRef.current = params;
@@ -618,7 +610,7 @@ export const AGGridGenerator = ({
           defaultColDef={standardDefaultColDef}
           onGridReady={handleGridReady}
           onCellClicked={handleCellClicked}
-          getRowId={getRowId}
+          getRowId={props.getRowId}
           rowSelection={rowSelection}
           getMainMenuItems={getMainMenuItems}
           headerHeight={38}

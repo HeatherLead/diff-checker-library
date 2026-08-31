@@ -43,7 +43,7 @@ export const CopyToConfirmModal = memo(({
   const itemTag = row.tag || rawItem.tag || rawItem.tag_name || rawItem.module || rawItem.entity_type || '';
   const itemId = row.id || rawItem.id || itemTag || '';
 
-  const isToRight = direction === 'to_right' || direction === 'site1_to_site2';
+  const isToRight = direction === 'to_right' || direction === 'source_to_target' || direction === 'site1_to_site2';
   const sourceUrl = isToRight ? baseUrl1 : baseUrl2;
   const targetUrl = isToRight ? baseUrl2 : baseUrl1;
 

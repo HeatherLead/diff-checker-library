@@ -10,14 +10,14 @@ export const customFormConfig = {
   leftDataKey: 'custom_form_field_data',
   rightDataKey: 'custom_form_field_data',
   hasVersionMismatch: true,
-  compare: (site1Dataset: any[], site2Dataset: any[]) => {
+  compare: (sourceDataset: any[], targetDataset: any[]) => {
     const dataDiff: any[] = [];
     const versionMismatch: any[] = [];
-    const onlySite1: any[] = [];
-    const onlySite2: any[] = [];
+    const onlySource: any[] = [];
+    const onlyTarget: any[] = [];
 
-    const map1 = site1Dataset || [];
-    const map2 = site2Dataset || [];
+    const map1 = sourceDataset || [];
+    const map2 = targetDataset || [];
 
     map1.forEach((record1: any) => {
       const record2 = map2.find(
@@ -33,9 +33,11 @@ export const customFormConfig = {
           rect1id: record1.id,
           rect2id: non_matched_versions_rec.id,
           tag: record1.tag,
+          sourceVersion: record1.version,
+          targetVersion: non_matched_versions_rec.version,
           site1Version: record1.version,
           site2Version: non_matched_versions_rec.version,
-          dt_status: record1.custom_form_field_data === non_matched_versions_rec.custom_form_field_data ? "No change" : "Diff Changes",
+          dt_status: record1.custom_form_field_data === non_matched_versions_rec.custom_form_field_data ? "No diff" : "Diff Changes",
           datatableDiff: record1.custom_form_field_data === non_matched_versions_rec.custom_form_field_data ? "No diff" : "View Diff",
           raw1: record1,
           raw2: non_matched_versions_rec
@@ -59,13 +61,15 @@ export const customFormConfig = {
         dataDiff.push({
           tag: record1.tag,
           siteVersion: record1.version,
+          sourceVersion: record1.version,
+          targetVersion: record2.version,
           rec1version: record1.version,
           rec2version: record2.version,
           rect1id: record1.id,
           rect2id: record2.id,
-          dt_status: record1.custom_form_field_data === record2.custom_form_field_data ? "No change" : "Diff Changes",
+          dt_status: record1.custom_form_field_data === record2.custom_form_field_data ? "No diff" : "Diff Changes",
           datatableDiff: record1.custom_form_field_data === record2.custom_form_field_data ? "No Diff" : "View Diff",
-          other_diff: hasOtherDiff ? "Diff Changes" : "No change",
+          other_diff: hasOtherDiff ? "Diff Changes" : "No diff",
           otherDiff: hasOtherDiff ? "View Diff" : "No Diff",
           raw1: record1,
           raw2: record2
@@ -75,7 +79,7 @@ export const customFormConfig = {
 
     map1.forEach((record1: any) => {
       if (!map2.some((record2: any) => record2.tag === record1.tag)) {
-        onlySite1.push({
+        onlySource.push({
           tag: record1.tag,
           version: record1.version,
           id: record1.id,
@@ -86,7 +90,7 @@ export const customFormConfig = {
 
     map2.forEach((record2: any) => {
       if (!map1.some((record1: any) => record1.tag === record2.tag)) {
-        onlySite2.push({
+        onlyTarget.push({
           tag: record2.tag,
           version: record2.version,
           id: record2.id,
@@ -95,9 +99,66 @@ export const customFormConfig = {
       }
     });
 
-    return { dataDiff, versionMismatch, onlySite1, onlySite2 };
+    return {
+      dataDiff,
+      versionMismatch,
+      onlySource,
+      onlyTarget,
+      onlySite1: onlySource,
+      onlySite2: onlyTarget
+    };
   },
   getColumns: ({ openDiffViewer, openDataViewer, handleSyncConfiguration, handleCloneConfiguration, baseUrl1, baseUrl2 }: any) => {
+    const sourceColDefs = [
+      {
+        field: 'tag',
+        headerName: 'TAG',
+        flex: 2,
+        cellRenderer: (params: any) => renderTagLink(baseUrl1, 'custom-form-config', params.data.id, params.value)
+      },
+      {
+        field: 'viewData',
+        headerName: 'VIEW DATA',
+        flex: 1.2,
+        cellRenderer: (params: any) => (
+          <button onClick={() => openDataViewer(params)} className="btn-gray">View Data</button>
+        )
+      },
+      {
+        field: 'syncData',
+        headerName: '',
+        flex: 1.2,
+        cellRenderer: (params: any) => (
+          <button onClick={() => handleCloneConfiguration(params.data.raw, baseUrl2, 'to_right')} className="btn-gray">Copy to Right</button>
+        )
+      }
+    ];
+
+    const targetColDefs = [
+      {
+        field: 'tag',
+        headerName: 'TAG',
+        flex: 2,
+        cellRenderer: (params: any) => renderTagLink(baseUrl2, 'custom-form-config', params.data.id, params.value)
+      },
+      {
+        field: 'viewData',
+        headerName: 'VIEW DATA',
+        flex: 1.2,
+        cellRenderer: (params: any) => (
+          <button onClick={() => openDataViewer(params)} className="btn-gray">View Data</button>
+        )
+      },
+      {
+        field: 'syncData',
+        headerName: '',
+        flex: 1.2,
+        cellRenderer: (params: any) => (
+          <button onClick={() => handleCloneConfiguration(params.data.raw, baseUrl1, 'to_left')} className="btn-gray">Copy to Left</button>
+        )
+      }
+    ];
+
     return {
       dataDiffColDefs: [
         { field: 'tag', headerName: 'TAG', flex: 1.5, cellRenderer: (params: any) => renderTrimTooltip(params.value, 35) },
@@ -145,13 +206,13 @@ export const customFormConfig = {
         { field: 'tag', headerName: 'TAG', flex: 2, cellRenderer: (params: any) => renderTrimTooltip(params.value, 35) },
         {
           field: 'site1Version',
-          headerName: 'SITE1 VERSION',
+          headerName: 'SOURCE VERSION',
           flex: 1.5,
           cellRenderer: (params: any) => renderEditLink(baseUrl1, 'custom-form-config', params.data.rect1id, params.value)
         },
         {
           field: 'site2Version',
-          headerName: 'SITE2 VERSION',
+          headerName: 'TARGET VERSION',
           flex: 1.5,
           cellRenderer: (params: any) => renderEditLink(baseUrl2, 'custom-form-config', params.data.rect2id, params.value)
         },
@@ -165,54 +226,10 @@ export const customFormConfig = {
           ) : <span className="dc-muted-text">{params.value}</span>
         }
       ],
-      site1ColDefs: [
-        {
-          field: 'tag',
-          headerName: 'TAG',
-          flex: 2,
-          cellRenderer: (params: any) => renderTagLink(baseUrl1, 'custom-form-config', params.data.id, params.value)
-        },
-        {
-          field: 'viewData',
-          headerName: 'VIEW DATA',
-          flex: 1.2,
-          cellRenderer: (params: any) => (
-            <button onClick={() => openDataViewer(params)} className="btn-gray">View Data</button>
-          )
-        },
-        {
-          field: 'syncData',
-          headerName: '',
-          flex: 1.2,
-          cellRenderer: (params: any) => (
-            <button onClick={() => handleCloneConfiguration(params.data.raw, baseUrl2, 'to_right')} className="btn-gray">Copy to Right</button>
-          )
-        }
-      ],
-      site2ColDefs: [
-        {
-          field: 'tag',
-          headerName: 'TAG',
-          flex: 2,
-          cellRenderer: (params: any) => renderTagLink(baseUrl2, 'custom-form-config', params.data.id, params.value)
-        },
-        {
-          field: 'viewData',
-          headerName: 'VIEW DATA',
-          flex: 1.2,
-          cellRenderer: (params: any) => (
-            <button onClick={() => openDataViewer(params)} className="btn-gray">View Data</button>
-          )
-        },
-        {
-          field: 'syncData',
-          headerName: '',
-          flex: 1.2,
-          cellRenderer: (params: any) => (
-            <button onClick={() => handleCloneConfiguration(params.data.raw, baseUrl1, 'to_left')} className="btn-gray">Copy to Left</button>
-          )
-        }
-      ]
+      sourceColDefs,
+      targetColDefs,
+      site1ColDefs: sourceColDefs,
+      site2ColDefs: targetColDefs
     };
   }
 };
@@ -225,8 +242,8 @@ const CustomForm: React.FC<CustomFormProps> = ({ activeOption = 'custom_form' })
   const {
     dataDiffRows,
     versionMismatchRows,
-    onlySite1Rows,
-    onlySite2Rows,
+    onlySourceRows,
+    onlyTargetRows,
     config,
   } = useConfigurationDiff(activeOption);
 
@@ -249,8 +266,8 @@ const CustomForm: React.FC<CustomFormProps> = ({ activeOption = 'custom_form' })
       {/* SECTION 3: SIDE-BY-SIDE ONLY SITE TABLES */}
       <OnlySiteTable
         activeOption={activeOption}
-        onlySite1Rows={onlySite1Rows}
-        onlySite2Rows={onlySite2Rows}
+        onlySourceRows={onlySourceRows}
+        onlyTargetRows={onlyTargetRows}
       />
     </div>
   );

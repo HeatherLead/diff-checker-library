@@ -10,13 +10,13 @@ export const workFlowConfigConfig = {
   leftDataKey: 'wf_json',
   rightDataKey: 'wf_json',
   hasVersionMismatch: false,
-  compare: (site1Dataset: any[], site2Dataset: any[]) => {
+  compare: (sourceDataset: any[], targetDataset: any[]) => {
     const dataDiff: any[] = [];
-    const onlySite1: any[] = [];
-    const onlySite2: any[] = [];
+    const onlySource: any[] = [];
+    const onlyTarget: any[] = [];
 
-    const map1 = site1Dataset || [];
-    const map2 = site2Dataset || [];
+    const map1 = sourceDataset || [];
+    const map2 = targetDataset || [];
 
     map1.forEach((record1: any) => {
       const record2 = map2.find((r: any) => r.wf_code === record1.wf_code);
@@ -25,18 +25,21 @@ export const workFlowConfigConfig = {
         const hasDiff = record1.wf_json !== record2.wf_json;
 
         dataDiff.push({
+          id: record1.wf_id || record1.id || record1.wf_code,
           tag: record1.wf_name,
           rect1id: record1.wf_id,
           rect2id: record2.wf_id,
-          wf_status: hasDiff ? "Diff Changes" : "No change",
+          wf_status: hasDiff ? "Diff Changes" : "No diff",
           datatableDiff: hasDiff ? "View Diff" : "No Diff",
+          version_source: record1.version,
+          version_target: record2.version,
           version_site1: record1.version,
           version_site2: record2.version,
           raw1: record1,
           raw2: record2
         });
       } else {
-        onlySite1.push({
+        onlySource.push({
           tag: record1.wf_code,
           wf_id: record1.wf_id,
           id: record1.wf_id || record1.id,
@@ -49,7 +52,7 @@ export const workFlowConfigConfig = {
     map2.forEach((record2: any) => {
       const record1 = map1.find((r: any) => r.wf_code === record2.wf_code);
       if (!record1) {
-        onlySite2.push({
+        onlyTarget.push({
           tag: record2.wf_code,
           wf_id: record2.wf_id,
           id: record2.wf_id || record2.id,
@@ -59,9 +62,52 @@ export const workFlowConfigConfig = {
       }
     });
 
-    return { dataDiff, versionMismatch: [], onlySite1, onlySite2 };
+    return {
+      dataDiff,
+      versionMismatch: [],
+      onlySource,
+      onlyTarget,
+      onlySite1: onlySource,
+      onlySite2: onlyTarget
+    };
   },
   getColumns: ({ openDiffViewer, openDataViewer, baseUrl1, baseUrl2 }: any) => {
+    const sourceColDefs = [
+      { field: 'tag', headerName: 'TAG', flex: 2, cellRenderer: (params: any) => renderTagLink(baseUrl1, 'workflow-config', params.data.wf_id || params.data.id, params.value) },
+      {
+        field: 'version',
+        headerName: 'SOURCE VERSION',
+        flex: 1.2,
+        cellRenderer: (params: any) => renderEditLink(baseUrl1, 'workflow-config', params.data.wf_id, params.value)
+      },
+      {
+        field: 'viewData',
+        headerName: 'VIEW DATA',
+        flex: 1.2,
+        cellRenderer: (params: any) => (
+          <button onClick={() => openDataViewer({ data: { tag: params.data.tag, raw: JSON.parse(params.data.raw.wf_json || '{}') } })} className="btn-gray">View Data</button>
+        )
+      }
+    ];
+
+    const targetColDefs = [
+      { field: 'tag', headerName: 'TAG', flex: 2, cellRenderer: (params: any) => renderTagLink(baseUrl2, 'workflow-config', params.data.wf_id || params.data.id, params.value) },
+      {
+        field: 'version',
+        headerName: 'TARGET VERSION',
+        flex: 1.2,
+        cellRenderer: (params: any) => renderEditLink(baseUrl2, 'workflow-config', params.data.wf_id, params.value)
+      },
+      {
+        field: 'viewData',
+        headerName: 'VIEW DATA',
+        flex: 1.2,
+        cellRenderer: (params: any) => (
+          <button onClick={() => openDataViewer({ data: { tag: params.data.tag, raw: JSON.parse(params.data.raw.wf_json || '{}') } })} className="btn-gray">View Data</button>
+        )
+      }
+    ];
+
     return {
       dataDiffColDefs: [
         { field: 'tag', headerName: 'TAG', flex: 1.5, cellRenderer: (params: any) => renderTrimTooltip(params.value, 35) },
@@ -76,51 +122,21 @@ export const workFlowConfigConfig = {
         },
         {
           field: 'version_site1',
-          headerName: 'SITE1 VERSION',
+          headerName: 'SOURCE VERSION',
           flex: 1.2,
           cellRenderer: (params: any) => renderEditLink(baseUrl1, 'workflow-config', params.data.rect1id, params.value)
         },
         {
           field: 'version_site2',
-          headerName: 'SITE2 VERSION',
+          headerName: 'TARGET VERSION',
           flex: 1.2,
           cellRenderer: (params: any) => renderEditLink(baseUrl2, 'workflow-config', params.data.rect2id, params.value)
         }
       ],
-      site1ColDefs: [
-        { field: 'tag', headerName: 'TAG', flex: 2, cellRenderer: (params: any) => renderTagLink(baseUrl1, 'workflow-config', params.data.wf_id || params.data.id, params.value) },
-        {
-          field: 'version',
-          headerName: 'SITE1 VERSION',
-          flex: 1.2,
-          cellRenderer: (params: any) => renderEditLink(baseUrl1, 'workflow-config', params.data.wf_id, params.value)
-        },
-        {
-          field: 'viewData',
-          headerName: 'VIEW DATA',
-          flex: 1.2,
-          cellRenderer: (params: any) => (
-            <button onClick={() => openDataViewer({ data: { tag: params.data.tag, raw: JSON.parse(params.data.raw.wf_json || '{}') } })} className="btn-gray">View Data</button>
-          )
-        }
-      ],
-      site2ColDefs: [
-        { field: 'tag', headerName: 'TAG', flex: 2, cellRenderer: (params: any) => renderTagLink(baseUrl2, 'workflow-config', params.data.wf_id || params.data.id, params.value) },
-        {
-          field: 'version',
-          headerName: 'SITE2 VERSION',
-          flex: 1.2,
-          cellRenderer: (params: any) => renderEditLink(baseUrl2, 'workflow-config', params.data.wf_id, params.value)
-        },
-        {
-          field: 'viewData',
-          headerName: 'VIEW DATA',
-          flex: 1.2,
-          cellRenderer: (params: any) => (
-            <button onClick={() => openDataViewer({ data: { tag: params.data.tag, raw: JSON.parse(params.data.raw.wf_json || '{}') } })} className="btn-gray">View Data</button>
-          )
-        }
-      ]
+      sourceColDefs,
+      targetColDefs,
+      site1ColDefs: sourceColDefs,
+      site2ColDefs: targetColDefs
     };
   }
 };
@@ -135,8 +151,8 @@ const WorkFlowConfig: React.FC<WorkFlowConfigProps> = ({ activeOption = 'workflo
   const {
     dataDiffRows,
     versionMismatchRows,
-    onlySite1Rows,
-    onlySite2Rows,
+    onlySourceRows,
+    onlyTargetRows,
     config,
   } = useConfigurationDiff(activeOption);
 
@@ -159,8 +175,8 @@ const WorkFlowConfig: React.FC<WorkFlowConfigProps> = ({ activeOption = 'workflo
       {/* SECTION 3: SIDE-BY-SIDE ONLY SITE TABLES */}
       <OnlySiteTable
         activeOption={activeOption}
-        onlySite1Rows={onlySite1Rows}
-        onlySite2Rows={onlySite2Rows}
+        onlySourceRows={onlySourceRows}
+        onlyTargetRows={onlyTargetRows}
       />
     </div>
   );

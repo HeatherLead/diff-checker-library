@@ -10,13 +10,13 @@ export const templatesConfig = {
   leftDataKey: 'templates',
   rightDataKey: 'templates',
   hasVersionMismatch: false,
-  compare: (site1Dataset: any[], site2Dataset: any[]) => {
+  compare: (sourceDataset: any[], targetDataset: any[]) => {
     const dataDiff: any[] = [];
-    const onlySite1: any[] = [];
-    const onlySite2: any[] = [];
+    const onlySource: any[] = [];
+    const onlyTarget: any[] = [];
 
-    const map1 = site1Dataset || [];
-    const map2 = site2Dataset || [];
+    const map1 = sourceDataset || [];
+    const map2 = targetDataset || [];
 
     const tagsIn1 = new Set(map1.map((obj: any) => obj.tag_name?.trim()).filter(Boolean));
     const tagsIn2 = new Set(map2.map((obj: any) => obj.tag_name?.trim()).filter(Boolean));
@@ -83,7 +83,7 @@ export const templatesConfig = {
           bo_type: (record1.business_unit || "").trim(),
           rec1version: record1.version || "",
           rec2version: record2Exact.version || "",
-          msg_diff: hasDiff ? "Diff Changes" : "No change",
+          msg_diff: hasDiff ? "Diff Changes" : "No diff",
           excel_diff: hasExcelDiff ? "View Diff" : "No diff",
           excel1,
           excel2,
@@ -95,7 +95,7 @@ export const templatesConfig = {
         });
       } else {
         if (!tagsIn2.has(tag1)) {
-          onlySite1.push({
+          onlySource.push({
             tag: tag1,
             bo_type: (record1.business_unit || "").trim(),
             id: record1.tag_id || record1.id,
@@ -109,7 +109,7 @@ export const templatesConfig = {
       if (!record2.tag_name) return;
       const tag2 = record2.tag_name.trim();
       if (!tagsIn1.has(tag2)) {
-        onlySite2.push({
+        onlyTarget.push({
           tag: tag2,
           bo_type: (record2.business_unit || "").trim(),
           id: record2.tag_id || record2.id,
@@ -118,9 +118,58 @@ export const templatesConfig = {
       }
     });
 
-    return { dataDiff, versionMismatch: [], onlySite1, onlySite2 };
+    return {
+      dataDiff,
+      versionMismatch: [],
+      onlySource,
+      onlyTarget,
+      onlySite1: onlySource,
+      onlySite2: onlyTarget
+    };
   },
   getColumns: ({ openDiffViewer, openDataViewer, handleSyncConfiguration, handleCloneConfiguration, baseUrl1, baseUrl2 }: any) => {
+    const sourceColDefs = [
+      { field: 'tag', headerName: 'TAG', flex: 2, cellRenderer: (params: any) => renderTagLink(baseUrl1, 'input-file-tag', params.data.raw?.tag_id || params.data.id, params.value) },
+      { field: 'bo_type', headerName: 'BO TYPE', flex: 1 },
+      {
+        field: 'viewData',
+        headerName: 'VIEW DATA',
+        flex: 1.2,
+        cellRenderer: (params: any) => (
+          <button onClick={() => openDataViewer(params)} className="btn-gray">View Data</button>
+        )
+      },
+      {
+        field: 'syncData',
+        headerName: '',
+        flex: 1.2,
+        cellRenderer: (params: any) => (
+          <button onClick={() => handleCloneConfiguration(params.data.raw, baseUrl2, 'to_right')} className="btn-gray">Copy to Right</button>
+        )
+      }
+    ];
+
+    const targetColDefs = [
+      { field: 'tag', headerName: 'TAG', flex: 2, cellRenderer: (params: any) => renderTagLink(baseUrl2, 'input-file-tag', params.data.raw?.tag_id || params.data.id, params.value) },
+      { field: 'bo_type', headerName: 'BO TYPE', flex: 1 },
+      {
+        field: 'viewData',
+        headerName: 'VIEW DATA',
+        flex: 1.2,
+        cellRenderer: (params: any) => (
+          <button onClick={() => openDataViewer(params)} className="btn-gray">View Data</button>
+        )
+      },
+      {
+        field: 'syncData',
+        headerName: '',
+        flex: 1.2,
+        cellRenderer: (params: any) => (
+          <button onClick={() => handleCloneConfiguration(params.data.raw, baseUrl1, 'to_left')} className="btn-gray">Copy to Left</button>
+        )
+      }
+    ];
+
     return {
       dataDiffColDefs: [
         { field: 'tag', headerName: 'TAG', flex: 1.5, cellRenderer: (params: any) => renderTrimTooltip(params.value, 35) },
@@ -150,46 +199,10 @@ export const templatesConfig = {
           )
         }
       ],
-      site1ColDefs: [
-        { field: 'tag', headerName: 'TAG', flex: 2, cellRenderer: (params: any) => renderTagLink(baseUrl1, 'input-file-tag', params.data.raw?.tag_id || params.data.id, params.value) },
-        { field: 'bo_type', headerName: 'BO TYPE', flex: 1 },
-        {
-          field: 'viewData',
-          headerName: 'VIEW DATA',
-          flex: 1.2,
-          cellRenderer: (params: any) => (
-            <button onClick={() => openDataViewer(params)} className="btn-gray">View Data</button>
-          )
-        },
-        {
-          field: 'syncData',
-          headerName: '',
-          flex: 1.2,
-          cellRenderer: (params: any) => (
-            <button onClick={() => handleCloneConfiguration(params.data.raw, baseUrl2, 'to_right')} className="btn-gray">Copy to Right</button>
-          )
-        }
-      ],
-      site2ColDefs: [
-        { field: 'tag', headerName: 'TAG', flex: 2, cellRenderer: (params: any) => renderTagLink(baseUrl2, 'input-file-tag', params.data.raw?.tag_id || params.data.id, params.value) },
-        { field: 'bo_type', headerName: 'BO TYPE', flex: 1 },
-        {
-          field: 'viewData',
-          headerName: 'VIEW DATA',
-          flex: 1.2,
-          cellRenderer: (params: any) => (
-            <button onClick={() => openDataViewer(params)} className="btn-gray">View Data</button>
-          )
-        },
-        {
-          field: 'syncData',
-          headerName: '',
-          flex: 1.2,
-          cellRenderer: (params: any) => (
-            <button onClick={() => handleCloneConfiguration(params.data.raw, baseUrl1, 'to_left')} className="btn-gray">Copy to Left</button>
-          )
-        }
-      ]
+      sourceColDefs,
+      targetColDefs,
+      site1ColDefs: sourceColDefs,
+      site2ColDefs: targetColDefs
     };
   }
 };
@@ -202,8 +215,8 @@ const Templates: React.FC<TemplatesProps> = ({ activeOption = 'templates' }) => 
   const {
     dataDiffRows,
     versionMismatchRows,
-    onlySite1Rows,
-    onlySite2Rows,
+    onlySourceRows,
+    onlyTargetRows,
     config,
   } = useConfigurationDiff(activeOption);
 
@@ -226,8 +239,8 @@ const Templates: React.FC<TemplatesProps> = ({ activeOption = 'templates' }) => 
       {/* SECTION 3: SIDE-BY-SIDE ONLY SITE TABLES */}
       <OnlySiteTable
         activeOption={activeOption}
-        onlySite1Rows={onlySite1Rows}
-        onlySite2Rows={onlySite2Rows}
+        onlySourceRows={onlySourceRows}
+        onlyTargetRows={onlyTargetRows}
       />
     </div>
   );

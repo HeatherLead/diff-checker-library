@@ -10,73 +10,112 @@ export const permissionConfig = {
   leftDataKey: 'other_diff',
   rightDataKey: 'other_diff',
   hasVersionMismatch: false,
-  compare: (site1Dataset: any[], site2Dataset: any[]) => {
+  compare: (sourceDataset: any[], targetDataset: any[]) => {
     const dataDiff: any[] = [];
-    const onlySite1: any[] = [];
-    const onlySite2: any[] = [];
+    const onlySource: any[] = [];
+    const onlyTarget: any[] = [];
 
-    const map1 = site1Dataset || [];
-    const map2 = site2Dataset || [];
-
-    const idsResp1 = new Set(map1.map((obj: any) => `${obj.module}-${obj.permission}`.trim()));
-    const idsResp2 = new Set(map2.map((obj: any) => `${obj.module}-${obj.permission}`.trim()));
-
-    const similar = map1.filter((obj: any) => idsResp2.has(`${obj.module}-${obj.permission}`.trim()));
-
-    similar.forEach((ele: any) => {
-      const match = map2.find((item: any) => `${item.module}-${item.permission}`.trim() === `${ele.module}-${ele.permission}`.trim());
-
-      const clean1 = Object.fromEntries(
-        Object.entries(ele).filter(
-          ([key]) => !["module", "permission", "permission_label", "updated", "updated_by", "created", "created_by"].includes(key)
-        )
-      );
-      const clean2 = Object.fromEntries(
-        Object.entries(match).filter(
-          ([key]) => !["module", "permission", "permission_label", "updated", "updated_by", "created", "created_by"].includes(key)
-        )
-      );
-
-      const hasDiff = JSON.stringify(clean1) !== JSON.stringify(clean2);
-
-      dataDiff.push({
-        tag: ele.module,
-        permission: ele.permission,
-        permission_label: ele.permission_label,
-        role_diff_status: hasDiff ? "Diff Changes" : "No change",
-        role_diff: hasDiff ? "View Diff" : "No Diff",
-        raw1: ele,
-        raw2: match
-      });
+    const map1Map = new Map();
+    (sourceDataset || []).forEach((obj: any) => {
+      const key = `${obj.module}-${obj.permission}`.trim();
+      if (!map1Map.has(key)) {
+        map1Map.set(key, obj);
+      }
     });
 
-    map1.forEach((ele: any) => {
-      if (!idsResp2.has(`${ele.module}-${ele.permission}`.trim())) {
-        onlySite1.push({
+    const map2Map = new Map();
+    (targetDataset || []).forEach((obj: any) => {
+      const key = `${obj.module}-${obj.permission}`.trim();
+      if (!map2Map.has(key)) {
+        map2Map.set(key, obj);
+      }
+    });
+
+    map1Map.forEach((ele: any, key: string) => {
+      const match = map2Map.get(key);
+      if (match) {
+        const clean1 = Object.fromEntries(
+          Object.entries(ele).filter(
+            ([k]) => !["module", "permission", "permission_label", "updated", "updated_by", "created", "created_by"].includes(k)
+          )
+        );
+        const clean2 = Object.fromEntries(
+          Object.entries(match).filter(
+            ([k]) => !["module", "permission", "permission_label", "updated", "updated_by", "created", "created_by"].includes(k)
+          )
+        );
+
+        const hasDiff = JSON.stringify(clean1) !== JSON.stringify(clean2);
+
+        dataDiff.push({
+          id: ele.id || match.id || key,
           tag: ele.module,
           permission: ele.permission,
           permission_label: ele.permission_label,
-          id: ele.id || ele.permission || ele.module,
+          role_diff_status: hasDiff ? "Diff Changes" : "No diff",
+          role_diff: hasDiff ? "View Diff" : "No Diff",
+          raw1: ele,
+          raw2: match
+        });
+      } else {
+        onlySource.push({
+          id: ele.id || key,
+          tag: ele.module,
+          permission: ele.permission,
+          permission_label: ele.permission_label,
           raw: ele
         });
       }
     });
 
-    map2.forEach((ele: any) => {
-      if (!idsResp1.has(`${ele.module}-${ele.permission}`.trim())) {
-        onlySite2.push({
+    map2Map.forEach((ele: any, key: string) => {
+      if (!map1Map.has(key)) {
+        onlyTarget.push({
+          id: ele.id || key,
           tag: ele.module,
           permission: ele.permission,
           permission_label: ele.permission_label,
-          id: ele.id || ele.permission || ele.module,
           raw: ele
         });
       }
     });
 
-    return { dataDiff, versionMismatch: [], onlySite1, onlySite2 };
+    return {
+      dataDiff,
+      versionMismatch: [],
+      onlySource,
+      onlyTarget,
+      onlySite1: onlySource,
+      onlySite2: onlyTarget
+    };
   },
   getColumns: ({ openDiffViewer, openDataViewer, baseUrl1, baseUrl2 }: any) => {
+    const sourceColDefs = [
+      { field: 'tag', headerName: 'MODULE', flex: 2, cellRenderer: (params: any) => renderTagLink(baseUrl1, 'permission-config', params.data.id || params.data.tag, params.value, 30) },
+      { field: 'permission_label', headerName: 'PERMISSION', flex: 1.5, cellRenderer: (params: any) => renderTrimTooltip(params.data.permission_label, 30) },
+      {
+        field: 'viewData',
+        headerName: 'VIEW DATA',
+        flex: 1.2,
+        cellRenderer: (params: any) => (
+          <button onClick={() => openDataViewer(params)} className="btn-gray">View Data</button>
+        )
+      }
+    ];
+
+    const targetColDefs = [
+      { field: 'tag', headerName: 'MODULE', flex: 2, cellRenderer: (params: any) => renderTagLink(baseUrl2, 'permission-config', params.data.id || params.data.tag, params.value, 30) },
+      { field: 'permission_label', headerName: 'PERMISSION', flex: 1.5, cellRenderer: (params: any) => renderTrimTooltip(params.data.permission_label, 30) },
+      {
+        field: 'viewData',
+        headerName: 'VIEW DATA',
+        flex: 1.2,
+        cellRenderer: (params: any) => (
+          <button onClick={() => openDataViewer(params)} className="btn-gray">View Data</button>
+        )
+      }
+    ];
+
     return {
       dataDiffColDefs: [
         { field: 'tag', headerName: 'MODULE', flex: 1.5, cellRenderer: (params: any) => renderTrimTooltip(params.value, 30) },
@@ -91,30 +130,10 @@ export const permissionConfig = {
           ) : <span className="dc-muted-text">{params.value}</span>
         }
       ],
-      site1ColDefs: [
-        { field: 'tag', headerName: 'MODULE', flex: 2, cellRenderer: (params: any) => renderTagLink(baseUrl1, 'permission-config', params.data.id || params.data.tag, params.value, 30) },
-        { field: 'permission_label', headerName: 'PERMISSION', flex: 1.5, cellRenderer: (params: any) => renderTrimTooltip(params.data.permission_label, 30) },
-        {
-          field: 'viewData',
-          headerName: 'VIEW DATA',
-          flex: 1.2,
-          cellRenderer: (params: any) => (
-            <button onClick={() => openDataViewer(params)} className="btn-gray">View Data</button>
-          )
-        }
-      ],
-      site2ColDefs: [
-        { field: 'tag', headerName: 'MODULE', flex: 2, cellRenderer: (params: any) => renderTagLink(baseUrl2, 'permission-config', params.data.id || params.data.tag, params.value, 30) },
-        { field: 'permission_label', headerName: 'PERMISSION', flex: 1.5, cellRenderer: (params: any) => renderTrimTooltip(params.data.permission_label, 30) },
-        {
-          field: 'viewData',
-          headerName: 'VIEW DATA',
-          flex: 1.2,
-          cellRenderer: (params: any) => (
-            <button onClick={() => openDataViewer(params)} className="btn-gray">View Data</button>
-          )
-        }
-      ]
+      sourceColDefs,
+      targetColDefs,
+      site1ColDefs: sourceColDefs,
+      site2ColDefs: targetColDefs
     };
   }
 };
@@ -127,8 +146,8 @@ const PermissionConfig: React.FC<PermissionConfigProps> = ({ activeOption = 'per
   const {
     dataDiffRows,
     versionMismatchRows,
-    onlySite1Rows,
-    onlySite2Rows,
+    onlySourceRows,
+    onlyTargetRows,
     config,
   } = useConfigurationDiff(activeOption);
 
@@ -151,8 +170,8 @@ const PermissionConfig: React.FC<PermissionConfigProps> = ({ activeOption = 'per
       {/* SECTION 3: SIDE-BY-SIDE ONLY SITE TABLES */}
       <OnlySiteTable
         activeOption={activeOption}
-        onlySite1Rows={onlySite1Rows}
-        onlySite2Rows={onlySite2Rows}
+        onlySourceRows={onlySourceRows}
+        onlyTargetRows={onlyTargetRows}
       />
     </div>
   );

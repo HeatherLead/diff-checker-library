@@ -8,6 +8,8 @@ import TableFilterBar from './TableFilterBar';
 
 export const OnlySiteTable = memo(({
   activeOption: propActiveOption,
+  onlySourceRows,
+  onlyTargetRows,
   onlySite1Rows = [],
   onlySite2Rows = [],
   baseUrl1: propBaseUrl1,
@@ -22,13 +24,16 @@ export const OnlySiteTable = memo(({
   const openDataViewer = propOpenDataViewer || ctx.openDataViewer || (() => { });
   const handleCloneConfiguration = propHandleCloneConfiguration || ctx.handleCloneConfiguration || (() => { });
 
-  const [showSite1Filters, setShowSite1Filters] = useState(false);
-  const [site1FilterInputs, setSite1FilterInputs] = useState({});
-  const [appliedSite1Filters, setAppliedSite1Filters] = useState({});
+  const effectiveSourceRows = onlySourceRows !== undefined ? onlySourceRows : onlySite1Rows;
+  const effectiveTargetRows = onlyTargetRows !== undefined ? onlyTargetRows : onlySite2Rows;
 
-  const [showSite2Filters, setShowSite2Filters] = useState(false);
-  const [site2FilterInputs, setSite2FilterInputs] = useState({});
-  const [appliedSite2Filters, setAppliedSite2Filters] = useState({});
+  const [showSourceFilters, setShowSourceFilters] = useState(false);
+  const [sourceFilterInputs, setSourceFilterInputs] = useState({});
+  const [appliedSourceFilters, setAppliedSourceFilters] = useState({});
+
+  const [showTargetFilters, setShowTargetFilters] = useState(false);
+  const [targetFilterInputs, setTargetFilterInputs] = useState({});
+  const [appliedTargetFilters, setAppliedTargetFilters] = useState({});
 
   // Load configuration based on the active dropdown page option
   const config = getOptionConfig(activeOption);
@@ -46,54 +51,54 @@ export const OnlySiteTable = memo(({
     });
   }, [config, openDataViewer, handleCloneConfiguration, baseUrl1, baseUrl2]);
 
-  const site1ColDefs = columns.site1ColDefs;
-  const site2ColDefs = columns.site2ColDefs;
+  const sourceColDefs = columns.sourceColDefs || columns.site1ColDefs;
+  const targetColDefs = columns.targetColDefs || columns.site2ColDefs;
 
   // Dynamically extract filterable columns
-  const site1FilterableCols = useMemo(() => {
-    return getFilterableColumns(site1ColDefs);
-  }, [site1ColDefs]);
+  const sourceFilterableCols = useMemo(() => {
+    return getFilterableColumns(sourceColDefs);
+  }, [sourceColDefs]);
 
-  const site2FilterableCols = useMemo(() => {
-    return getFilterableColumns(site2ColDefs);
-  }, [site2ColDefs]);
+  const targetFilterableCols = useMemo(() => {
+    return getFilterableColumns(targetColDefs);
+  }, [targetColDefs]);
 
-  const handleSite1FilterInputChange = (field, value) => {
-    setSite1FilterInputs((prev) => ({ ...prev, [field]: value }));
-    setAppliedSite1Filters((prev) => ({ ...prev, [field]: value }));
+  const handleSourceFilterInputChange = (field, value) => {
+    setSourceFilterInputs((prev) => ({ ...prev, [field]: value }));
+    setAppliedSourceFilters((prev) => ({ ...prev, [field]: value }));
   };
 
-  const handleSite1Submit = () => {
-    setAppliedSite1Filters({ ...site1FilterInputs });
+  const handleSourceSubmit = () => {
+    setAppliedSourceFilters({ ...sourceFilterInputs });
   };
 
-  const handleSite1Reset = () => {
-    setSite1FilterInputs({});
-    setAppliedSite1Filters({});
+  const handleSourceReset = () => {
+    setSourceFilterInputs({});
+    setAppliedSourceFilters({});
   };
 
-  const handleSite2FilterInputChange = (field, value) => {
-    setSite2FilterInputs((prev) => ({ ...prev, [field]: value }));
-    setAppliedSite2Filters((prev) => ({ ...prev, [field]: value }));
+  const handleTargetFilterInputChange = (field, value) => {
+    setTargetFilterInputs((prev) => ({ ...prev, [field]: value }));
+    setAppliedTargetFilters((prev) => ({ ...prev, [field]: value }));
   };
 
-  const handleSite2Submit = () => {
-    setAppliedSite2Filters({ ...site2FilterInputs });
+  const handleTargetSubmit = () => {
+    setAppliedTargetFilters({ ...targetFilterInputs });
   };
 
-  const handleSite2Reset = () => {
-    setSite2FilterInputs({});
-    setAppliedSite2Filters({});
+  const handleTargetReset = () => {
+    setTargetFilterInputs({});
+    setAppliedTargetFilters({});
   };
 
   // Filtered rows logic
-  const filteredSite1Rows = useMemo(() => {
-    return filterRowsByColDefs(onlySite1Rows, appliedSite1Filters, site1FilterableCols);
-  }, [onlySite1Rows, appliedSite1Filters, site1FilterableCols]);
+  const filteredSourceRows = useMemo(() => {
+    return filterRowsByColDefs(effectiveSourceRows, appliedSourceFilters, sourceFilterableCols);
+  }, [effectiveSourceRows, appliedSourceFilters, sourceFilterableCols]);
 
-  const filteredSite2Rows = useMemo(() => {
-    return filterRowsByColDefs(onlySite2Rows, appliedSite2Filters, site2FilterableCols);
-  }, [onlySite2Rows, appliedSite2Filters, site2FilterableCols]);
+  const filteredTargetRows = useMemo(() => {
+    return filterRowsByColDefs(effectiveTargetRows, appliedTargetFilters, targetFilterableCols);
+  }, [effectiveTargetRows, appliedTargetFilters, targetFilterableCols]);
 
   // If this configuration option does not show site-specific tables, do not render anything
   if (config.hasOnlySiteTables === false) {
@@ -114,29 +119,29 @@ export const OnlySiteTable = memo(({
             </div>
             <div className="dc-table-header-right-quarter">
               <button
-                onClick={() => setShowSite1Filters(!showSite1Filters)}
+                onClick={() => setShowSourceFilters(!showSourceFilters)}
                 className="dc-toggle-filter-btn"
               >
-                <span>{showSite1Filters ? 'Hide filters' : 'Show filters'}</span>
-                <span className={`dc-arrow-rotate ${showSite1Filters ? 'up' : 'down'}`}>▲</span>
+                <span>{showSourceFilters ? 'Hide filters' : 'Show filters'}</span>
+                <span className={`dc-arrow-rotate ${showSourceFilters ? 'up' : 'down'}`}>▲</span>
               </button>
             </div>
           </div>
 
           {/* Global Filter Bar */}
           <TableFilterBar
-            showFilters={showSite1Filters}
-            filterableCols={site1FilterableCols}
-            filterInputs={site1FilterInputs}
-            onFilterInputChange={handleSite1FilterInputChange}
-            onSubmit={handleSite1Submit}
-            onReset={handleSite1Reset}
+            showFilters={showSourceFilters}
+            filterableCols={sourceFilterableCols}
+            filterInputs={sourceFilterInputs}
+            onFilterInputChange={handleSourceFilterInputChange}
+            onSubmit={handleSourceSubmit}
+            onReset={handleSourceReset}
           />
 
           <div>
             <AGGridGenerator
-              rowData={filteredSite1Rows}
-              columnDefs={site1ColDefs}
+              rowData={filteredSourceRows}
+              columnDefs={sourceColDefs}
               defaultColDef={{ minWidth: 130, resizable: true }}
               showFloatingFilter={false}
               minHeight="250px"
@@ -146,11 +151,11 @@ export const OnlySiteTable = memo(({
 
           <div className="dc-records-footer">
             <div className="dc-records-count">
-              Total Records: {filteredSite1Rows.length} records
+              Total Records: {filteredSourceRows.length} records
             </div>
-            {filteredSite1Rows.length > 0 && (
+            {filteredSourceRows.length > 0 && (
               <div className="dc-records-total-count">
-                <span>Total Records: <span>{filteredSite1Rows.length}</span></span>
+                <span>Total Records: <span>{filteredSourceRows.length}</span></span>
               </div>
             )}
           </div>
@@ -159,15 +164,17 @@ export const OnlySiteTable = memo(({
     );
   }
 
+  const optionUpper = ctx.activeOptionLabel ? ctx.activeOptionLabel.toUpperCase() : 'DATATABLES';
+
   return (
     <div className="dc-grid-2col">
-      {/* Left Side: ONLY SOURCE DATATABLES */}
+      {/* Left Side: ONLY SOURCE */}
       <section className="dc-table-card">
         <div className="dc-table-header">
           <div className="dc-table-header-spacer"></div>
           <div className="dc-table-header-center-wide">
             <h3 className="dc-table-title">
-              ONLY SOURCE DATATABLES
+              ONLY SOURCE {optionUpper}
             </h3>
             <a
               href={ensureAbsoluteUrl(baseUrl1)}
@@ -180,29 +187,29 @@ export const OnlySiteTable = memo(({
           </div>
           <div className="dc-table-header-right-quarter">
             <button
-              onClick={() => setShowSite1Filters(!showSite1Filters)}
+              onClick={() => setShowSourceFilters(!showSourceFilters)}
               className="dc-toggle-filter-btn"
             >
-              <span>{showSite1Filters ? 'Hide filters' : 'Show filters'}</span>
-              <span className={`dc-arrow-rotate ${showSite1Filters ? 'up' : 'down'}`}>▲</span>
+              <span>{showSourceFilters ? 'Hide filters' : 'Show filters'}</span>
+              <span className={`dc-arrow-rotate ${showSourceFilters ? 'up' : 'down'}`}>▲</span>
             </button>
           </div>
         </div>
 
         {/* Global Filter Bar for Source */}
         <TableFilterBar
-          showFilters={showSite1Filters}
-          filterableCols={site1FilterableCols}
-          filterInputs={site1FilterInputs}
-          onFilterInputChange={handleSite1FilterInputChange}
-          onSubmit={handleSite1Submit}
-          onReset={handleSite1Reset}
+          showFilters={showSourceFilters}
+          filterableCols={sourceFilterableCols}
+          filterInputs={sourceFilterInputs}
+          onFilterInputChange={handleSourceFilterInputChange}
+          onSubmit={handleSourceSubmit}
+          onReset={handleSourceReset}
         />
 
         <div>
           <AGGridGenerator
-            rowData={filteredSite1Rows}
-            columnDefs={site1ColDefs}
+            rowData={filteredSourceRows}
+            columnDefs={sourceColDefs}
             defaultColDef={{ minWidth: 130, resizable: true }}
             showFloatingFilter={false}
             minHeight="250px"
@@ -212,23 +219,23 @@ export const OnlySiteTable = memo(({
 
         <div className="dc-records-footer">
           <div className="dc-records-count">
-            Total Records: {filteredSite1Rows.length} records
+            Total Records: {filteredSourceRows.length} records
           </div>
-          {filteredSite1Rows.length > 0 && (
+          {filteredSourceRows.length > 0 && (
             <div className="dc-records-total-count">
-              <span>Total Records: <span>{filteredSite1Rows.length}</span></span>
+              <span>Total Records: <span>{filteredSourceRows.length}</span></span>
             </div>
           )}
         </div>
       </section>
 
-      {/* Right Side: ONLY TARGET DATATABLES */}
+      {/* Right Side: ONLY TARGET */}
       <section className="dc-table-card">
         <div className="dc-table-header">
           <div className="dc-table-header-spacer"></div>
           <div className="dc-table-header-center-wide">
             <h3 className="dc-table-title">
-              ONLY TARGET DATATABLES
+              ONLY TARGET {optionUpper}
             </h3>
             <a
               href={ensureAbsoluteUrl(baseUrl2)}
@@ -241,29 +248,29 @@ export const OnlySiteTable = memo(({
           </div>
           <div className="dc-table-header-right-quarter">
             <button
-              onClick={() => setShowSite2Filters(!showSite2Filters)}
+              onClick={() => setShowTargetFilters(!showTargetFilters)}
               className="dc-toggle-filter-btn"
             >
-              <span>{showSite2Filters ? 'Hide filters' : 'Show filters'}</span>
-              <span className={`dc-arrow-rotate ${showSite2Filters ? 'up' : 'down'}`}>▲</span>
+              <span>{showTargetFilters ? 'Hide filters' : 'Show filters'}</span>
+              <span className={`dc-arrow-rotate ${showTargetFilters ? 'up' : 'down'}`}>▲</span>
             </button>
           </div>
         </div>
 
         {/* Global Filter Bar for TARGET */}
         <TableFilterBar
-          showFilters={showSite2Filters}
-          filterableCols={site2FilterableCols}
-          filterInputs={site2FilterInputs}
-          onFilterInputChange={handleSite2FilterInputChange}
-          onSubmit={handleSite2Submit}
-          onReset={handleSite2Reset}
+          showFilters={showTargetFilters}
+          filterableCols={targetFilterableCols}
+          filterInputs={targetFilterInputs}
+          onFilterInputChange={handleTargetFilterInputChange}
+          onSubmit={handleTargetSubmit}
+          onReset={handleTargetReset}
         />
 
         <div>
           <AGGridGenerator
-            rowData={filteredSite2Rows}
-            columnDefs={site2ColDefs}
+            rowData={filteredTargetRows}
+            columnDefs={targetColDefs}
             defaultColDef={{ minWidth: 130, resizable: true }}
             showFloatingFilter={false}
             minHeight="250px"
@@ -273,11 +280,11 @@ export const OnlySiteTable = memo(({
 
         <div className="dc-records-footer">
           <div className="dc-records-count">
-            Total Records: {filteredSite2Rows.length} records
+            Total Records: {filteredTargetRows.length} records
           </div>
-          {filteredSite2Rows.length > 0 && (
+          {filteredTargetRows.length > 0 && (
             <div className="dc-records-total-count">
-              <span>Total Records: <span>{filteredSite2Rows.length}</span></span>
+              <span>Total Records: <span>{filteredTargetRows.length}</span></span>
             </div>
           )}
         </div>
