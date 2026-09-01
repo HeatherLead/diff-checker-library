@@ -47,12 +47,14 @@ export const CopyToConfirmModal = memo(({
   const sourceUrl = isToRight ? baseUrl1 : baseUrl2;
   const targetUrl = isToRight ? baseUrl2 : baseUrl1;
 
+  const rawItemWithTag = { ...(typeof rawItem === 'object' ? rawItem : {}), tag: itemTag, tag_name: itemTag, id: itemId };
+
   const resolvedSourceUrl =
     (isToRight ? (row.leftEditUrl || row.sourceEditUrl) : (row.rightEditUrl || row.targetEditUrl)) ||
-    getEditPageUrl(sourceUrl, typeSlug || activeOption, rawItem);
+    getEditPageUrl(sourceUrl, typeSlug || activeOption, rawItemWithTag);
   const resolvedTargetUrl =
     (isToRight ? (row.rightEditUrl || row.targetEditUrl) : (row.leftEditUrl || row.sourceEditUrl)) ||
-    getEditPageUrl(targetUrl, typeSlug || activeOption, rawItem);
+    getEditPageUrl(targetUrl, typeSlug || activeOption, rawItemWithTag);
 
   const handleSubmit = async (e) => {
     e.preventDefault();

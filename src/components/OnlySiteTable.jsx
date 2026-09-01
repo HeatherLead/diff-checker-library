@@ -150,14 +150,9 @@ export const OnlySiteTable = memo(({
           </div>
 
           <div className="dc-records-footer">
-            <div className="dc-records-count">
-              Total Records: {filteredSourceRows.length} records
+            <div className="dc-records-count-filtered">
+              Filtered Records: {filteredSourceRows.length} records | Actual Records: {effectiveSourceRows.length} records
             </div>
-            {filteredSourceRows.length > 0 && (
-              <div className="dc-records-total-count">
-                <span>Total Records: <span>{filteredSourceRows.length}</span></span>
-              </div>
-            )}
           </div>
         </section>
       </div>
@@ -218,14 +213,9 @@ export const OnlySiteTable = memo(({
         </div>
 
         <div className="dc-records-footer">
-          <div className="dc-records-count">
-            Total Records: {filteredSourceRows.length} records
+          <div className="dc-records-count-filtered">
+            Filtered Records: {filteredSourceRows.length} records | Actual Records: {effectiveSourceRows.length} records
           </div>
-          {filteredSourceRows.length > 0 && (
-            <div className="dc-records-total-count">
-              <span>Total Records: <span>{filteredSourceRows.length}</span></span>
-            </div>
-          )}
         </div>
       </section>
 
@@ -279,14 +269,9 @@ export const OnlySiteTable = memo(({
         </div>
 
         <div className="dc-records-footer">
-          <div className="dc-records-count">
-            Total Records: {filteredTargetRows.length} records
+          <div className="dc-records-count-filtered">
+            Filtered Records: {filteredTargetRows.length} records | Actual Records: {effectiveTargetRows.length} records
           </div>
-          {filteredTargetRows.length > 0 && (
-            <div className="dc-records-total-count">
-              <span>Total Records: <span>{filteredTargetRows.length}</span></span>
-            </div>
-          )}
         </div>
       </section>
     </div>

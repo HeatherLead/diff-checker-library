@@ -221,7 +221,6 @@ export const taskEntityConfig = {
           flex: 1.5,
           cellRenderer: (params: any) => renderEditLink(baseUrl2, 'task-entity-config', params.data.rect2id, params.value)
         },
-        { field: 'dt_status', headerName: 'TASK ENTITY DIFF STATUS', flex: 1.5 },
         {
           field: 'datatableDiff',
           headerName: 'TASK ENTITY DIFF',

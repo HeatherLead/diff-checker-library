@@ -2,6 +2,7 @@ import React from 'react';
 import { useConfigurationDiff } from '../../hooks/useConfigurationDiff';
 import DataDiffTable from '../../components/DataDiffTable';
 import VersionMismatchTable from '../../components/VersionMismatchTable';
+import NonMatchTable from '../../components/NonMatchTable';
 import OnlySiteTable from '../../components/OnlySiteTable';
 import { renderTrimTooltip, renderTagLink } from '../../utils/cellRenderers';
 
@@ -73,7 +74,8 @@ export const dropdownConfigConfig = {
       onlySource: nonMatch,
       onlyTarget: [],
       onlySite1: nonMatch,
-      onlySite2: []
+      onlySite2: [],
+      nonMatchRows: nonMatch
     };
   },
   getColumns: ({ openDiffViewer, openDataViewer, baseUrl1 }: any) => {
@@ -106,7 +108,8 @@ export const dropdownConfigConfig = {
       sourceColDefs,
       targetColDefs: [],
       site1ColDefs: sourceColDefs,
-      site2ColDefs: []
+      site2ColDefs: [],
+      nonMatchColDefs: sourceColDefs
     };
   }
 };
@@ -142,12 +145,19 @@ const DropdownConfig: React.FC<DropdownConfigProps> = ({ activeOption = 'dropdow
         />
       )}
 
-      {/* SECTION 3: SIDE-BY-SIDE ONLY SITE TABLES */}
-      <OnlySiteTable
-        activeOption={activeOption}
-        onlySourceRows={onlySourceRows}
-        onlyTargetRows={onlyTargetRows}
-      />
+      {/* SECTION 3: NON MATCH TABLE */}
+      {config?.hasNonMatchTable ? (
+        <NonMatchTable
+          activeOption={activeOption}
+          nonMatchRows={onlySourceRows}
+        />
+      ) : (
+        <OnlySiteTable
+          activeOption={activeOption}
+          onlySourceRows={onlySourceRows}
+          onlyTargetRows={onlyTargetRows}
+        />
+      )}
     </div>
   );
 };

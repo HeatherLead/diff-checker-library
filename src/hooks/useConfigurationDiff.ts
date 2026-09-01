@@ -238,13 +238,14 @@ export function useConfigurationDiff(diffTag: string, options: { autoFetch?: boo
       versionMismatchRows: res.versionMismatchRows || res.versionMismatch || [],
       onlySourceRows: srcRows,
       onlyTargetRows: tgtRows,
+      nonMatchRows: res.nonMatchRows || res.nonMatch || srcRows,
     };
   }, [config, sourceData, targetData]);
 
   // Generate column definitions
   const columns = useMemo(() => {
     if (!config || typeof config.getColumns !== 'function') {
-      return { dataDiffColDefs: [], versionMismatchColDefs: [], sourceColDefs: [], targetColDefs: [], site1ColDefs: [], site2ColDefs: [] };
+      return { dataDiffColDefs: [], versionMismatchColDefs: [], sourceColDefs: [], targetColDefs: [], site1ColDefs: [], site2ColDefs: [], nonMatchColDefs: [] };
     }
     const rawCols = config.getColumns({
       openDiffViewer,
@@ -258,6 +259,7 @@ export function useConfigurationDiff(diffTag: string, options: { autoFetch?: boo
 
     const sourceColDefs = rawCols.sourceColDefs || rawCols.site1ColDefs || [];
     const targetColDefs = rawCols.targetColDefs || rawCols.site2ColDefs || [];
+    const nonMatchColDefs = rawCols.nonMatchColDefs || sourceColDefs;
 
     return {
       ...rawCols,
@@ -265,6 +267,7 @@ export function useConfigurationDiff(diffTag: string, options: { autoFetch?: boo
       targetColDefs,
       site1ColDefs: sourceColDefs,
       site2ColDefs: targetColDefs,
+      nonMatchColDefs,
     };
   }, [config, openDiffViewer, openDataViewer, handleSyncConfiguration, handleCloneConfiguration, showToast, baseUrl1, baseUrl2]);
 
@@ -285,6 +288,7 @@ export function useConfigurationDiff(diffTag: string, options: { autoFetch?: boo
     onlyTargetRows,
     onlySite1Rows: onlySourceRows,
     onlySite2Rows: onlyTargetRows,
+    nonMatchRows: onlySourceRows,
     columns,
     refetch: () => fetchData(true),
     config,

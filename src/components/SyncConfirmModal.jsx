@@ -50,8 +50,11 @@ export const SyncConfirmModal = memo(({
   const sourceUrl = baseUrl1;
   const targetUrl = baseUrl2;
 
-  const resolvedSourceUrl = row.sourceEditUrl || row.leftEditUrl || getEditPageUrl(sourceUrl, typeSlug || activeOption, raw1);
-  const resolvedTargetUrl = row.targetEditUrl || row.rightEditUrl || getEditPageUrl(targetUrl, typeSlug || activeOption, raw2);
+  const raw1WithTag = { ...(typeof raw1 === 'object' ? raw1 : {}), tag: sourceTag || row.tag || '', tag_name: sourceTag || row.tag_name || row.tag || '', id: sourceId };
+  const raw2WithTag = { ...(typeof raw2 === 'object' ? raw2 : {}), tag: targetTag || row.tag || '', tag_name: targetTag || row.tag_name || row.tag || '', id: targetId };
+
+  const resolvedSourceUrl = row.sourceEditUrl || row.leftEditUrl || getEditPageUrl(sourceUrl, typeSlug || activeOption, raw1WithTag);
+  const resolvedTargetUrl = row.targetEditUrl || row.rightEditUrl || getEditPageUrl(targetUrl, typeSlug || activeOption, raw2WithTag);
 
   const handleSubmit = async (e) => {
     e.preventDefault();

@@ -182,14 +182,6 @@ export const templatesConfig = {
         { field: 'tag', headerName: 'TAG', flex: 1.5, cellRenderer: (params: any) => renderTrimTooltip(params.value, 35) },
         { field: 'bo_type', headerName: 'BO TYPE', flex: 1 },
         {
-          field: 'excel_diff',
-          headerName: 'EXCEL DIFF',
-          flex: 1.2,
-          cellRenderer: (params: any) => params.value === 'View Diff' ? (
-            <button onClick={() => openDiffViewer(params, 'excel')} className="btn-gray">View Diff</button>
-          ) : <span className="dc-muted-text">{params.value}</span>
-        },
-        {
           field: 'validator_diff',
           headerName: 'VALIDATOR DIFF',
           flex: 1.2,

@@ -133,11 +133,6 @@ export const VersionMismatchTable = memo(({
         <div className="dc-records-count-filtered">
           Filtered Records: {filteredVersionMismatchRows.length} records | Actual Records: {versionMismatchRows.length} records
         </div>
-        {filteredVersionMismatchRows.length > 0 && (
-          <div className="dc-records-total-count">
-            <span>Total Records: <span>{filteredVersionMismatchRows.length}</span></span>
-          </div>
-        )}
       </div>
     </section>
   );

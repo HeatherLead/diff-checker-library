@@ -170,7 +170,6 @@ export const customFormConfig = {
       dataDiffColDefs: [
         { field: 'tag', headerName: 'TAG', flex: 1.5, cellRenderer: (params: any) => renderTrimTooltip(params.value, 35) },
         { field: 'siteVersion', headerName: 'SITE VERSION', flex: 1 },
-        { field: 'dt_status', headerName: 'CUSTOM FORM DIFF STATUS', flex: 1.5 },
         {
           field: 'datatableDiff',
           headerName: 'CUSTOM FORM DIFF',
@@ -179,7 +178,6 @@ export const customFormConfig = {
             <button onClick={() => openDiffViewer(params, 'structure')} className="btn-gray">View Diff</button>
           ) : <span className="dc-muted-text">{params.value}</span>
         },
-        { field: 'other_diff', headerName: 'OTHER DIFF STATUS', flex: 1.2 },
         {
           field: 'otherDiff',
           headerName: 'OTHER DIFF',
@@ -223,7 +221,6 @@ export const customFormConfig = {
           flex: 1.5,
           cellRenderer: (params: any) => renderEditLink(baseUrl2, 'custom-form-config', params.data.rect2id, params.value)
         },
-        { field: 'dt_status', headerName: 'CUSTOM FORM DIFF STATUS', flex: 1.5 },
         {
           field: 'datatableDiff',
           headerName: 'CUSTOM FORM DIFF',

@@ -171,6 +171,19 @@ export const getEditPageUrl = (baseUrl, typeSlugOrOption, idOrRaw) => {
     return `${cleanUrl}/admin/structure/menu/item/${id}/edit`;
   }
 
+  // Templates / Input file tagging has custom format {baseUrl}/update-validation-json/{tag_id}?tag_name={tagName}
+  if (
+    option === 'templates' ||
+    option === 'input_file_tagging' ||
+    option === 'input_file_tag'
+  ) {
+    const tagName = typeof idOrRaw === 'object' && idOrRaw !== null ? (idOrRaw.tag || idOrRaw.tag_name || '') : '';
+    if (tagName) {
+      return `${cleanUrl}/update-validation-json/${id}?tag_name=${encodeURIComponent(tagName)}`;
+    }
+    return `${cleanUrl}/update-validation-json/${id}`;
+  }
+
   const slug = OPTION_SLUG_MAP[option] || (option ? option.replace(/_/g, '-') : 'datatables-config');
 
   return `${cleanUrl}/${slug}/edit/${id}`;

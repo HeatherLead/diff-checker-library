@@ -592,7 +592,7 @@ export const DiffChecker = ({
           <section className="dc-config-section">
             <div className="dc-config-row">
               <h2 className="dc-config-title">
-                {activeOptionLabel.toUpperCase()} CONFIGURATION
+                {activeOption === 'templates' ? 'TEMPLATES JSON VALIDATION UPDATE' : `${activeOptionLabel.toUpperCase()} CONFIGURATION`}
               </h2>
 
 
