@@ -1,5 +1,5 @@
 import { matchSorter } from 'match-sorter';
-import { NON_FILTERABLE_EXACT_FIELDS } from '../constants/constants';
+import { NON_FILTERABLE_EXACT_FIELDS, VIEW_DIFF_FIELDS, DIFF_CHANGES_FIELDS } from '../constants/constants';
 
 export const isFilterableColumn = (col) => {
   if (!col || !col.field) return false;
@@ -18,8 +18,8 @@ export const isFilterableColumn = (col) => {
     headerLower === 'view data' ||
     headerLower === 'view query' ||
     headerLower === 'view role diff' ||
-    headerLower === 'site 1 config' ||
-    headerLower === 'site 2 config' ||
+    headerLower === 'source config' ||
+    headerLower === 'target config' ||
     headerLower === 'display msg' ||
     headerLower === 'excel diff' ||
     headerLower === 'validator diff' ||
@@ -28,6 +28,7 @@ export const isFilterableColumn = (col) => {
     headerLower === 'other diff' ||
     headerLower === 'custom form diff' ||
     headerLower === 'master config diff' ||
+    headerLower === 'site config diff' ||
     headerLower === 'role diff' ||
     headerLower === 'task entity diff'
   ) {
@@ -49,8 +50,8 @@ export const formatFilterLabel = (headerName) => {
     .split(/\s+/)
     .map(word => {
       if (/^BO$/i.test(word)) return 'BO';
-      if (/^SITE1$/i.test(word)) return 'Site 1';
-      if (/^SITE2$/i.test(word)) return 'Site 2';
+      if (/^(SITE1|SOURCE)$/i.test(word)) return 'Source';
+      if (/^(SITE2|TARGET)$/i.test(word)) return 'Target';
       return word.charAt(0).toUpperCase() + word.slice(1).toLowerCase();
     })
     .join(' ');
@@ -106,3 +107,60 @@ export const filterRowsByColDefs = (rows, appliedFilters, filterableCols) => {
 
   return list;
 };
+
+/**
+ * Checks whether a data diff row represents an actual difference.
+ */
+export const isDiffRow = (r) => {
+  if (!r || typeof r !== 'object') return false;
+
+  // 1. Explicit boolean diff flags
+  if (r.hasOtherDiff === true || r.hasDiff === true || r.hasStructDiff === true || r.hasQueryDiff === true) {
+    return true;
+  }
+
+  // 2. Count comparisons (e.g. SubTaskMaster)
+  if (
+    (r.countSource !== undefined && r.countTarget !== undefined && r.countSource !== r.countTarget) ||
+    (r.countSite1 !== undefined && r.countSite2 !== undefined && r.countSite1 !== r.countSite2)
+  ) {
+    return true;
+  }
+
+  // 3. Check known VIEW_DIFF_FIELDS
+  for (const field of VIEW_DIFF_FIELDS) {
+    const val = r[field];
+    if (typeof val === 'string' && val.trim().toLowerCase() === 'view diff') {
+      return true;
+    }
+  }
+
+  // 4. Check known DIFF_CHANGES_FIELDS
+  for (const field of DIFF_CHANGES_FIELDS) {
+    const val = r[field];
+    if (typeof val === 'string' && val.trim().toLowerCase() === 'diff changes') {
+      return true;
+    }
+  }
+
+  // 5. Dynamic field check for any other diff / status fields
+  for (const [key, val] of Object.entries(r)) {
+    if (typeof val === 'string') {
+      const lower = val.trim().toLowerCase();
+      if (lower === 'view diff' || lower === 'diff changes') {
+        return true;
+      }
+      if (
+        (key.toLowerCase().includes('diff') || key.toLowerCase().includes('status')) &&
+        (lower.includes('diff') || lower.includes('change')) &&
+        !lower.includes('no diff') &&
+        !lower.includes('no match')
+      ) {
+        return true;
+      }
+    }
+  }
+
+  return false;
+};
+

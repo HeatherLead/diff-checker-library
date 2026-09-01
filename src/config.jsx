@@ -15,7 +15,7 @@ import {
   templatesConfig
 } from './pages';
 
-export { renderTrimTooltip, renderTagLink, renderEditLink, ensureAbsoluteUrl } from './utils/cellRenderers';
+export { renderTrimTooltip, renderTagLink, renderEditLink, ensureAbsoluteUrl, getEditPageUrl, OPTION_SLUG_MAP } from './utils/cellRenderers';
 
 export const CONFIGS = {
   datatables: dataTablesConfig,

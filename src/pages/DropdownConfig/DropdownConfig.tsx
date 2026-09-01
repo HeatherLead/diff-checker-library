@@ -2,6 +2,7 @@ import React from 'react';
 import { useConfigurationDiff } from '../../hooks/useConfigurationDiff';
 import DataDiffTable from '../../components/DataDiffTable';
 import VersionMismatchTable from '../../components/VersionMismatchTable';
+import NonMatchTable from '../../components/NonMatchTable';
 import OnlySiteTable from '../../components/OnlySiteTable';
 import { renderTrimTooltip, renderTagLink } from '../../utils/cellRenderers';
 
@@ -12,12 +13,19 @@ export const dropdownConfigConfig = {
   hasVersionMismatch: false,
   hasOnlySiteTables: false,
   hasNonMatchTable: true,
-  compare: (site1Dataset: any[], site2Dataset: any[]) => {
+  compare: (sourceDataset: any, targetDataset: any) => {
     const dataDiff: any[] = [];
     const nonMatch: any[] = [];
 
-    const map1 = site1Dataset || [];
-    const map2 = site2Dataset || [];
+    const toList = (dataset: any): any[] => {
+      if (!dataset) return [];
+      if (Array.isArray(dataset)) return dataset.filter(Boolean);
+      if (typeof dataset === 'object') return Object.values(dataset).filter(Boolean);
+      return [];
+    };
+
+    const map1 = toList(sourceDataset);
+    const map2 = toList(targetDataset);
 
     map1.forEach((record1: any) => {
       const record2 = map2.find((o: any) => o.tag === record1.tag);
@@ -25,10 +33,11 @@ export const dropdownConfigConfig = {
       if (record2) {
         const hasDiff = record1.dropdown_query !== record2.dropdown_query;
         dataDiff.push({
+          id: record1.id || record2.id || record1.tag,
           tag: record1.tag,
           rec1version: record1.version,
           rec2version: record2.version,
-          query_status: hasDiff ? "Diff Changes" : "No change",
+          query_status: hasDiff ? "Diff Changes" : "No Diff",
           dropdown_query: record1.dropdown_query,
           raw1: record1,
           raw2: record2
@@ -59,36 +68,48 @@ export const dropdownConfigConfig = {
       }
     });
 
-    return { dataDiff, versionMismatch: [], onlySite1: nonMatch, onlySite2: [] };
+    return {
+      dataDiff,
+      versionMismatch: [],
+      onlySource: nonMatch,
+      onlyTarget: [],
+      onlySite1: nonMatch,
+      onlySite2: [],
+      nonMatchRows: nonMatch
+    };
   },
   getColumns: ({ openDiffViewer, openDataViewer, baseUrl1 }: any) => {
+    const sourceColDefs = [
+      { field: 'tag', headerName: 'TAG', flex: 2, cellRenderer: (params: any) => renderTagLink(baseUrl1, 'dropdown-config', params.data.id || params.data.tag, params.value) },
+      { field: 'rec1version', headerName: 'SITE VERSION', flex: 1 },
+      {
+        field: 'view_query',
+        headerName: 'VIEW QUERY',
+        flex: 1.2,
+        cellRenderer: (params: any) => (
+          <button onClick={() => openDataViewer({ data: { tag: params.data.tag, raw: { query: params.data.query } } })} className="btn-gray">View</button>
+        )
+      }
+    ];
+
     return {
       dataDiffColDefs: [
         { field: 'tag', headerName: 'TAG', flex: 1.5, cellRenderer: (params: any) => renderTrimTooltip(params.value, 35) },
         { field: 'rec1version', headerName: 'SITE VERSION', flex: 1 },
-        { field: 'query_status', headerName: 'QUERY DIFF STATUS', flex: 1.5 },
         {
           field: 'query_diff',
           headerName: 'QUERY DIFF',
           flex: 1.2,
           cellRenderer: (params: any) => params.data.query_status === 'Diff Changes' ? (
             <button onClick={() => openDiffViewer(params, 'structure')} className="btn-gray">View Diff</button>
-          ) : <span className="dc-muted-text">{params.data.query_status === 'No change' ? 'No diff' : ''}</span>
+          ) : <span className="dc-muted-text">{params.data.query_status === 'No Diff' ? 'No Diff' : ''}</span>
         }
       ],
-      site1ColDefs: [
-        { field: 'tag', headerName: 'TAG', flex: 2, cellRenderer: (params: any) => renderTagLink(baseUrl1, 'dropdown-config', params.data.id || params.data.tag, params.value) },
-        { field: 'rec1version', headerName: 'SITE VERSION', flex: 1 },
-        {
-          field: 'view_query',
-          headerName: 'VIEW QUERY',
-          flex: 1.2,
-          cellRenderer: (params: any) => (
-            <button onClick={() => openDataViewer({ data: { tag: params.data.tag, raw: { query: params.data.query } } })} className="btn-gray">View</button>
-          )
-        }
-      ],
-      site2ColDefs: []
+      sourceColDefs,
+      targetColDefs: [],
+      site1ColDefs: sourceColDefs,
+      site2ColDefs: [],
+      nonMatchColDefs: sourceColDefs
     };
   }
 };
@@ -103,8 +124,8 @@ const DropdownConfig: React.FC<DropdownConfigProps> = ({ activeOption = 'dropdow
   const {
     dataDiffRows,
     versionMismatchRows,
-    onlySite1Rows,
-    onlySite2Rows,
+    onlySourceRows,
+    onlyTargetRows,
     config,
   } = useConfigurationDiff(activeOption);
 
@@ -124,12 +145,19 @@ const DropdownConfig: React.FC<DropdownConfigProps> = ({ activeOption = 'dropdow
         />
       )}
 
-      {/* SECTION 3: SIDE-BY-SIDE ONLY SITE TABLES */}
-      <OnlySiteTable
-        activeOption={activeOption}
-        onlySite1Rows={onlySite1Rows}
-        onlySite2Rows={onlySite2Rows}
-      />
+      {/* SECTION 3: NON MATCH TABLE */}
+      {config?.hasNonMatchTable ? (
+        <NonMatchTable
+          activeOption={activeOption}
+          nonMatchRows={onlySourceRows}
+        />
+      ) : (
+        <OnlySiteTable
+          activeOption={activeOption}
+          onlySourceRows={onlySourceRows}
+          onlyTargetRows={onlyTargetRows}
+        />
+      )}
     </div>
   );
 };

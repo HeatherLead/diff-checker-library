@@ -11,19 +11,29 @@ export const subTaskMasterConfig = {
   rightDataKey: 'subtask_master',
   hasVersionMismatch: false,
   hasOnlySiteTables: false,
-  compare: (site1Dataset: any[], site2Dataset: any[]) => {
+  compare: (sourceDataset: any, targetDataset: any) => {
+    const toList = (dataset: any): any[] => {
+      if (!dataset) return [];
+      if (Array.isArray(dataset)) return dataset.filter(Boolean);
+      if (typeof dataset === 'object') return Object.values(dataset).filter(Boolean);
+      return [];
+    };
+
+    const list1 = toList(sourceDataset);
+    const list2 = toList(targetDataset);
+
     const countDuplicates = (array: any[]) => {
       const counts: Record<string, number> = {};
       (array || []).forEach((obj: any) => {
-        if (!obj.wf_code || !obj.task_name) return;
-        const key = `${obj.wf_code.trim()}-${obj.task_name.trim()}`;
+        if (!obj || !obj.wf_code || !obj.task_name) return;
+        const key = `${String(obj.wf_code).trim()}-${String(obj.task_name).trim()}`;
         counts[key] = (counts[key] || 0) + 1;
       });
       return counts;
     };
 
-    const left_counts = countDuplicates(site1Dataset);
-    const right_counts = countDuplicates(site2Dataset);
+    const left_counts = countDuplicates(list1);
+    const right_counts = countDuplicates(list2);
 
     const dataDiff: any[] = [];
     const seen = new Set<string>();
@@ -36,6 +46,8 @@ export const subTaskMasterConfig = {
           dataDiff.push({
             wf_code: obj.wf_code.trim(),
             task_name: obj.task_name.trim(),
+            countSource: left_counts[key] || 0,
+            countTarget: right_counts[key] || 0,
             countSite1: left_counts[key] || 0,
             countSite2: right_counts[key] || 0,
             raw1: obj,
@@ -46,19 +58,28 @@ export const subTaskMasterConfig = {
       });
     };
 
-    processArray(site1Dataset);
-    processArray(site2Dataset);
+    processArray(sourceDataset);
+    processArray(targetDataset);
 
-    return { dataDiff, versionMismatch: [], onlySite1: [], onlySite2: [] };
+    return {
+      dataDiff,
+      versionMismatch: [],
+      onlySource: [],
+      onlyTarget: [],
+      onlySite1: [],
+      onlySite2: []
+    };
   },
   getColumns: () => {
     return {
       dataDiffColDefs: [
         { field: 'task_name', headerName: 'TASK NAME', flex: 1.5, cellRenderer: (params: any) => renderTrimTooltip(params.value, 40) },
         { field: 'wf_code', headerName: 'WORKFLOW CODE', flex: 1.5, cellRenderer: (params: any) => renderTrimTooltip(params.value, 40) },
-        { field: 'countSite1', headerName: 'SITE1 COUNT', flex: 1 },
-        { field: 'countSite2', headerName: 'SITE2 COUNT', flex: 1 }
+        { field: 'countSite1', headerName: 'SOURCE COUNT', flex: 1 },
+        { field: 'countSite2', headerName: 'TARGET COUNT', flex: 1 }
       ],
+      sourceColDefs: [],
+      targetColDefs: [],
       site1ColDefs: [],
       site2ColDefs: []
     };
@@ -73,8 +94,8 @@ const SubTaskMaster: React.FC<SubTaskMasterProps> = ({ activeOption = 'subtask_m
   const {
     dataDiffRows,
     versionMismatchRows,
-    onlySite1Rows,
-    onlySite2Rows,
+    onlySourceRows,
+    onlyTargetRows,
     config,
   } = useConfigurationDiff(activeOption);
 
@@ -97,8 +118,8 @@ const SubTaskMaster: React.FC<SubTaskMasterProps> = ({ activeOption = 'subtask_m
       {/* SECTION 3: SIDE-BY-SIDE ONLY SITE TABLES */}
       <OnlySiteTable
         activeOption={activeOption}
-        onlySite1Rows={onlySite1Rows}
-        onlySite2Rows={onlySite2Rows}
+        onlySourceRows={onlySourceRows}
+        onlyTargetRows={onlyTargetRows}
       />
     </div>
   );

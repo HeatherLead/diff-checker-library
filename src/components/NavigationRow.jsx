@@ -46,6 +46,7 @@ const NavigationRow = memo(({ activeOption: propActiveOption, onSelectOption: pr
   const [openDropdownId, setOpenDropdownId] = useState(null);
   const tabRefs = useRef({});
   const navContainerRef = useRef(null);
+  const navInnerRef = useRef(null);
   const [indicatorStyle, setIndicatorStyle] = useState({ left: 0, width: 0, opacity: 0 });
 
   // Clean base path without trailing slash
@@ -109,18 +110,63 @@ const NavigationRow = memo(({ activeOption: propActiveOption, onSelectOption: pr
 
   useLayoutEffect(() => {
     updateIndicator();
+    const activeEl = tabRefs.current[activeTabId];
+    if (activeEl && typeof activeEl.scrollIntoView === 'function') {
+      activeEl.scrollIntoView({ behavior: 'smooth', inline: 'nearest', block: 'nearest' });
+    }
   }, [currentActiveOption, activeTabId]);
 
+  const [dropdownStyle, setDropdownStyle] = useState({ top: 0, left: 0, right: 'auto' });
+
+  const updateDropdownPos = () => {
+    if (!openDropdownId) return;
+    const btn = tabRefs.current[openDropdownId];
+    const container = navContainerRef.current;
+    if (btn && container) {
+      const btnRect = btn.getBoundingClientRect();
+      const containerRect = container.getBoundingClientRect();
+      const isRight = btnRect.left + 220 > window.innerWidth;
+      setDropdownStyle({
+        top: btnRect.bottom - containerRect.top,
+        left: isRight ? 'auto' : Math.max(8, btnRect.left - containerRect.left),
+        right: isRight ? Math.max(8, containerRect.right - btnRect.right) : 'auto',
+      });
+    }
+  };
+
+  useLayoutEffect(() => {
+    updateDropdownPos();
+  }, [openDropdownId]);
+
   useEffect(() => {
-    window.addEventListener('resize', updateIndicator);
-    const animId = requestAnimationFrame(updateIndicator);
-    const timer = setTimeout(updateIndicator, 100);
+    const handleScrollOrResize = () => {
+      updateIndicator();
+      if (openDropdownId) {
+        updateDropdownPos();
+      }
+    };
+    window.addEventListener('resize', handleScrollOrResize);
+    const navInner = navInnerRef.current;
+    if (navInner) {
+      navInner.addEventListener('scroll', handleScrollOrResize, { passive: true });
+    }
+    const animId = requestAnimationFrame(() => {
+      updateIndicator();
+      updateDropdownPos();
+    });
+    const timer = setTimeout(() => {
+      updateIndicator();
+      updateDropdownPos();
+    }, 150);
     return () => {
-      window.removeEventListener('resize', updateIndicator);
+      window.removeEventListener('resize', handleScrollOrResize);
+      if (navInner) {
+        navInner.removeEventListener('scroll', handleScrollOrResize);
+      }
       cancelAnimationFrame(animId);
       clearTimeout(timer);
     };
-  }, [currentActiveOption, activeTabId]);
+  }, [currentActiveOption, activeTabId, openDropdownId]);
 
   // Close dropdown on outside click
   useEffect(() => {
@@ -148,7 +194,7 @@ const NavigationRow = memo(({ activeOption: propActiveOption, onSelectOption: pr
       navigateTo(tab.path);
       setOpenDropdownId(null);
     } else {
-      setOpenDropdownId(prev => (prev === tab.id ? null : tab.id));
+      setOpenDropdownId((prev) => (prev === tab.id ? null : tab.id));
     }
   };
 
@@ -158,9 +204,11 @@ const NavigationRow = memo(({ activeOption: propActiveOption, onSelectOption: pr
     setOpenDropdownId(null);
   };
 
+  const openTab = openDropdownId ? TABS.find((t) => t.id === openDropdownId) : null;
+
   return (
     <div className="dc-nav" ref={navContainerRef}>
-      <div className="dc-nav-inner">
+      <div className="dc-nav-inner" ref={navInnerRef}>
 
         {/* Navigation Tabs List */}
         <div className="dc-nav-tabs">
@@ -198,30 +246,39 @@ const NavigationRow = memo(({ activeOption: propActiveOption, onSelectOption: pr
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" />
                   </svg>
                 </button>
-
-                {/* DROPDOWN MENU CARD */}
-                {isOpen && (
-                  <div className="dc-nav-dropdown-menu">
-                    {tab.items.map((item) => {
-                      const isOptionSelected = currentActiveOption === item.id;
-                      return (
-                        <button
-                          key={item.id}
-                          onClick={() => handleSelectItem(item)}
-                          className={`dc-nav-dropdown-item ${isOptionSelected ? 'active' : ''}`}
-                        >
-                          {item.label}
-                        </button>
-                      );
-                    })}
-                  </div>
-                )}
               </div>
             );
           })}
         </div>
 
       </div>
+
+      {/* DROPDOWN MENU CARD - Rendered outside dc-nav-inner so it never gets clipped */}
+      {openTab && openTab.type === 'dropdown' && (
+        <div
+          className={`dc-nav-dropdown-menu ${dropdownStyle.right !== 'auto' ? 'dc-nav-dropdown-menu-right' : ''}`}
+          style={{
+            position: 'absolute',
+            top: `${dropdownStyle.top}px`,
+            left: dropdownStyle.left !== 'auto' ? `${dropdownStyle.left}px` : 'auto',
+            right: dropdownStyle.right !== 'auto' ? `${dropdownStyle.right}px` : 'auto',
+            zIndex: 100,
+          }}
+        >
+          {openTab.items.map((item) => {
+            const isOptionSelected = currentActiveOption === item.id;
+            return (
+              <button
+                key={item.id}
+                onClick={() => handleSelectItem(item)}
+                className={`dc-nav-dropdown-item ${isOptionSelected ? 'active' : ''}`}
+              >
+                {item.label}
+              </button>
+            );
+          })}
+        </div>
+      )}
 
       {/* ANIMATED ACTIVE PURPLE BORDER BOTTOM LINE (#820f4c) */}
       <span

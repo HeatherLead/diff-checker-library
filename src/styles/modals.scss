@@ -130,7 +130,7 @@
 
 .dc-modal-desc {
   color: $dc-text-muted;
-  font-size: 14px;
+  font-size: 12px;
   font-weight: 500;
   text-align: left;
   margin: 0;
@@ -261,7 +261,7 @@
   border: 1px solid $dc-border-dark;
   border-radius: $dc-radius-md;
   outline: none;
-  font-size: 14px;
+  font-size: 12px;
   color: $dc-text-secondary;
   transition: border-color 0.15s ease;
   background-color: #fafafa;
@@ -373,7 +373,8 @@
       background: transparent;
     }
 
-    td, th {
+    td,
+    th {
       vertical-align: top !important;
       font-family: $dc-font-mono, monospace !important;
       font-size: 12px !important;
@@ -410,7 +411,14 @@
       font-size: 12px !important;
       line-height: 18px !important;
 
-      pre, code, span, div, del, ins, mark, a {
+      pre,
+      code,
+      span,
+      div,
+      del,
+      ins,
+      mark,
+      a {
         text-align: left !important;
         font-family: $dc-font-mono, monospace !important;
         font-size: 12px !important;
@@ -421,7 +429,9 @@
       }
     }
 
-    del, ins, mark {
+    del,
+    ins,
+    mark {
       text-decoration: none !important;
       font-family: $dc-font-mono, monospace !important;
       font-size: 12px !important;
@@ -450,7 +460,7 @@
 }
 
 .dc-diff-side-title {
-  font-size: 14px;
+  font-size: 12px;
   font-weight: 700;
   color: $dc-text-primary;
   letter-spacing: -0.01em;

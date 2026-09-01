@@ -4,6 +4,7 @@ export interface DiffCheckerProps {
   base_url?: string;
   base_path?: string;
   synced_by?: string;
+  import_id?: number | string | null;
   headers?: Record<string, string>;
   initialOption?: string;
   initialOptionLabel?: string;

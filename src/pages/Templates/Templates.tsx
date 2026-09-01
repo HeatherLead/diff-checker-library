@@ -10,13 +10,20 @@ export const templatesConfig = {
   leftDataKey: 'templates',
   rightDataKey: 'templates',
   hasVersionMismatch: false,
-  compare: (site1Dataset: any[], site2Dataset: any[]) => {
+  compare: (sourceDataset: any, targetDataset: any) => {
     const dataDiff: any[] = [];
-    const onlySite1: any[] = [];
-    const onlySite2: any[] = [];
+    const onlySource: any[] = [];
+    const onlyTarget: any[] = [];
 
-    const map1 = site1Dataset || [];
-    const map2 = site2Dataset || [];
+    const toList = (dataset: any): any[] => {
+      if (!dataset) return [];
+      if (Array.isArray(dataset)) return dataset.filter(Boolean);
+      if (typeof dataset === 'object') return Object.values(dataset).filter(Boolean);
+      return [];
+    };
+
+    const map1 = toList(sourceDataset);
+    const map2 = toList(targetDataset);
 
     const tagsIn1 = new Set(map1.map((obj: any) => obj.tag_name?.trim()).filter(Boolean));
     const tagsIn2 = new Set(map2.map((obj: any) => obj.tag_name?.trim()).filter(Boolean));
@@ -56,18 +63,6 @@ export const templatesConfig = {
       try { return JSON.parse(jsonStr); } catch (e) { return {}; }
     };
 
-    const filterRecord = (rec: any) => {
-      const filtered: Record<string, any> = Object.fromEntries(
-        Object.entries(rec).filter(
-          ([key]) => !["tag_name", "tag_id", "template_id", "created_by", "updated_by", "updated", "created"].includes(key)
-        )
-      );
-      if (filtered.file_base64 && typeof filtered.file_base64 === "string") {
-        filtered.file_base64 = parseCSVToCleanedArray(filtered.file_base64);
-      }
-      return filtered;
-    };
-
     map1.forEach((record1: any) => {
       if (!record1.tag_name) return;
       const tag1 = record1.tag_name.trim();
@@ -77,10 +72,6 @@ export const templatesConfig = {
       );
 
       if (record2Exact !== undefined) {
-        const clean1 = filterRecord(record1);
-        const clean2 = filterRecord(record2Exact);
-        const hasDiff = JSON.stringify(clean1) !== JSON.stringify(clean2);
-
         const excel1 = { excel_diff: record1.file_base64 ? parseCSVToCleanedArray(record1.file_base64) : [] };
         const excel2 = { excel_diff: record2Exact.file_base64 ? parseCSVToCleanedArray(record2Exact.file_base64) : [] };
         const hasExcelDiff = JSON.stringify(excel1) !== JSON.stringify(excel2);
@@ -89,16 +80,21 @@ export const templatesConfig = {
         const val2 = record2Exact.validator_json ? parseValidatorJson(record2Exact.validator_json) : {};
         const hasValDiff = JSON.stringify(val1) !== JSON.stringify(val2);
 
+        const hasDiff = hasExcelDiff || hasValDiff;
+
         dataDiff.push({
+          rect1id: record1.tag_id || record1.id,
+          rect2id: record2Exact.tag_id || record2Exact.id,
+          id: record1.tag_id || record1.id,
           tag: tag1,
           bo_type: (record1.business_unit || "").trim(),
           rec1version: record1.version || "",
           rec2version: record2Exact.version || "",
-          msg_diff: hasDiff ? "Diff Changes" : "No change",
-          excel_diff: hasExcelDiff ? "View Diff" : "No diff",
+          msg_diff: hasDiff ? "Diff Changes" : "No Diff",
+          excel_diff: hasExcelDiff ? "View Diff" : "No Diff",
           excel1,
           excel2,
-          validator_diff: hasValDiff ? "View Diff" : "No diff",
+          validator_diff: hasValDiff ? "View Diff" : "No Diff",
           val1,
           val2,
           raw1: record1,
@@ -106,10 +102,10 @@ export const templatesConfig = {
         });
       } else {
         if (!tagsIn2.has(tag1)) {
-          onlySite1.push({
+          onlySource.push({
             tag: tag1,
             bo_type: (record1.business_unit || "").trim(),
-            id: record1.id,
+            id: record1.tag_id || record1.id,
             raw: record1
           });
         }
@@ -120,30 +116,71 @@ export const templatesConfig = {
       if (!record2.tag_name) return;
       const tag2 = record2.tag_name.trim();
       if (!tagsIn1.has(tag2)) {
-        onlySite2.push({
+        onlyTarget.push({
           tag: tag2,
           bo_type: (record2.business_unit || "").trim(),
-          id: record2.id,
+          id: record2.tag_id || record2.id,
           raw: record2
         });
       }
     });
 
-    return { dataDiff, versionMismatch: [], onlySite1, onlySite2 };
+    return {
+      dataDiff,
+      versionMismatch: [],
+      onlySource,
+      onlyTarget,
+      onlySite1: onlySource,
+      onlySite2: onlyTarget
+    };
   },
   getColumns: ({ openDiffViewer, openDataViewer, handleSyncConfiguration, handleCloneConfiguration, baseUrl1, baseUrl2 }: any) => {
+    const sourceColDefs = [
+      { field: 'tag', headerName: 'TAG', flex: 2, cellRenderer: (params: any) => renderTagLink(baseUrl1, 'input-file-tag', params.data.raw?.tag_id || params.data.id, params.value) },
+      { field: 'bo_type', headerName: 'BO TYPE', flex: 1 },
+      {
+        field: 'viewData',
+        headerName: 'VIEW DATA',
+        flex: 1.2,
+        cellRenderer: (params: any) => (
+          <button onClick={() => openDataViewer(params)} className="btn-gray">View Data</button>
+        )
+      },
+      {
+        field: 'syncData',
+        headerName: '',
+        flex: 1.2,
+        cellRenderer: (params: any) => (
+          <button onClick={() => handleCloneConfiguration(params.data.raw, baseUrl2, 'to_right')} className="btn-gray">Copy to Right</button>
+        )
+      }
+    ];
+
+    const targetColDefs = [
+      { field: 'tag', headerName: 'TAG', flex: 2, cellRenderer: (params: any) => renderTagLink(baseUrl2, 'input-file-tag', params.data.raw?.tag_id || params.data.id, params.value) },
+      { field: 'bo_type', headerName: 'BO TYPE', flex: 1 },
+      {
+        field: 'viewData',
+        headerName: 'VIEW DATA',
+        flex: 1.2,
+        cellRenderer: (params: any) => (
+          <button onClick={() => openDataViewer(params)} className="btn-gray">View Data</button>
+        )
+      },
+      {
+        field: 'syncData',
+        headerName: '',
+        flex: 1.2,
+        cellRenderer: (params: any) => (
+          <button onClick={() => handleCloneConfiguration(params.data.raw, baseUrl1, 'to_left')} className="btn-gray">Copy to Left</button>
+        )
+      }
+    ];
+
     return {
       dataDiffColDefs: [
         { field: 'tag', headerName: 'TAG', flex: 1.5, cellRenderer: (params: any) => renderTrimTooltip(params.value, 35) },
         { field: 'bo_type', headerName: 'BO TYPE', flex: 1 },
-        {
-          field: 'excel_diff',
-          headerName: 'EXCEL DIFF',
-          flex: 1.2,
-          cellRenderer: (params: any) => params.value === 'View Diff' ? (
-            <button onClick={() => openDiffViewer(params, 'excel')} className="btn-gray">View Diff</button>
-          ) : <span className="dc-muted-text">{params.value}</span>
-        },
         {
           field: 'validator_diff',
           headerName: 'VALIDATOR DIFF',
@@ -161,46 +198,10 @@ export const templatesConfig = {
           )
         }
       ],
-      site1ColDefs: [
-        { field: 'tag', headerName: 'TAG', flex: 2, cellRenderer: (params: any) => renderTagLink(baseUrl1, 'templates', params.data.id, params.value) },
-        { field: 'bo_type', headerName: 'BO TYPE', flex: 1 },
-        {
-          field: 'viewData',
-          headerName: 'VIEW DATA',
-          flex: 1.2,
-          cellRenderer: (params: any) => (
-            <button onClick={() => openDataViewer(params)} className="btn-gray">View Data</button>
-          )
-        },
-        {
-          field: 'syncData',
-          headerName: '',
-          flex: 1.2,
-          cellRenderer: (params: any) => (
-            <button onClick={() => handleCloneConfiguration(params.data.raw, baseUrl2, 'to_right')} className="btn-gray">Copy to Right</button>
-          )
-        }
-      ],
-      site2ColDefs: [
-        { field: 'tag', headerName: 'TAG', flex: 2, cellRenderer: (params: any) => renderTagLink(baseUrl2, 'templates', params.data.id, params.value) },
-        { field: 'bo_type', headerName: 'BO TYPE', flex: 1 },
-        {
-          field: 'viewData',
-          headerName: 'VIEW DATA',
-          flex: 1.2,
-          cellRenderer: (params: any) => (
-            <button onClick={() => openDataViewer(params)} className="btn-gray">View Data</button>
-          )
-        },
-        {
-          field: 'syncData',
-          headerName: '',
-          flex: 1.2,
-          cellRenderer: (params: any) => (
-            <button onClick={() => handleCloneConfiguration(params.data.raw, baseUrl1, 'to_left')} className="btn-gray">Copy to Left</button>
-          )
-        }
-      ]
+      sourceColDefs,
+      targetColDefs,
+      site1ColDefs: sourceColDefs,
+      site2ColDefs: targetColDefs
     };
   }
 };
@@ -213,8 +214,8 @@ const Templates: React.FC<TemplatesProps> = ({ activeOption = 'templates' }) => 
   const {
     dataDiffRows,
     versionMismatchRows,
-    onlySite1Rows,
-    onlySite2Rows,
+    onlySourceRows,
+    onlyTargetRows,
     config,
   } = useConfigurationDiff(activeOption);
 
@@ -237,8 +238,8 @@ const Templates: React.FC<TemplatesProps> = ({ activeOption = 'templates' }) => 
       {/* SECTION 3: SIDE-BY-SIDE ONLY SITE TABLES */}
       <OnlySiteTable
         activeOption={activeOption}
-        onlySite1Rows={onlySite1Rows}
-        onlySite2Rows={onlySite2Rows}
+        onlySourceRows={onlySourceRows}
+        onlyTargetRows={onlyTargetRows}
       />
     </div>
   );

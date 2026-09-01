@@ -2,7 +2,7 @@ import React, { useState, useMemo, memo } from 'react';
 import { AGGridGenerator } from './AGGridGenerator';
 import { getOptionConfig } from '../config';
 import { useDiffChecker } from '../context/DiffCheckerContext';
-import { getFilterableColumns, filterRowsByColDefs } from '../utils/filterUtils';
+import { getFilterableColumns, filterRowsByColDefs, isDiffRow } from '../utils/filterUtils';
 import TableFilterBar from './TableFilterBar';
 
 export const VersionMismatchTable = memo(({
@@ -21,7 +21,7 @@ export const VersionMismatchTable = memo(({
   const [showVersionFilters, setShowVersionFilters] = useState(false);
   const [filterInputs, setFilterInputs] = useState({});
   const [appliedFilters, setAppliedFilters] = useState({});
-  const [versionFilterMode, setVersionFilterMode] = useState('only_diff');
+  const [versionFilterMode, setVersionFilterMode] = useState('all');
 
   // Load configuration based on the active dropdown page option
   const config = getOptionConfig(activeOption);
@@ -68,8 +68,11 @@ export const VersionMismatchTable = memo(({
   // Filtered rows logic
   const filteredVersionMismatchRows = useMemo(() => {
     let list = filterRowsByColDefs(versionMismatchRows, appliedFilters, filterableCols);
+    if (versionFilterMode === 'only_diff') {
+      list = list.filter(isDiffRow);
+    }
     return list;
-  }, [versionMismatchRows, appliedFilters, filterableCols]);
+  }, [versionMismatchRows, appliedFilters, filterableCols, versionFilterMode]);
 
   return (
     <section className="dc-table-card">
@@ -126,8 +129,10 @@ export const VersionMismatchTable = memo(({
         maxHeight="460px"
       />
 
-      <div className="dc-records-count-filtered">
-        Filtered Records: {filteredVersionMismatchRows.length} records | Actual Records: {versionMismatchRows.length} records
+      <div className="dc-records-footer">
+        <div className="dc-records-count-filtered">
+          Filtered Records: {filteredVersionMismatchRows.length} records | Actual Records: {versionMismatchRows.length} records
+        </div>
       </div>
     </section>
   );

@@ -31,6 +31,18 @@ export const NON_FILTERABLE_EXACT_FIELDS = new Set([
   "site2config",
   "site1_config",
   "site2_config",
+  "sourceconfig",
+  "targetconfig",
+  "source_config",
+  "target_config",
+  "sourcecount",
+  "targetcount",
+  "source_count",
+  "target_count",
+  "onlysource",
+  "onlytarget",
+  "only_source",
+  "only_target",
   "siteconfig",
   "copyleft",
   "copyright",
@@ -82,17 +94,22 @@ export const VIEW_DIFF_FIELDS = [
   "queryDiff",
   "otherDiff",
   "role_diff",
+  "view_role_diff",
   "excel_diff",
-  "validator_diff"
+  "validator_diff",
+  "display_msg_diff",
+  "custom_form_diff",
+  "site_config_diff"
 ];
 
 export const DIFF_CHANGES_FIELDS = [
   "dt_status",
   "df_status",
-  "role_diff_status",
   "wf_status",
   "query_status",
-  "msg_diff"
+  "msg_diff",
+  "other_status",
+  "other_diff",
 ];
 
 export const TABS = [
@@ -145,7 +162,7 @@ export const TABS = [
   {
     id: "utilities_modules",
     type: "dropdown",
-    title: "utilities & modules",
+    title: "Utilities & Modules",
     items: [
       { id: "subtask_master", label: "SubTask Master", path: "/subtask-master" },
       { id: "custom_form", label: "Custom Form", path: "/custom-form" },

@@ -252,7 +252,7 @@ const isNonFilterableCol = (field, colObj) => {
   }
 
   // Check header text or field name for button-related keywords
-  // BUT exclude status fields like dt_status, df_status, role_diff_status, status
+  // BUT exclude status fields like dt_status, df_status, status
   const isStatusField = strField.includes("status") || strHeader.includes("status");
 
   if (!isStatusField) {
@@ -469,7 +469,7 @@ export const AGGridGenerator = ({
           state: [{ colId, sort: "asc" }],
           defaultState: { sort: null }
         }),
-        icon: '<span style="font-size: 14px; font-weight: normal;">↑</span>'
+        icon: '<span style="font-size: 12px; font-weight: normal;">↑</span>'
       },
       {
         name: "Sort Descending",
@@ -477,7 +477,7 @@ export const AGGridGenerator = ({
           state: [{ colId, sort: "desc" }],
           defaultState: { sort: null }
         }),
-        icon: '<span style="font-size: 14px; font-weight: normal;">↓</span>'
+        icon: '<span style="font-size: 12px; font-weight: normal;">↓</span>'
       },
       "separator",
       "pinSubMenu",
@@ -503,14 +503,6 @@ export const AGGridGenerator = ({
       ...defaultColDef,
     }),
     [defaultColDef]
-  );
-
-  const getRowId = useCallback(
-    (params) => {
-      const resolved = resolveGridRowKey(params.data);
-      return resolved || String(params.defaultId);
-    },
-    []
   );
 
   const handleGridReady = useCallback(
@@ -606,11 +598,6 @@ export const AGGridGenerator = ({
 
   return (
     <div className="dc-grid-wrapper">
-      {enableTotalRowCount && totalRowCount > 0 && (
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '0 4px', fontSize: '12px', color: '#6b7280', fontWeight: 400 }}>
-          <span>Total Records: <span style={{ color: '#1f2937', fontWeight: 400 }}>{totalRowCount}</span></span>
-        </div>
-      )}
       <div
         ref={gridContainerRef}
         className={`dc-grid-container ${themeClass} ${isFilterVisible ? 'ag-floating-filter-visible' : 'ag-floating-filter-hidden'}`}
@@ -623,7 +610,7 @@ export const AGGridGenerator = ({
           defaultColDef={standardDefaultColDef}
           onGridReady={handleGridReady}
           onCellClicked={handleCellClicked}
-          getRowId={getRowId}
+          getRowId={props.getRowId}
           rowSelection={rowSelection}
           getMainMenuItems={getMainMenuItems}
           headerHeight={38}

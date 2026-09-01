@@ -3,6 +3,11 @@
 
 .dc-table-card {
   min-width: 0;
+  padding: 14px;
+  // box-shadow: 0 0 20px 0 rgba(0, 0, 0, 0.2), 0 5px 5px 0 rgba(0, 0, 0, 0.24);
+  box-shadow: 0px 5px 15px 0px rgba(0, 0, 0, 0.10);
+  background: white;
+  border-radius: 7px;
 }
 
 .dc-table-header {
@@ -45,7 +50,7 @@
 }
 
 .dc-table-title {
-  font-size: 14px;
+  font-size: 12px;
   font-weight: 700;
   color: $dc-text-secondary;
   text-transform: uppercase;
@@ -70,8 +75,10 @@
   }
 }
 
-.dc-toggle-filter-btn {
-  font-size: 12px;
+.dc-toggle-filter-btn,
+button.dc-toggle-filter-btn {
+  font-size: 12px !important;
+  line-height: 1.2 !important;
   color: $dc-text-muted;
   display: inline-flex;
   align-items: center;
@@ -81,6 +88,13 @@
   background: none;
   transition: color 0.15s ease;
   user-select: none;
+  font-family: inherit;
+
+  span,
+  svg,
+  .dc-arrow-rotate {
+    font-size: 12px !important;
+  }
 
   &:hover {
     color: $dc-text-secondary;
@@ -89,7 +103,7 @@
 
 .dc-arrow-rotate {
   display: inline-block;
-  font-size: 10px;
+  font-size: 10px !important;
   transition: transform 0.3s ease-in-out;
 
   &.up {
@@ -111,20 +125,53 @@
   }
 }
 
-.dc-records-count {
+.dc-records-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
   margin-top: 8px;
-  font-size: 12px;
+  padding: 0 4px;
+  font-size: 12px !important;
+}
+
+.dc-records-count,
+span.dc-records-count,
+div.dc-records-count {
+  font-size: 12px !important;
   font-style: italic;
   font-weight: 400;
   color: $dc-text-muted;
+
+  span {
+    font-size: 12px !important;
+  }
 }
 
-.dc-records-count-filtered {
-  margin-top: 8px;
-  font-size: 12px;
+.dc-records-count-filtered,
+span.dc-records-count-filtered,
+div.dc-records-count-filtered {
+  font-size: 12px !important;
   font-style: italic;
   font-weight: 400;
   color: $dc-danger;
+
+  span {
+    font-size: 12px !important;
+  }
+}
+
+.dc-records-total-count,
+span.dc-records-total-count,
+div.dc-records-total-count {
+  font-size: 12px !important;
+  color: #6b7280;
+  font-weight: 400;
+
+  span {
+    font-size: 12px !important;
+    color: #1f2937;
+    font-weight: 400;
+  }
 }
 
 // AG Grid Generator container classes
@@ -143,8 +190,15 @@
   border-radius: $dc-radius-md;
   overflow: hidden;
   background-color: #ffffff;
-  font-size: 12px;
+  font-size: 12px !important;
   transition: all 0.3s ease-in-out;
+
+  .ag-header-cell-text,
+  .ag-header-cell,
+  .ag-header-cell-label,
+  .ag-cell {
+    font-size: 12px !important;
+  }
 
   .ag-header-cell-menu-button,
   .ag-header-cell-filter-button,

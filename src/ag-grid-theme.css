@@ -12,13 +12,24 @@
   --ag-header-column-separator-color: transparent;
   --ag-row-border-color: #f0f0f0;
   --ag-border-color: #e2e8f0;
-  --ag-font-size: 13px;
+  --ag-font-size: 12px;
+  --ag-header-font-size: 12px;
   --ag-grid-size: 6px;
   --ag-font-family: 'Roboto', sans-serif;
   --ag-row-hover-color: #f8fafc;
   --ag-checkbox-checked-color: #881337;
   --ag-checkbox-unchecked-color: #881337;
   --ag-scrollbar-width: 6px;
+}
+
+.ag-theme-alpine .ag-header-cell-text,
+.ag-theme-quartz .ag-header-cell-text,
+.ag-theme-alpine .ag-header-cell,
+.ag-theme-quartz .ag-header-cell,
+.ag-header-cell-text,
+.ag-header-cell-label,
+.ag-header-cell {
+  font-size: 12px !important;
 }
 
 /* Overlay Vertical & Horizontal Scrollbars so they float over content rather than taking table layout width */
@@ -327,6 +338,7 @@
 .ag-cell {
   display: flex !important;
   align-items: center !important;
+  font-size: 12px !important;
 }
 
 .btn-maroon-outline,
@@ -348,7 +360,7 @@
   height: 27px !important;
   margin: auto !important;
   padding: 0 4px !important;
-  font-size: 0.875rem !important;
+  font-size: 12px !important;
   font-weight: normal !important;
   line-height: 1 !important;
   border-radius: 2.8px !important;

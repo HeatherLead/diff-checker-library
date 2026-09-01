@@ -10,13 +10,20 @@ export const attachmentTagListConfig = {
   leftDataKey: 'attachment',
   rightDataKey: 'attachment',
   hasVersionMismatch: false,
-  compare: (site1Dataset: any[], site2Dataset: any[]) => {
-    const map1 = site1Dataset || [];
-    const map2 = site2Dataset || [];
+  compare: (sourceDataset: any, targetDataset: any) => {
+    const toList = (dataset: any): any[] => {
+      if (!dataset) return [];
+      if (Array.isArray(dataset)) return dataset.filter(Boolean);
+      if (typeof dataset === 'object') return Object.values(dataset).filter(Boolean);
+      return [];
+    };
+
+    const map1 = toList(sourceDataset);
+    const map2 = toList(targetDataset);
 
     const dataDiff: any[] = [];
-    const onlySite1: any[] = [];
-    const onlySite2: any[] = [];
+    const onlySource: any[] = [];
+    const onlyTarget: any[] = [];
 
     map1.forEach((record1: any) => {
       const record2 = map2.find(
@@ -42,15 +49,16 @@ export const attachmentTagListConfig = {
         const hasDiff = JSON.stringify(clean1) !== JSON.stringify(clean2);
 
         dataDiff.push({
+          id: record1.id || record2.id || record1.tag_name,
           tag: record1.tag_name?.trim(),
           bo_type: record1.bo_type?.trim() || '',
-          msg_diff: hasDiff ? "Diff Changes" : "No change",
-          display_msg_diff: hasDiff ? "View Diff" : "No diff",
+          msg_diff: hasDiff ? "Diff Changes" : "No Diff",
+          display_msg_diff: hasDiff ? "View Diff" : "No Diff",
           raw1: record1,
           raw2: record2
         });
       } else {
-        onlySite1.push({
+        onlySource.push({
           tag: record1.tag_name?.trim(),
           bo_type: record1.bo_type?.trim() || '',
           task_names: record1.task_names || "",
@@ -68,7 +76,7 @@ export const attachmentTagListConfig = {
       );
 
       if (record1 === undefined) {
-        onlySite2.push({
+        onlyTarget.push({
           tag: record2.tag_name?.trim(),
           bo_type: record2.bo_type?.trim() || '',
           task_names: record2.task_names || "",
@@ -78,9 +86,60 @@ export const attachmentTagListConfig = {
       }
     });
 
-    return { dataDiff, versionMismatch: [], onlySite1, onlySite2 };
+    return {
+      dataDiff,
+      versionMismatch: [],
+      onlySource,
+      onlyTarget,
+      onlySite1: onlySource,
+      onlySite2: onlyTarget
+    };
   },
   getColumns: ({ openDiffViewer, openDataViewer, handleSyncConfiguration, handleCloneConfiguration, baseUrl1, baseUrl2 }: any) => {
+    const sourceColDefs = [
+      { field: 'tag', headerName: 'TAG', flex: 2, cellRenderer: (params: any) => renderTagLink(baseUrl1, 'attachment_tag_list', params.data.raw?.tag_id || params.data.id, params.value) },
+      { field: 'bo_type', headerName: 'BO TYPE', flex: 1 },
+      { field: 'task_names', headerName: 'TASK NAMES', flex: 1.5, cellRenderer: (params: any) => renderTrimTooltip(params.value, 20) },
+      {
+        field: 'viewData',
+        headerName: 'VIEW DATA',
+        flex: 1.2,
+        cellRenderer: (params: any) => (
+          <button onClick={() => openDataViewer(params)} className="btn-gray">View Data</button>
+        )
+      },
+      {
+        field: 'syncData',
+        headerName: '',
+        flex: 1.2,
+        cellRenderer: (params: any) => (
+          <button onClick={() => handleCloneConfiguration(params.data.raw, baseUrl2, 'to_right')} className="btn-gray">Copy to Right</button>
+        )
+      }
+    ];
+
+    const targetColDefs = [
+      { field: 'tag', headerName: 'TAG', flex: 2, cellRenderer: (params: any) => renderTagLink(baseUrl2, 'attachment_tag_list', params.data.raw?.tag_id || params.data.id, params.value) },
+      { field: 'bo_type', headerName: 'BO TYPE', flex: 1 },
+      { field: 'task_names', headerName: 'TASK NAMES', flex: 1.5, cellRenderer: (params: any) => renderTrimTooltip(params.value, 20) },
+      {
+        field: 'viewData',
+        headerName: 'VIEW DATA',
+        flex: 1.2,
+        cellRenderer: (params: any) => (
+          <button onClick={() => openDataViewer(params)} className="btn-gray">View Data</button>
+        )
+      },
+      {
+        field: 'syncData',
+        headerName: '',
+        flex: 1.2,
+        cellRenderer: (params: any) => (
+          <button onClick={() => handleCloneConfiguration(params.data.raw, baseUrl1, 'to_left')} className="btn-gray">Copy to Left</button>
+        )
+      }
+    ];
+
     return {
       dataDiffColDefs: [
         { field: 'tag', headerName: 'TAG', flex: 1.5, cellRenderer: (params: any) => renderTrimTooltip(params.value, 35) },
@@ -102,48 +161,10 @@ export const attachmentTagListConfig = {
           )
         }
       ],
-      site1ColDefs: [
-        { field: 'tag', headerName: 'TAG', flex: 2, cellRenderer: (params: any) => renderTagLink(baseUrl1, 'attachment-tag-list', params.data.id, params.value) },
-        { field: 'bo_type', headerName: 'BO TYPE', flex: 1 },
-        { field: 'task_names', headerName: 'TASK NAMES', flex: 1.5, cellRenderer: (params: any) => renderTrimTooltip(params.value, 20) },
-        {
-          field: 'viewData',
-          headerName: 'VIEW DATA',
-          flex: 1.2,
-          cellRenderer: (params: any) => (
-            <button onClick={() => openDataViewer(params)} className="btn-gray">View Data</button>
-          )
-        },
-        {
-          field: 'syncData',
-          headerName: '',
-          flex: 1.2,
-          cellRenderer: (params: any) => (
-            <button onClick={() => handleCloneConfiguration(params.data.raw, baseUrl2, 'to_right')} className="btn-gray">Copy to Right</button>
-          )
-        }
-      ],
-      site2ColDefs: [
-        { field: 'tag', headerName: 'TAG', flex: 2, cellRenderer: (params: any) => renderTagLink(baseUrl2, 'attachment-tag-list', params.data.id, params.value) },
-        { field: 'bo_type', headerName: 'BO TYPE', flex: 1 },
-        { field: 'task_names', headerName: 'TASK NAMES', flex: 1.5, cellRenderer: (params: any) => renderTrimTooltip(params.value, 20) },
-        {
-          field: 'viewData',
-          headerName: 'VIEW DATA',
-          flex: 1.2,
-          cellRenderer: (params: any) => (
-            <button onClick={() => openDataViewer(params)} className="btn-gray">View Data</button>
-          )
-        },
-        {
-          field: 'syncData',
-          headerName: '',
-          flex: 1.2,
-          cellRenderer: (params: any) => (
-            <button onClick={() => handleCloneConfiguration(params.data.raw, baseUrl1, 'to_left')} className="btn-gray">Copy to Left</button>
-          )
-        }
-      ]
+      sourceColDefs,
+      targetColDefs,
+      site1ColDefs: sourceColDefs,
+      site2ColDefs: targetColDefs
     };
   }
 };
@@ -156,8 +177,8 @@ const AttachmentTagList: React.FC<AttachmentTagListProps> = ({ activeOption = 'a
   const {
     dataDiffRows,
     versionMismatchRows,
-    onlySite1Rows,
-    onlySite2Rows,
+    onlySourceRows,
+    onlyTargetRows,
     config,
   } = useConfigurationDiff(activeOption);
 
@@ -180,8 +201,8 @@ const AttachmentTagList: React.FC<AttachmentTagListProps> = ({ activeOption = 'a
       {/* SECTION 3: SIDE-BY-SIDE ONLY SITE TABLES */}
       <OnlySiteTable
         activeOption={activeOption}
-        onlySite1Rows={onlySite1Rows}
-        onlySite2Rows={onlySite2Rows}
+        onlySourceRows={onlySourceRows}
+        onlyTargetRows={onlyTargetRows}
       />
     </div>
   );

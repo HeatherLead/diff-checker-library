@@ -3,7 +3,7 @@ import ReactDiffViewer from 'react-diff-viewer-continued';
 import JsonViewer from './JsonViewer';
 import { Copy } from 'lucide-react';
 import useLockBodyScroll from '../hooks/useLockBodyScroll';
-import { ensureAbsoluteUrl } from '../utils/cellRenderers';
+import { ensureAbsoluteUrl, getEditPageUrl } from '../utils/cellRenderers';
 
 export const parseNestedJsonStrings = (val) => {
   if (val === null || val === undefined) return val;
@@ -42,24 +42,32 @@ export const parseNestedJsonStrings = (val) => {
 export const formatDiffContent = (val) => {
   if (val === null || val === undefined) return '';
 
-  let parsedVal = val;
-  if (typeof val === 'string') {
-    const trimmed = val.trim();
-    if ((trimmed.startsWith('{') && trimmed.endsWith('}')) || (trimmed.startsWith('[') && trimmed.endsWith(']'))) {
-      try {
-        parsedVal = JSON.parse(trimmed);
-      } catch (e) {
-        parsedVal = val;
+  try {
+    let parsedVal = val;
+    if (typeof val === 'string') {
+      const trimmed = val.trim();
+      if ((trimmed.startsWith('{') && trimmed.endsWith('}')) || (trimmed.startsWith('[') && trimmed.endsWith(']'))) {
+        try {
+          parsedVal = JSON.parse(trimmed);
+        } catch (e) {
+          parsedVal = val;
+        }
       }
     }
-  }
 
-  if (typeof parsedVal === 'object' && parsedVal !== null) {
-    const expandedVal = parseNestedJsonStrings(parsedVal);
-    return JSON.stringify(expandedVal, null, 2);
-  }
+    if (typeof parsedVal === 'object' && parsedVal !== null) {
+      const expandedVal = parseNestedJsonStrings(parsedVal);
+      return JSON.stringify(expandedVal, null, 2);
+    }
 
-  return String(val);
+    return String(val);
+  } catch (err) {
+    try {
+      return JSON.stringify(val, null, 2);
+    } catch {
+      return String(val || '');
+    }
+  }
 };
 
 export const DiffViewerModal = ({
@@ -71,6 +79,12 @@ export const DiffViewerModal = ({
   rightVersion = '1.0',
   baseUrl1 = '',
   baseUrl2 = '',
+  leftEditUrl = '',
+  rightEditUrl = '',
+  leftId = '',
+  rightId = '',
+  typeSlug = '',
+  activeOption = '',
   leftData = '',
   rightData = '',
   jsonData = null,
@@ -79,8 +93,25 @@ export const DiffViewerModal = ({
 
   if (!isOpen) return null;
 
-  const leftFormatted = formatDiffContent(leftData);
-  const rightFormatted = formatDiffContent(rightData);
+  let leftFormatted = '';
+  let rightFormatted = '';
+  try {
+    leftFormatted = formatDiffContent(leftData);
+    rightFormatted = formatDiffContent(rightData);
+  } catch (e) {
+    leftFormatted = String(leftData || '');
+    rightFormatted = String(rightData || '');
+  }
+
+  let resolvedLeftUrl = '#';
+  let resolvedRightUrl = '#';
+  try {
+    resolvedLeftUrl = leftEditUrl || getEditPageUrl(baseUrl1, typeSlug || activeOption, leftId || tag);
+    resolvedRightUrl = rightEditUrl || getEditPageUrl(baseUrl2, typeSlug || activeOption, rightId || tag);
+  } catch (e) {
+    resolvedLeftUrl = baseUrl1 || '#';
+    resolvedRightUrl = baseUrl2 || '#';
+  }
 
   return (
     <div className="dc-modal-overlay">
@@ -91,13 +122,13 @@ export const DiffViewerModal = ({
         {type === 'diff' ? (
           <div className="dc-modal-header-diff">
             <div className="dc-diff-grid-headers">
-              {/* Left Side Header */}
+              {/* Source Header */}
               <div>
                 <h4 className="dc-diff-side-title">
-                  Left Side - Tag: <span>{tag}</span> (v.{leftVersion})
+                  Source - Tag: <span>{tag}</span> (v.{leftVersion})
                 </h4>
                 <a
-                  href={ensureAbsoluteUrl(baseUrl1)}
+                  href={resolvedLeftUrl}
                   target="_blank"
                   rel="noreferrer"
                   className="dc-diff-side-url"
@@ -106,13 +137,13 @@ export const DiffViewerModal = ({
                 </a>
               </div>
 
-              {/* Right Side Header */}
+              {/* Target Header */}
               <div>
                 <h4 className="dc-diff-side-title">
-                  Right Side - Tag: <span>{tag}</span> (v.{rightVersion})
+                  Target - Tag: <span>{tag}</span> (v.{rightVersion})
                 </h4>
                 <a
-                  href={ensureAbsoluteUrl(baseUrl2)}
+                  href={resolvedRightUrl}
                   target="_blank"
                   rel="noreferrer"
                   className="dc-diff-side-url"

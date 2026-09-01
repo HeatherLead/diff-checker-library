@@ -10,17 +10,24 @@ export const dataTablesConfig = {
   leftDataKey: 'datatable_structure',
   rightDataKey: 'datatable_structure',
   hasVersionMismatch: true,
-  compare: (site1Dataset: any[], site2Dataset: any[]) => {
+  compare: (sourceDataset: any, targetDataset: any) => {
     const dataDiff: any[] = [];
     const versionMismatch: any[] = [];
-    const onlySite1: any[] = [];
-    const onlySite2: any[] = [];
+    const onlySource: any[] = [];
+    const onlyTarget: any[] = [];
 
-    const list1 = site1Dataset || [];
-    const list2 = site2Dataset || [];
+    const toList = (dataset: any): any[] => {
+      if (!dataset) return [];
+      if (Array.isArray(dataset)) return dataset.filter(Boolean);
+      if (typeof dataset === 'object') return Object.values(dataset).filter(Boolean);
+      return [];
+    };
 
-    const tagsSite1 = new Set(list1.map((item: any) => item.tag?.trim()).filter(Boolean));
-    const tagsSite2 = new Set(list2.map((item: any) => item.tag?.trim()).filter(Boolean));
+    const list1 = toList(sourceDataset);
+    const list2 = toList(targetDataset);
+
+    const tagsSource = new Set(list1.map((item: any) => item.tag?.trim()).filter(Boolean));
+    const tagsTarget = new Set(list2.map((item: any) => item.tag?.trim()).filter(Boolean));
 
     list1.forEach((record1: any) => {
       const tag1 = record1.tag?.trim();
@@ -43,12 +50,14 @@ export const dataTablesConfig = {
           rect1id: record1.id,
           rect2id: record2DiffVersion.id,
           tag: record1.tag,
+          sourceVersion: record1.version || '1.0',
+          targetVersion: record2DiffVersion.version || '1.0',
           site1Version: record1.version || '1.0',
           site2Version: record2DiffVersion.version || '1.0',
           rec1version: record1.version || '1.0',
           rec2version: record2DiffVersion.version || '1.0',
-          dt_status: hasStructDiff ? "Diff Changes" : "No change",
-          query_status: hasQueryDiff ? "Diff Changes" : "No change",
+          dt_status: hasStructDiff ? "Diff Changes" : "No Diff",
+          query_status: hasQueryDiff ? "Diff Changes" : "No Diff",
           datatableDiff: hasStructDiff ? "View Diff" : "No Diff",
           queryDiff: hasQueryDiff ? "View Diff" : "No Diff",
           raw1: record1,
@@ -83,17 +92,19 @@ export const dataTablesConfig = {
         dataDiff.push({
           tag: record1.tag,
           siteVersion: record1.version || '1.0',
+          sourceVersion: record1.version || '1.0',
+          targetVersion: record2SameVersion.version || '1.0',
           rec1version: record1.version || '1.0',
           rec2version: record2SameVersion.version || '1.0',
           rect1id: record1.id,
           rect2id: record2SameVersion.id,
           id: record1.id,
-          dt_status: hasStructDiff ? "Diff Changes" : "No change",
-          query_status: hasQueryDiff ? "Diff Changes" : "No change",
-          other_status: hasOtherDiff ? "Diff Changes" : "No change",
+          dt_status: hasStructDiff ? "Diff Changes" : "No Diff",
+          query_status: hasQueryDiff ? "Diff Changes" : "No Diff",
+          other_status: hasOtherDiff ? "Diff Changes" : "No Diff",
           datatableDiff: hasStructDiff ? 'View Diff' : 'No Diff',
           queryDiff: hasQueryDiff ? 'View Diff' : 'No Diff',
-          otherDiff: 'View Diff',
+          otherDiff: hasOtherDiff ? 'View Diff' : 'No Diff',
           hasOtherDiff,
           raw1: record1,
           raw2: record2SameVersion,
@@ -105,11 +116,11 @@ export const dataTablesConfig = {
       }
     });
 
-    // 3. Only Site 1
+    // 3. Only Source
     list1.forEach((item: any) => {
       const tag = item.tag?.trim();
-      if (!tag || !tagsSite2.has(tag)) {
-        onlySite1.push({
+      if (!tag || !tagsTarget.has(tag)) {
+        onlySource.push({
           tag: item.tag,
           version: item.version || '1.0',
           id: item.id,
@@ -118,11 +129,11 @@ export const dataTablesConfig = {
       }
     });
 
-    // 4. Only Site 2
+    // 4. Only Target
     list2.forEach((item: any) => {
       const tag = item.tag?.trim();
-      if (!tag || !tagsSite1.has(tag)) {
-        onlySite2.push({
+      if (!tag || !tagsSource.has(tag)) {
+        onlyTarget.push({
           tag: item.tag,
           version: item.version || '1.0',
           id: item.id,
@@ -131,9 +142,56 @@ export const dataTablesConfig = {
       }
     });
 
-    return { dataDiff, versionMismatch, onlySite1, onlySite2 };
+    return {
+      dataDiff,
+      versionMismatch,
+      onlySource,
+      onlyTarget,
+      onlySite1: onlySource,
+      onlySite2: onlyTarget
+    };
   },
   getColumns: ({ openDiffViewer, openDataViewer, handleSyncConfiguration, handleCloneConfiguration, baseUrl1, baseUrl2 }: any) => {
+    const sourceColDefs = [
+      { field: 'tag', headerName: 'TAG', flex: 2, cellRenderer: (params: any) => renderTagLink(baseUrl1, 'datatables-config', params.data.id, params.value) },
+      {
+        field: 'viewData',
+        headerName: 'VIEW DATA',
+        flex: 1.2,
+        cellRenderer: (params: any) => (
+          <button onClick={() => openDataViewer(params)} className="btn-gray">View Data</button>
+        )
+      },
+      {
+        field: 'syncData',
+        headerName: '',
+        flex: 1.2,
+        cellRenderer: (params: any) => (
+          <button onClick={() => handleCloneConfiguration(params.data.raw, baseUrl2, 'to_right')} className="btn-gray">Copy to Right</button>
+        )
+      }
+    ];
+
+    const targetColDefs = [
+      { field: 'tag', headerName: 'TAG', flex: 2, cellRenderer: (params: any) => renderTagLink(baseUrl2, 'datatables-config', params.data.id, params.value) },
+      {
+        field: 'viewData',
+        headerName: 'VIEW DATA',
+        flex: 1.2,
+        cellRenderer: (params: any) => (
+          <button onClick={() => openDataViewer(params)} className="btn-gray">View Data</button>
+        )
+      },
+      {
+        field: 'syncData',
+        headerName: '',
+        flex: 1.2,
+        cellRenderer: (params: any) => (
+          <button onClick={() => handleCloneConfiguration(params.data.raw, baseUrl1, 'to_left')} className="btn-gray">Copy to Left</button>
+        )
+      }
+    ];
+
     return {
       dataDiffColDefs: [
         { field: 'tag', headerName: 'TAG', flex: 1.5, cellRenderer: (params: any) => renderTrimTooltip(params.value, 35) },
@@ -164,7 +222,7 @@ export const dataTablesConfig = {
         },
         {
           field: 'site1Config',
-          headerName: 'SITE 1 CONFIG',
+          headerName: 'SOURCE CONFIG',
           flex: 1,
           cellRenderer: (params: any) => {
             const id = params.data.raw1?.id || params.data.rect1id || params.data.id || "38";
@@ -173,7 +231,7 @@ export const dataTablesConfig = {
         },
         {
           field: 'site2Config',
-          headerName: 'SITE 2 CONFIG',
+          headerName: 'TARGET CONFIG',
           flex: 1,
           cellRenderer: (params: any) => {
             const id = params.data.raw2?.id || params.data.rect2id || params.data.id || "38";
@@ -191,8 +249,8 @@ export const dataTablesConfig = {
       ],
       versionMismatchColDefs: [
         { field: 'tag', headerName: 'TAG', flex: 2, cellRenderer: (params: any) => renderTrimTooltip(params.value, 35) },
-        { field: 'site1Version', headerName: 'SITE1 VERSION', flex: 1.5, cellRenderer: (params: any) => <span className="dc-tag-span" style={{ fontSize: '14px' }}>{params.value}</span> },
-        { field: 'site2Version', headerName: 'SITE2 VERSION', flex: 1.5, cellRenderer: (params: any) => <span className="dc-tag-span" style={{ fontSize: '14px' }}>{params.value}</span> },
+        { field: 'site1Version', headerName: 'SOURCE VERSION', flex: 1.5, cellRenderer: (params: any) => <span className="dc-tag-span" style={{ fontSize: '12px' }}>{params.value}</span> },
+        { field: 'site2Version', headerName: 'TARGET VERSION', flex: 1.5, cellRenderer: (params: any) => <span className="dc-tag-span" style={{ fontSize: '12px' }}>{params.value}</span> },
         {
           field: 'datatableDiff',
           headerName: 'DATATABLE DIFF',
@@ -210,44 +268,10 @@ export const dataTablesConfig = {
           ) : <span className="dc-muted-text">{params.value}</span>
         }
       ],
-      site1ColDefs: [
-        { field: 'tag', headerName: 'TAG', flex: 2, cellRenderer: (params: any) => renderTagLink(baseUrl1, 'datatables-config', params.data.id, params.value) },
-        {
-          field: 'viewData',
-          headerName: 'VIEW DATA',
-          flex: 1.2,
-          cellRenderer: (params: any) => (
-            <button onClick={() => openDataViewer(params)} className="btn-gray">View Data</button>
-          )
-        },
-        {
-          field: 'syncData',
-          headerName: '',
-          flex: 1.2,
-          cellRenderer: (params: any) => (
-            <button onClick={() => handleCloneConfiguration(params.data.raw, baseUrl2, 'to_right')} className="btn-gray">Copy to Right</button>
-          )
-        }
-      ],
-      site2ColDefs: [
-        { field: 'tag', headerName: 'TAG', flex: 2, cellRenderer: (params: any) => renderTagLink(baseUrl2, 'datatables-config', params.data.id, params.value) },
-        {
-          field: 'viewData',
-          headerName: 'VIEW DATA',
-          flex: 1.2,
-          cellRenderer: (params: any) => (
-            <button onClick={() => openDataViewer(params)} className="btn-gray">View Data</button>
-          )
-        },
-        {
-          field: 'syncData',
-          headerName: '',
-          flex: 1.2,
-          cellRenderer: (params: any) => (
-            <button onClick={() => handleCloneConfiguration(params.data.raw, baseUrl1, 'to_left')} className="btn-gray">Copy to Left</button>
-          )
-        }
-      ]
+      sourceColDefs,
+      targetColDefs,
+      site1ColDefs: sourceColDefs,
+      site2ColDefs: targetColDefs
     };
   }
 };
@@ -262,8 +286,8 @@ const DataTables: React.FC<DataTablesProps> = ({ activeOption = 'datatables' }) 
   const {
     dataDiffRows,
     versionMismatchRows,
-    onlySite1Rows,
-    onlySite2Rows,
+    onlySourceRows,
+    onlyTargetRows,
     config,
   } = useConfigurationDiff(activeOption);
 
@@ -286,8 +310,8 @@ const DataTables: React.FC<DataTablesProps> = ({ activeOption = 'datatables' }) 
       {/* SECTION 3: SIDE-BY-SIDE ONLY SITE TABLES */}
       <OnlySiteTable
         activeOption={activeOption}
-        onlySite1Rows={onlySite1Rows}
-        onlySite2Rows={onlySite2Rows}
+        onlySourceRows={onlySourceRows}
+        onlyTargetRows={onlyTargetRows}
       />
     </div>
   );
