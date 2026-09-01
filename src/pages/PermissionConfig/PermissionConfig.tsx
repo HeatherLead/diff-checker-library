@@ -64,7 +64,6 @@ export const permissionConfig = {
           tag: ele.module,
           permission: ele.permission,
           permission_label: ele.permission_label,
-          role_diff_status: hasDiff ? "Diff Changes" : "No Diff",
           role_diff: hasDiff ? "View Diff" : "No Diff",
           raw1: ele,
           raw2: match
@@ -132,7 +131,6 @@ export const permissionConfig = {
       dataDiffColDefs: [
         { field: 'tag', headerName: 'MODULE', flex: 1.5, cellRenderer: (params: any) => renderTrimTooltip(params.value, 30) },
         { field: 'permission_label', headerName: 'PERMISSION', flex: 1.5, cellRenderer: (params: any) => renderTrimTooltip(params.data.permission_label, 30) },
-        { field: 'role_diff_status', headerName: 'ROLE DIFF STATUS', flex: 1.5 },
         {
           field: 'role_diff',
           headerName: 'ROLE DIFF',

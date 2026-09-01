@@ -69,7 +69,6 @@ export const siteConfigConfig = {
         dataDiff.push({
           tag: key,
           id: key,
-          site_config_diff_status: hasDiff ? "Diff Changes" : "No Diff",
           site_config_diff: hasDiff ? "View Diff" : "No Diff",
           hasDiff,
           raw1: item1,
@@ -141,7 +140,6 @@ export const siteConfigConfig = {
     return {
       dataDiffColDefs: [
         { field: 'tag', headerName: 'TAG', flex: 2, cellRenderer: (params: any) => renderTrimTooltip(params.value, 45) },
-        { field: 'site_config_diff_status', headerName: 'SITE CONFIG DIFF STATUS', flex: 1.5 },
         {
           field: 'site_config_diff',
           headerName: 'SITE CONFIG DIFF',

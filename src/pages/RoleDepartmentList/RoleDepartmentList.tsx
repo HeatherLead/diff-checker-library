@@ -52,7 +52,6 @@ export const roleDepartmentListConfig = {
         dataDiff.push({
           id: record1.id || record2.id || key,
           tag: record1.role?.trim() || key,
-          role_diff_status: hasDiff ? "Diff Changes" : "No Diff",
           view_role_diff: hasDiff ? "View Diff" : "No Diff",
           raw1: record1,
           raw2: record2
@@ -129,7 +128,6 @@ export const roleDepartmentListConfig = {
     return {
       dataDiffColDefs: [
         { field: 'tag', headerName: 'TAG', flex: 1.5, cellRenderer: (params: any) => renderTrimTooltip(params.value, 35) },
-        { field: 'role_diff_status', headerName: 'ROLE DIFF STATUS', flex: 1.5 },
         {
           field: 'view_role_diff',
           headerName: 'VIEW ROLE DIFF',

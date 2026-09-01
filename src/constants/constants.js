@@ -105,15 +105,11 @@ export const VIEW_DIFF_FIELDS = [
 export const DIFF_CHANGES_FIELDS = [
   "dt_status",
   "df_status",
-  "role_diff_status",
   "wf_status",
   "query_status",
   "msg_diff",
   "other_status",
   "other_diff",
-  "excel_diff_status",
-  "validator_diff_status",
-  "site_config_diff_status"
 ];
 
 export const TABS = [

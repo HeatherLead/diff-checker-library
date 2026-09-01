@@ -94,7 +94,6 @@ export const dropdownConfigConfig = {
       dataDiffColDefs: [
         { field: 'tag', headerName: 'TAG', flex: 1.5, cellRenderer: (params: any) => renderTrimTooltip(params.value, 35) },
         { field: 'rec1version', headerName: 'SITE VERSION', flex: 1 },
-        { field: 'query_status', headerName: 'QUERY DIFF STATUS', flex: 1.5 },
         {
           field: 'query_diff',
           headerName: 'QUERY DIFF',

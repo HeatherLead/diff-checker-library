@@ -252,7 +252,7 @@ const isNonFilterableCol = (field, colObj) => {
   }
 
   // Check header text or field name for button-related keywords
-  // BUT exclude status fields like dt_status, df_status, role_diff_status, status
+  // BUT exclude status fields like dt_status, df_status, status
   const isStatusField = strField.includes("status") || strHeader.includes("status");
 
   if (!isStatusField) {

@@ -170,7 +170,6 @@ export const taskEntityConfig = {
       dataDiffColDefs: [
         { field: 'tag', headerName: 'TAG', flex: 1.5, cellRenderer: (params: any) => renderTrimTooltip(params.value, 35) },
         { field: 'siteVersion', headerName: 'SITE VERSION', flex: 1 },
-        { field: 'dt_status', headerName: 'TASK ENTITY DIFF STATUS', flex: 1.5 },
         {
           field: 'datatableDiff',
           headerName: 'TASK ENTITY DIFF',
@@ -179,7 +178,6 @@ export const taskEntityConfig = {
             <button onClick={() => openDiffViewer(params, 'structure')} className="btn-gray">View Diff</button>
           ) : <span className="dc-muted-text">{params.value}</span>
         },
-        { field: 'other_diff', headerName: 'OTHER DIFF STATUS', flex: 1.2 },
         {
           field: 'otherDiff',
           headerName: 'OTHER DIFF',
