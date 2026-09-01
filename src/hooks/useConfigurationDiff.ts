@@ -8,21 +8,23 @@ export interface UseConfigurationDiffOptions {
   autoFetch?: boolean;
 }
 
-const extractDataset = (container: any, possibleKeys: string[] = []): any[] => {
+const extractDataset = (container: any, possibleKeys: string[] = []): any => {
   if (!container) return [];
   if (Array.isArray(container)) return container;
   if (typeof container === 'object') {
-    // 1. Check direct key match
+    // 1. Check direct key match in possibleKeys
     for (const key of possibleKeys) {
-      if (key && Array.isArray(container[key])) {
+      if (key && container[key] !== undefined && container[key] !== null) {
         return container[key];
       }
     }
     // 2. Find first property that is an Array
     const firstArrayVal = Object.values(container).find(Array.isArray);
     if (Array.isArray(firstArrayVal)) {
-      return firstArrayVal as any[];
+      return firstArrayVal;
     }
+    // 3. Container itself is the dataset dictionary/object
+    return container;
   }
   return [];
 };
@@ -46,8 +48,8 @@ export function useConfigurationDiff(diffTag: string, options: { autoFetch?: boo
   const showToast = ctx.showToast || (() => { });
 
   const [isLoading, setIsLoading] = useState(false);
-  const [sourceData, setSourceData] = useState<any[]>([]);
-  const [targetData, setTargetData] = useState<any[]>([]);
+  const [sourceData, setSourceData] = useState<any>([]);
+  const [targetData, setTargetData] = useState<any>([]);
   const [error, setError] = useState<any>(null);
 
   const lastFetchedKeyRef = useRef<string | null>(null);
@@ -111,8 +113,8 @@ export function useConfigurationDiff(diffTag: string, options: { autoFetch?: boo
       }
     }
 
-    let sourceDataset: any[] = [];
-    let targetDataset: any[] = [];
+    let sourceDataset: any = [];
+    let targetDataset: any = [];
     let isErrorState = false;
 
     try {
@@ -126,17 +128,41 @@ export function useConfigurationDiff(diffTag: string, options: { autoFetch?: boo
           setBaseUrl2((prev: string) => prev !== payloadData.target_url ? payloadData.target_url : prev);
         }
 
-        setBackendMetadata({
-          import_id: payloadData.import_id || null,
-          src_name: payloadData.src_name || '',
-          src_url: payloadData.src_url || '',
-          target_name: payloadData.target_name || '',
-          target_url: payloadData.target_url || '',
-        });
+        const extractedImportId = payloadData.import_id ?? result.import_id ?? payloadData.data?.import_id ?? null;
+
+        setBackendMetadata((prev: any) => ({
+          ...prev,
+          import_id: extractedImportId ?? prev?.import_id ?? null,
+          src_name: payloadData.src_name || result.src_name || prev?.src_name || '',
+          src_url: payloadData.src_url || result.src_url || prev?.src_url || '',
+          target_name: payloadData.target_name || result.target_name || prev?.target_name || '',
+          target_url: payloadData.target_url || result.target_url || prev?.target_url || '',
+        }));
 
         const possibleKeys = [
           apiTag,
           diffTag,
+          'configurations',
+          'master_config',
+          'site_config',
+          'drupal_roles',
+          'drupalMenues_react-menu',
+          'react_menus',
+          'role_department_list',
+          'dropdown',
+          'dropdown_config',
+          'permissions',
+          'permission_config',
+          'workflow',
+          'workflow_config',
+          'bo_attachment_tagging',
+          'attachment_tag_list',
+          'input_file_tagging',
+          'templates',
+          'subtask_master',
+          'custom_form',
+          'entity_forms',
+          'task_entity',
           'datatables_config',
           'datatables',
           'data',
@@ -149,16 +175,14 @@ export function useConfigurationDiff(diffTag: string, options: { autoFetch?: boo
           sourceDataset = extractDataset(payloadData.src_data, possibleKeys);
         } else {
           sourceDataset = extractDataset(payloadData, possibleKeys);
-          if (!sourceDataset.length && Array.isArray(payloadData.site1)) {
+          if ((!sourceDataset || (Array.isArray(sourceDataset) && !sourceDataset.length)) && Array.isArray(payloadData.site1)) {
             sourceDataset = payloadData.site1;
           }
         }
 
         // Extract target (target_data)
-        if (payloadData.target_data !== undefined && payloadData.target_data !== null && typeof payloadData.target_data === 'object' && !Array.isArray(payloadData.target_data)) {
+        if (payloadData.target_data !== undefined && payloadData.target_data !== null) {
           targetDataset = extractDataset(payloadData.target_data, possibleKeys);
-        } else if (Array.isArray(payloadData.target_data)) {
-          targetDataset = payloadData.target_data;
         } else {
           const targetKeys = [
             `${apiTag}_site2`,
@@ -171,7 +195,7 @@ export function useConfigurationDiff(diffTag: string, options: { autoFetch?: boo
             ...possibleKeys
           ];
           targetDataset = extractDataset(payloadData, targetKeys);
-          if (!targetDataset.length && Array.isArray(payloadData.site2)) {
+          if ((!targetDataset || (Array.isArray(targetDataset) && !targetDataset.length)) && Array.isArray(payloadData.site2)) {
             targetDataset = payloadData.site2;
           }
         }
@@ -186,8 +210,8 @@ export function useConfigurationDiff(diffTag: string, options: { autoFetch?: boo
       setError(err);
     }
 
-    setSourceData(sourceDataset || []);
-    setTargetData(targetDataset || []);
+    setSourceData(sourceDataset ?? []);
+    setTargetData(targetDataset ?? []);
     setIsLoading(false);
 
     if (isErrorState) {

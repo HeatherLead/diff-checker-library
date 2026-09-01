@@ -15,8 +15,24 @@ export const masterConfigConfig = {
     const onlySource: any[] = [];
     const onlyTarget: any[] = [];
 
-    const map1 = sourceDataset || {};
-    const map2 = targetDataset || {};
+    const toConfigMap = (dataset: any): Record<string, any> => {
+      if (!dataset) return {};
+      if (Array.isArray(dataset)) {
+        const res: Record<string, any> = {};
+        dataset.forEach((item: any) => {
+          if (item) {
+            const key = item.tag || item.name || item.id || '';
+            if (key) res[key] = item;
+          }
+        });
+        return res;
+      }
+      if (typeof dataset === 'object') return dataset as Record<string, any>;
+      return {};
+    };
+
+    const map1 = toConfigMap(sourceDataset);
+    const map2 = toConfigMap(targetDataset);
 
     for (const key in map1) {
       if (map1.hasOwnProperty(key) && !map2.hasOwnProperty(key) && key !== undefined) {
@@ -53,7 +69,7 @@ export const masterConfigConfig = {
           tag: key,
           rec1version: item1?.version,
           rec2version: item2?.version,
-          dt_status: hasDiff ? "Diff Changes" : "No diff",
+          dt_status: hasDiff ? "Diff Changes" : "No Diff",
           datatableDiff: hasDiff ? "View Diff" : "No Diff",
           site1count: item1?.data_count || "NA",
           site2count: item2?.data_count || "NA",

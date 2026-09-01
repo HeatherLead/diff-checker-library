@@ -15,8 +15,28 @@ export const drupalRolesConfig = {
     const onlySource: any[] = [];
     const onlyTarget: any[] = [];
 
-    const map1 = sourceDataset || {};
-    const map2 = targetDataset || {};
+    const toRoleMap = (dataset: any): Record<string, string> => {
+      if (!dataset) return {};
+      if (Array.isArray(dataset)) {
+        const result: Record<string, string> = {};
+        dataset.forEach((item: any) => {
+          if (typeof item === 'string') {
+            result[item] = item;
+          } else if (item && typeof item === 'object') {
+            const val = item.tag || item.role || item.id || item.name || '';
+            if (val) result[val] = val;
+          }
+        });
+        return result;
+      }
+      if (typeof dataset === 'object') {
+        return dataset as Record<string, string>;
+      }
+      return {};
+    };
+
+    const map1 = toRoleMap(sourceDataset);
+    const map2 = toRoleMap(targetDataset);
 
     const keys1 = Object.keys(map1);
     const keys2 = Object.keys(map2);
@@ -24,15 +44,16 @@ export const drupalRolesConfig = {
     keys1.forEach((key) => {
       if (map2.hasOwnProperty(key)) {
         dataDiff.push({
-          tag: map1[key],
-          raw1: { id: key, tag: map1[key] },
-          raw2: { id: key, tag: map2[key] }
+          tag: map1[key] || key,
+          id: key,
+          raw1: { id: key, tag: map1[key] || key },
+          raw2: { id: key, tag: map2[key] || key }
         });
       } else {
         onlySource.push({
-          tag: map1[key],
+          tag: map1[key] || key,
           id: key,
-          raw: { id: key, tag: map1[key] }
+          raw: { id: key, tag: map1[key] || key }
         });
       }
     });
@@ -40,9 +61,9 @@ export const drupalRolesConfig = {
     keys2.forEach((key) => {
       if (!map1.hasOwnProperty(key)) {
         onlyTarget.push({
-          tag: map2[key],
+          tag: map2[key] || key,
           id: key,
-          raw: { id: key, tag: map2[key] }
+          raw: { id: key, tag: map2[key] || key }
         });
       }
     });

@@ -21,7 +21,7 @@ export const VersionMismatchTable = memo(({
   const [showVersionFilters, setShowVersionFilters] = useState(false);
   const [filterInputs, setFilterInputs] = useState({});
   const [appliedFilters, setAppliedFilters] = useState({});
-  const [versionFilterMode, setVersionFilterMode] = useState('only_diff');
+  const [versionFilterMode, setVersionFilterMode] = useState('all');
 
   // Load configuration based on the active dropdown page option
   const config = getOptionConfig(activeOption);

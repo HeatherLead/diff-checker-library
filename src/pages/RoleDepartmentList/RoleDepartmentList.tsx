@@ -10,22 +10,32 @@ export const roleDepartmentListConfig = {
   leftDataKey: 'attachment',
   rightDataKey: 'attachment',
   hasVersionMismatch: false,
-  compare: (sourceDataset: any[], targetDataset: any[]) => {
+  compare: (sourceDataset: any, targetDataset: any) => {
     const dataDiff: any[] = [];
     const onlySource: any[] = [];
     const onlyTarget: any[] = [];
 
+    const toList = (dataset: any): any[] => {
+      if (!dataset) return [];
+      if (Array.isArray(dataset)) return dataset.filter(Boolean);
+      if (typeof dataset === 'object') return Object.values(dataset).filter(Boolean);
+      return [];
+    };
+
+    const list1 = toList(sourceDataset);
+    const list2 = toList(targetDataset);
+
     const map1Map = new Map();
-    (sourceDataset || []).forEach((item: any) => {
-      const key = (item.role || item.tag || item.id || '').trim();
+    list1.forEach((item: any) => {
+      const key = (item.role || item.tag || item.role_dept_id || item.id || '').trim();
       if (key && !map1Map.has(key)) {
         map1Map.set(key, item);
       }
     });
 
     const map2Map = new Map();
-    (targetDataset || []).forEach((item: any) => {
-      const key = (item.role || item.tag || item.id || '').trim();
+    list2.forEach((item: any) => {
+      const key = (item.role || item.tag || item.role_dept_id || item.id || '').trim();
       if (key && !map2Map.has(key)) {
         map2Map.set(key, item);
       }
@@ -42,8 +52,8 @@ export const roleDepartmentListConfig = {
         dataDiff.push({
           id: record1.id || record2.id || key,
           tag: record1.role?.trim() || key,
-          role_diff_status: hasDiff ? "Diff Changes" : "No diff",
-          view_role_diff: hasDiff ? "View Diff" : "No diff",
+          role_diff_status: hasDiff ? "Diff Changes" : "No Diff",
+          view_role_diff: hasDiff ? "View Diff" : "No Diff",
           raw1: record1,
           raw2: record2
         });
@@ -77,7 +87,7 @@ export const roleDepartmentListConfig = {
   },
   getColumns: ({ openDiffViewer, openDataViewer, handleCloneConfiguration, baseUrl1, baseUrl2 }: any) => {
     const sourceColDefs = [
-      { field: 'tag', headerName: 'ROLE', flex: 2, cellRenderer: (params: any) => renderTagLink(baseUrl1, 'role-department-list', params.data.id || params.data.tag, params.value) },
+      { field: 'tag', headerName: 'ROLE', flex: 2, cellRenderer: (params: any) => renderTagLink(baseUrl1, 'role_department_list', params.data.raw || params.data.id, params.value) },
       {
         field: 'viewData',
         headerName: 'VIEW DATA',
@@ -97,7 +107,7 @@ export const roleDepartmentListConfig = {
     ];
 
     const targetColDefs = [
-      { field: 'tag', headerName: 'TAG', flex: 2, cellRenderer: (params: any) => renderTagLink(baseUrl2, 'role-department-list', params.data.id || params.data.tag, params.value) },
+      { field: 'tag', headerName: 'TAG', flex: 2, cellRenderer: (params: any) => renderTagLink(baseUrl2, 'role_department_list', params.data.raw || params.data.id, params.value) },
       {
         field: 'viewData',
         headerName: 'VIEW DATA',

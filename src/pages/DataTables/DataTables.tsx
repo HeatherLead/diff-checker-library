@@ -10,14 +10,21 @@ export const dataTablesConfig = {
   leftDataKey: 'datatable_structure',
   rightDataKey: 'datatable_structure',
   hasVersionMismatch: true,
-  compare: (sourceDataset: any[], targetDataset: any[]) => {
+  compare: (sourceDataset: any, targetDataset: any) => {
     const dataDiff: any[] = [];
     const versionMismatch: any[] = [];
     const onlySource: any[] = [];
     const onlyTarget: any[] = [];
 
-    const list1 = sourceDataset || [];
-    const list2 = targetDataset || [];
+    const toList = (dataset: any): any[] => {
+      if (!dataset) return [];
+      if (Array.isArray(dataset)) return dataset.filter(Boolean);
+      if (typeof dataset === 'object') return Object.values(dataset).filter(Boolean);
+      return [];
+    };
+
+    const list1 = toList(sourceDataset);
+    const list2 = toList(targetDataset);
 
     const tagsSource = new Set(list1.map((item: any) => item.tag?.trim()).filter(Boolean));
     const tagsTarget = new Set(list2.map((item: any) => item.tag?.trim()).filter(Boolean));
@@ -49,8 +56,8 @@ export const dataTablesConfig = {
           site2Version: record2DiffVersion.version || '1.0',
           rec1version: record1.version || '1.0',
           rec2version: record2DiffVersion.version || '1.0',
-          dt_status: hasStructDiff ? "Diff Changes" : "No diff",
-          query_status: hasQueryDiff ? "Diff Changes" : "No diff",
+          dt_status: hasStructDiff ? "Diff Changes" : "No Diff",
+          query_status: hasQueryDiff ? "Diff Changes" : "No Diff",
           datatableDiff: hasStructDiff ? "View Diff" : "No Diff",
           queryDiff: hasQueryDiff ? "View Diff" : "No Diff",
           raw1: record1,
@@ -92,9 +99,9 @@ export const dataTablesConfig = {
           rect1id: record1.id,
           rect2id: record2SameVersion.id,
           id: record1.id,
-          dt_status: hasStructDiff ? "Diff Changes" : "No diff",
-          query_status: hasQueryDiff ? "Diff Changes" : "No diff",
-          other_status: hasOtherDiff ? "Diff Changes" : "No diff",
+          dt_status: hasStructDiff ? "Diff Changes" : "No Diff",
+          query_status: hasQueryDiff ? "Diff Changes" : "No Diff",
+          other_status: hasOtherDiff ? "Diff Changes" : "No Diff",
           datatableDiff: hasStructDiff ? 'View Diff' : 'No Diff',
           queryDiff: hasQueryDiff ? 'View Diff' : 'No Diff',
           otherDiff: hasOtherDiff ? 'View Diff' : 'No Diff',

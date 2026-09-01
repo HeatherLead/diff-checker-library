@@ -48,7 +48,7 @@ const PAGE_MAP = {
 
 const ToastMessage = ({ msg, isError }) => {
   const cleanMsg = typeof msg === 'string' ? msg : String(msg);
-  const errorState = isError || cleanMsg.toLowerCase().includes('error') || cleanMsg.toLowerCase().includes('failed');
+  const errorState = isError !== undefined ? Boolean(isError) : (cleanMsg.toLowerCase().includes('error') || cleanMsg.toLowerCase().includes('failed'));
 
   const renderContent = () => {
     if (cleanMsg.toLowerCase().includes('data fetched successfully') || cleanMsg.toLowerCase().includes('fetched successfully') || cleanMsg.toLowerCase().includes('data fetch successfully')) {
@@ -154,6 +154,7 @@ export const DiffChecker = ({
   base_path = "/diff-checker",
   csrf_token = "",
   synced_by = "",
+  import_id = null,
   headers = {},
   initialOption = 'datatables',
   initialOptionLabel = 'DataTables',
@@ -195,10 +196,13 @@ export const DiffChecker = ({
   const initialSrc = typeof base_url === 'string' && base_url.trim() ? base_url.trim() : "";
   const initialTarget = "";
 
+  const urlImportId = typeof window !== 'undefined' ? new URLSearchParams(window.location.search).get('import_id') : null;
+  const initialImportId = import_id ?? urlImportId ?? null;
+
   const [baseUrl1, setBaseUrl1] = useState(initialSrc);
   const [baseUrl2, setBaseUrl2] = useState(initialTarget);
   const [backendMetadata, setBackendMetadata] = useState({
-    import_id: null,
+    import_id: initialImportId,
     src_name: '',
     src_url: '',
     target_name: '',
@@ -215,6 +219,12 @@ export const DiffChecker = ({
       setBaseUrl1(base_url);
     }
   }, [base_url]);
+
+  useEffect(() => {
+    if (import_id !== null && import_id !== undefined) {
+      setBackendMetadata(prev => ({ ...prev, import_id }));
+    }
+  }, [import_id]);
 
   // Modal Configuration State
   const [modalConfig, setModalConfig] = useState({
@@ -248,7 +258,7 @@ export const DiffChecker = ({
       type: isError ? 'error' : 'success',
       icon: false,
       closeButton: false,
-      autoClose: 1300,
+      autoClose: 2000,
       hideProgressBar: false,
       pauseOnHover: false,
       draggable: true,
@@ -274,8 +284,18 @@ export const DiffChecker = ({
     const itemVersion = item.sourceVersion || item.targetVersion || item.siteVersion || item.site1Version || item.version || rawItem.version || "1.0";
     const itemBoType = item.bo_type || rawItem.bo_type || "";
 
-    const rawId = item.id || rawItem.id || backendMetadata.import_id || 12;
-    const numericImportId = typeof rawId === 'number' ? rawId : (parseInt(rawId, 10) || 12);
+    // Strictly resolve import_id: Must come from genuine import_id (backendMetadata, props, item.import_id, rawItem.import_id, or URL), NEVER from item.id or rawItem.id
+    const resolvedImportId = item.import_id ?? rawItem.import_id ?? backendMetadata.import_id ?? import_id ?? (typeof window !== 'undefined' ? new URLSearchParams(window.location.search).get('import_id') : null);
+
+    let finalImportId = resolvedImportId;
+    if (finalImportId !== null && finalImportId !== undefined && finalImportId !== '') {
+      if (typeof finalImportId !== 'number') {
+        const parsed = parseInt(finalImportId, 10);
+        finalImportId = !isNaN(parsed) ? parsed : finalImportId;
+      }
+    } else {
+      finalImportId = 12;
+    }
 
     const payload = {
       type: typeName,
@@ -284,7 +304,7 @@ export const DiffChecker = ({
         version: itemVersion,
         bo_type: itemBoType
       },
-      import_id: numericImportId,
+      import_id: finalImportId,
       synced_by: syncedBy || synced_by || ""
     };
 
@@ -294,8 +314,6 @@ export const DiffChecker = ({
     }
     cleanTargetUrl = cleanTargetUrl.replace(/\/+$/, '');
 
-    showToast(`Sending PATCH ${cleanTargetUrl}/api/sync-configuration...`);
-
     try {
       const response = await axios.patch(`${cleanTargetUrl}/api/sync-configuration`, payload, {
         headers: {
@@ -303,18 +321,21 @@ export const DiffChecker = ({
           ...mergedHeaders,
         },
         withCredentials: true,
-      }).catch(() => null);
+      });
 
-      if (response && response.status >= 200 && response.status < 300) {
-        showToast(`Synced tag="${itemTag}" successfully!`);
-      } else {
-        showToast(`PATCH /api/sync-configuration sent for "${itemTag}"`);
-      }
+      const statusCode = response?.status ?? 200;
+      const responseData = response?.data;
+      const isSuccess = statusCode >= 200 && statusCode < 300 && responseData?.status_code !== 0 && responseData?.status !== 'error' && responseData?.success !== false;
+      const msg = responseData?.message || responseData?.msg || responseData?.error || `Synced tag="${itemTag}" successfully!`;
+
+      showToast(msg, !isSuccess);
     } catch (err) {
       console.error('Sync error:', err);
-      showToast(`Sync failed: ${err.message}`, true);
+      const errResponse = err?.response;
+      const msg = errResponse?.data?.message || errResponse?.data?.msg || errResponse?.data?.error || err.message || `Failed to sync "${itemTag}"`;
+      showToast(msg, true);
     }
-  }, [activeOption, backendMetadata.import_id, baseUrl2, mergedHeaders, showToast, synced_by]);
+  }, [activeOption, backendMetadata.import_id, baseUrl2, import_id, mergedHeaders, showToast, synced_by]);
 
   // Clone Modal Trigger Handler
   const handleCloneConfiguration = useCallback((row, targetSiteUrl, direction = 'to_right') => {
@@ -337,8 +358,15 @@ export const DiffChecker = ({
     const itemVersion = item.version || rawItem.version || item.sourceVersion || item.targetVersion || item.siteVersion || item.rec1version || item.entity_version || "1.0";
     const itemBoType = item.bo_type || rawItem.bo_type || "";
 
-    const rawId = item.id || rawItem.id || backendMetadata.import_id || "12";
-    const stringImportId = String(rawId);
+    // Strictly resolve import_id: Must come from genuine import_id (backendMetadata, props, item.import_id, rawItem.import_id, or URL), NEVER from item.id or rawItem.id
+    const resolvedImportId = item.import_id ?? rawItem.import_id ?? backendMetadata.import_id ?? import_id ?? (typeof window !== 'undefined' ? new URLSearchParams(window.location.search).get('import_id') : null);
+
+    let finalImportId = resolvedImportId;
+    if (finalImportId !== null && finalImportId !== undefined && finalImportId !== '') {
+      finalImportId = String(finalImportId);
+    } else {
+      finalImportId = "12";
+    }
 
     const payload = {
       type: typeName,
@@ -347,7 +375,7 @@ export const DiffChecker = ({
         version: itemVersion,
         bo_type: itemBoType
       },
-      import_id: stringImportId,
+      import_id: finalImportId,
       synced_by: clonedBy || synced_by || ""
     };
 
@@ -357,8 +385,6 @@ export const DiffChecker = ({
     }
     cleanTargetUrl = cleanTargetUrl.replace(/\/+$/, '');
 
-    showToast(`Sending POST ${cleanTargetUrl}/api/clone-configuration (${direction === 'to_right' ? 'Copy to Right' : 'Copy to Left'})...`);
-
     try {
       const response = await axios.post(`${cleanTargetUrl}/api/clone-configuration`, payload, {
         headers: {
@@ -366,26 +392,21 @@ export const DiffChecker = ({
           ...mergedHeaders,
         },
         withCredentials: true,
-      }).catch(() => null);
+      });
 
-      if (response && response.status >= 200 && response.status < 300) {
-        if (direction === 'to_right') {
-          showToast(`Copied "${itemTag}" to Target successfully!`);
-        } else {
-          showToast(`Copied "${itemTag}" to Source successfully!`);
-        }
-      } else {
-        if (direction === 'to_right') {
-          showToast(`Copied "${itemTag}" to Target`);
-        } else {
-          showToast(`Copied "${itemTag}" to Source`);
-        }
-      }
+      const statusCode = response?.status ?? 200;
+      const responseData = response?.data;
+      const isSuccess = statusCode >= 200 && statusCode < 300 && responseData?.status_code !== 0 && responseData?.status !== 'error' && responseData?.success !== false;
+      const msg = responseData?.message || responseData?.msg || responseData?.error || `Copied "${itemTag}" ${direction === 'to_right' ? 'to Target' : 'to Source'} successfully!`;
+
+      showToast(msg, !isSuccess);
     } catch (err) {
       console.error('Clone error:', err);
-      showToast(`Clone failed: ${err.message}`, true);
+      const errResponse = err?.response;
+      const msg = errResponse?.data?.message || errResponse?.data?.msg || errResponse?.data?.error || err.message || `Failed to copy "${itemTag}"`;
+      showToast(msg, true);
     }
-  }, [activeOption, backendMetadata.import_id, baseUrl1, baseUrl2, mergedHeaders, showToast, synced_by]);
+  }, [activeOption, backendMetadata.import_id, baseUrl1, baseUrl2, import_id, mergedHeaders, showToast, synced_by]);
 
   const handleSelectOption = useCallback((id, label) => {
     setActiveOption(id);
@@ -394,86 +415,104 @@ export const DiffChecker = ({
 
   // Open Diff Modal handler
   const openDiffViewer = useCallback((params, fieldType = 'structure') => {
-    const raw1 = params.data?.raw1 || {};
-    const raw2 = params.data?.raw2 || {};
-    const config = getOptionConfig(activeOption);
+    try {
+      const data = params?.data || params || {};
+      const raw1 = data.raw1 || data.site1 || data.raw || data || {};
+      const raw2 = data.raw2 || data.site2 || data.raw || data || {};
+      const config = getOptionConfig(activeOption);
 
-    let leftContent = '';
-    let rightContent = '';
+      let leftContent = '';
+      let rightContent = '';
 
-    if (fieldType === 'query') {
-      leftContent = raw1.datatable_query || raw1.dropdown_query || `SELECT * FROM ${params.data?.tag};`;
-      rightContent = raw2.datatable_query || raw2.dropdown_query || `SELECT * FROM ${params.data?.tag} WHERE active = 1;`;
-    } else if (fieldType === 'excel') {
-      leftContent = formatDiffContent(params.data?.excel1 || {});
-      rightContent = formatDiffContent(params.data?.excel2 || {});
-    } else if (fieldType === 'validator') {
-      leftContent = formatDiffContent(params.data?.val1 || {});
-      rightContent = formatDiffContent(params.data?.val2 || {});
-    } else if (fieldType === 'other') {
-      const ignoreKeys = ["tag_name", "bo_type", "created_by", "updated_by", "updated", "created", "id", "tag", "version"];
-      const filterObj = (obj) => Object.fromEntries(Object.entries(obj || {}).filter(([k]) => !ignoreKeys.includes(k)));
-      leftContent = formatDiffContent(filterObj(raw1));
-      rightContent = formatDiffContent(filterObj(raw2));
-    } else {
-      const leftKey = config.leftDataKey || 'datatable_structure';
-      const rightKey = config.rightDataKey || 'datatable_structure';
-
-      const val1 = raw1[leftKey] || raw1;
-      const val2 = raw2[rightKey] || raw2;
-
-      leftContent = formatDiffContent(val1);
-      rightContent = formatDiffContent(val2);
-    }
-
-    const leftId = raw1.tag_id || raw1.id || params.data?.rect1id || params.data?.id || params.data?.tag || '';
-    const rightId = raw2.tag_id || raw2.id || params.data?.rect2id || params.data?.id || params.data?.tag || '';
-
-    let leftEditUrl = '';
-    let rightEditUrl = '';
-
-    if (activeOption === 'templates') {
-      const leftTagId = raw1.tag_id || params.data?.rect1id || raw1.id || params.data?.id || '';
-      const rightTagId = raw2.tag_id || params.data?.rect2id || raw2.id || params.data?.id || '';
-      const tagName = params.data?.tag || raw1.tag_name || raw2.tag_name || '';
-
-      if (fieldType === 'validator') {
-        if (baseUrl1 && leftTagId) {
-          const clean1 = ensureAbsoluteUrl(baseUrl1).replace(/\/+$/, '');
-          leftEditUrl = `${clean1}/update-validation-json/${leftTagId}?tag_name=${encodeURIComponent(tagName)}`;
-        }
-        if (baseUrl2 && rightTagId) {
-          const clean2 = ensureAbsoluteUrl(baseUrl2).replace(/\/+$/, '');
-          rightEditUrl = `${clean2}/update-validation-json/${rightTagId}?tag_name=${encodeURIComponent(tagName)}`;
-        }
+      if (fieldType === 'query') {
+        leftContent = raw1.datatable_query || raw1.dropdown_query || data.query1 || `SELECT * FROM ${data.tag || 'table'};`;
+        rightContent = raw2.datatable_query || raw2.dropdown_query || data.query2 || `SELECT * FROM ${data.tag || 'table'} WHERE active = 1;`;
+      } else if (fieldType === 'excel') {
+        leftContent = formatDiffContent(data.excel1 || raw1.excel || raw1);
+        rightContent = formatDiffContent(data.excel2 || raw2.excel || raw2);
+      } else if (fieldType === 'validator') {
+        leftContent = formatDiffContent(data.val1 || raw1.val || raw1);
+        rightContent = formatDiffContent(data.val2 || raw2.val || raw2);
+      } else if (fieldType === 'other') {
+        const ignoreKeys = ["tag_name", "bo_type", "created_by", "updated_by", "updated", "created", "id", "tag", "version"];
+        const filterObj = (obj) => {
+          if (!obj || typeof obj !== 'object') return obj;
+          return Object.fromEntries(Object.entries(obj).filter(([k]) => !ignoreKeys.includes(k)));
+        };
+        leftContent = formatDiffContent(filterObj(raw1));
+        rightContent = formatDiffContent(filterObj(raw2));
       } else {
-        // excel or default templates diff
-        if (baseUrl1 && leftTagId) {
-          const clean1 = ensureAbsoluteUrl(baseUrl1).replace(/\/+$/, '');
-          leftEditUrl = `${clean1}/input-file-tag/edit/${leftTagId}`;
-        }
-        if (baseUrl2 && rightTagId) {
-          const clean2 = ensureAbsoluteUrl(baseUrl2).replace(/\/+$/, '');
-          rightEditUrl = `${clean2}/input-file-tag/edit/${rightTagId}`;
-        }
-      }
-    }
+        const leftKey = config.leftDataKey || 'datatable_structure';
+        const rightKey = config.rightDataKey || 'datatable_structure';
 
-    setModalConfig({
-      isOpen: true,
-      type: 'diff',
-      tag: params.data?.tag,
-      leftVersion: raw1.version || params.data?.sourceVersion || params.data?.site1Version || params.data?.siteVersion || '1.1',
-      rightVersion: raw2.version || params.data?.targetVersion || params.data?.site2Version || params.data?.siteVersion || '1.1',
-      leftData: leftContent,
-      rightData: rightContent,
-      leftId,
-      rightId,
-      leftEditUrl,
-      rightEditUrl,
-      activeOption,
-      jsonData: null
-    });
+        const val1 = (raw1 && typeof raw1 === 'object' && leftKey in raw1) ? raw1[leftKey] : raw1;
+        const val2 = (raw2 && typeof raw2 === 'object' && rightKey in raw2) ? raw2[rightKey] : raw2;
+
+        leftContent = formatDiffContent(val1);
+        rightContent = formatDiffContent(val2);
+      }
+
+      const leftId = raw1?.tag_id || raw1?.id || data?.rect1id || data?.id || data?.tag || '';
+      const rightId = raw2?.tag_id || raw2?.id || data?.rect2id || data?.id || data?.tag || '';
+
+      let leftEditUrl = '';
+      let rightEditUrl = '';
+
+      try {
+        if (activeOption === 'templates' && fieldType === 'validator') {
+          const leftTagId = raw1?.tag_id || data?.rect1id || raw1?.id || data?.id || '';
+          const rightTagId = raw2?.tag_id || data?.rect2id || raw2?.id || data?.id || '';
+          const tagName = data?.tag || raw1?.tag_name || raw2?.tag_name || '';
+
+          if (baseUrl1 && leftTagId) {
+            const clean1 = ensureAbsoluteUrl(baseUrl1).replace(/\/+$/, '');
+            leftEditUrl = `${clean1}/update-validation-json/${leftTagId}?tag_name=${encodeURIComponent(tagName)}`;
+          }
+          if (baseUrl2 && rightTagId) {
+            const clean2 = ensureAbsoluteUrl(baseUrl2).replace(/\/+$/, '');
+            rightEditUrl = `${clean2}/update-validation-json/${rightTagId}?tag_name=${encodeURIComponent(tagName)}`;
+          }
+        } else {
+          leftEditUrl = getEditPageUrl(baseUrl1, activeOption, raw1);
+          rightEditUrl = getEditPageUrl(baseUrl2, activeOption, raw2);
+        }
+      } catch (err) {
+        console.warn('Error resolving edit URLs:', err);
+      }
+
+      setModalConfig({
+        isOpen: true,
+        type: 'diff',
+        tag: data?.tag || raw1?.tag || raw1?.tag_name || raw1?.role || 'Diff View',
+        leftVersion: raw1?.version || data?.sourceVersion || data?.site1Version || data?.siteVersion || '1.1',
+        rightVersion: raw2?.version || data?.targetVersion || data?.site2Version || data?.siteVersion || '1.1',
+        leftData: leftContent || '',
+        rightData: rightContent || '',
+        leftId,
+        rightId,
+        leftEditUrl,
+        rightEditUrl,
+        activeOption,
+        jsonData: null
+      });
+    } catch (err) {
+      console.error('Error opening diff viewer:', err);
+      setModalConfig({
+        isOpen: true,
+        type: 'diff',
+        tag: params?.data?.tag || 'Diff View',
+        leftVersion: '1.0',
+        rightVersion: '1.0',
+        leftData: String(params?.data?.raw1 || ''),
+        rightData: String(params?.data?.raw2 || ''),
+        leftId: '',
+        rightId: '',
+        leftEditUrl: '',
+        rightEditUrl: '',
+        activeOption,
+        jsonData: null
+      });
+    }
   }, [activeOption, baseUrl1, baseUrl2]);
 
   // Open Data (JSON Tree View) Modal handler

@@ -98,7 +98,8 @@ export const VIEW_DIFF_FIELDS = [
   "excel_diff",
   "validator_diff",
   "display_msg_diff",
-  "custom_form_diff"
+  "custom_form_diff",
+  "site_config_diff"
 ];
 
 export const DIFF_CHANGES_FIELDS = [
@@ -111,7 +112,8 @@ export const DIFF_CHANGES_FIELDS = [
   "other_status",
   "other_diff",
   "excel_diff_status",
-  "validator_diff_status"
+  "validator_diff_status",
+  "site_config_diff_status"
 ];
 
 export const TABS = [

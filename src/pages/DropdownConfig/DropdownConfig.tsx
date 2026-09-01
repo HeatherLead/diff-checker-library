@@ -12,12 +12,19 @@ export const dropdownConfigConfig = {
   hasVersionMismatch: false,
   hasOnlySiteTables: false,
   hasNonMatchTable: true,
-  compare: (sourceDataset: any[], targetDataset: any[]) => {
+  compare: (sourceDataset: any, targetDataset: any) => {
     const dataDiff: any[] = [];
     const nonMatch: any[] = [];
 
-    const map1 = sourceDataset || [];
-    const map2 = targetDataset || [];
+    const toList = (dataset: any): any[] => {
+      if (!dataset) return [];
+      if (Array.isArray(dataset)) return dataset.filter(Boolean);
+      if (typeof dataset === 'object') return Object.values(dataset).filter(Boolean);
+      return [];
+    };
+
+    const map1 = toList(sourceDataset);
+    const map2 = toList(targetDataset);
 
     map1.forEach((record1: any) => {
       const record2 = map2.find((o: any) => o.tag === record1.tag);
@@ -29,7 +36,7 @@ export const dropdownConfigConfig = {
           tag: record1.tag,
           rec1version: record1.version,
           rec2version: record2.version,
-          query_status: hasDiff ? "Diff Changes" : "No diff",
+          query_status: hasDiff ? "Diff Changes" : "No Diff",
           dropdown_query: record1.dropdown_query,
           raw1: record1,
           raw2: record2
@@ -94,7 +101,7 @@ export const dropdownConfigConfig = {
           flex: 1.2,
           cellRenderer: (params: any) => params.data.query_status === 'Diff Changes' ? (
             <button onClick={() => openDiffViewer(params, 'structure')} className="btn-gray">View Diff</button>
-          ) : <span className="dc-muted-text">{params.data.query_status === 'No diff' ? 'No diff' : ''}</span>
+          ) : <span className="dc-muted-text">{params.data.query_status === 'No Diff' ? 'No Diff' : ''}</span>
         }
       ],
       sourceColDefs,

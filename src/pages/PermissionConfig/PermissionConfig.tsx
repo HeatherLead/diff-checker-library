@@ -10,23 +10,35 @@ export const permissionConfig = {
   leftDataKey: 'other_diff',
   rightDataKey: 'other_diff',
   hasVersionMismatch: false,
-  compare: (sourceDataset: any[], targetDataset: any[]) => {
+  compare: (sourceDataset: any, targetDataset: any) => {
     const dataDiff: any[] = [];
     const onlySource: any[] = [];
     const onlyTarget: any[] = [];
 
+    const toList = (dataset: any): any[] => {
+      if (!dataset) return [];
+      if (Array.isArray(dataset)) return dataset.filter(Boolean);
+      if (typeof dataset === 'object') return Object.values(dataset).filter(Boolean);
+      return [];
+    };
+
+    const list1 = toList(sourceDataset);
+    const list2 = toList(targetDataset);
+
     const map1Map = new Map();
-    (sourceDataset || []).forEach((obj: any) => {
-      const key = `${obj.module}-${obj.permission}`.trim();
-      if (!map1Map.has(key)) {
+    list1.forEach((obj: any) => {
+      if (!obj) return;
+      const key = `${obj.module || ''}-${obj.permission || ''}`.trim();
+      if (key && !map1Map.has(key)) {
         map1Map.set(key, obj);
       }
     });
 
     const map2Map = new Map();
-    (targetDataset || []).forEach((obj: any) => {
-      const key = `${obj.module}-${obj.permission}`.trim();
-      if (!map2Map.has(key)) {
+    list2.forEach((obj: any) => {
+      if (!obj) return;
+      const key = `${obj.module || ''}-${obj.permission || ''}`.trim();
+      if (key && !map2Map.has(key)) {
         map2Map.set(key, obj);
       }
     });
@@ -52,7 +64,7 @@ export const permissionConfig = {
           tag: ele.module,
           permission: ele.permission,
           permission_label: ele.permission_label,
-          role_diff_status: hasDiff ? "Diff Changes" : "No diff",
+          role_diff_status: hasDiff ? "Diff Changes" : "No Diff",
           role_diff: hasDiff ? "View Diff" : "No Diff",
           raw1: ele,
           raw2: match

@@ -10,14 +10,21 @@ export const taskEntityConfig = {
   leftDataKey: 'entity_config',
   rightDataKey: 'entity_config',
   hasVersionMismatch: true,
-  compare: (sourceDataset: any[], targetDataset: any[]) => {
+  compare: (sourceDataset: any, targetDataset: any) => {
     const dataDiff: any[] = [];
     const versionMismatch: any[] = [];
     const onlySource: any[] = [];
     const onlyTarget: any[] = [];
 
-    const map1 = sourceDataset || [];
-    const map2 = targetDataset || [];
+    const toList = (dataset: any): any[] => {
+      if (!dataset) return [];
+      if (Array.isArray(dataset)) return dataset.filter(Boolean);
+      if (typeof dataset === 'object') return Object.values(dataset).filter(Boolean);
+      return [];
+    };
+
+    const map1 = toList(sourceDataset);
+    const map2 = toList(targetDataset);
 
     map1.forEach((record1: any) => {
       const record2 = map2.find(
@@ -37,8 +44,8 @@ export const taskEntityConfig = {
           targetVersion: non_matched_versions_rec.entity_version,
           site1Version: record1.entity_version,
           site2Version: non_matched_versions_rec.entity_version,
-          dt_status: record1.entity_config === non_matched_versions_rec.entity_config ? "No diff" : "Diff Changes",
-          datatableDiff: record1.entity_config === non_matched_versions_rec.entity_config ? "No diff" : "View Diff",
+          dt_status: record1.entity_config === non_matched_versions_rec.entity_config ? "No Diff" : "Diff Changes",
+          datatableDiff: record1.entity_config === non_matched_versions_rec.entity_config ? "No Diff" : "View Diff",
           raw1: record1,
           raw2: non_matched_versions_rec
         });
@@ -67,9 +74,9 @@ export const taskEntityConfig = {
           rec2version: record2.entity_version,
           rect1id: record1.id,
           rect2id: record2.id,
-          dt_status: record1.entity_config === record2.entity_config ? "No diff" : "Diff Changes",
+          dt_status: record1.entity_config === record2.entity_config ? "No Diff" : "Diff Changes",
           datatableDiff: record1.entity_config === record2.entity_config ? "No Diff" : "View Diff",
-          other_diff: hasOtherDiff ? "Diff Changes" : "No diff",
+          other_diff: hasOtherDiff ? "Diff Changes" : "No Diff",
           otherDiff: hasOtherDiff ? "View Diff" : "No Diff",
           raw1: record1,
           raw2: record2

@@ -11,19 +11,29 @@ export const subTaskMasterConfig = {
   rightDataKey: 'subtask_master',
   hasVersionMismatch: false,
   hasOnlySiteTables: false,
-  compare: (sourceDataset: any[], targetDataset: any[]) => {
+  compare: (sourceDataset: any, targetDataset: any) => {
+    const toList = (dataset: any): any[] => {
+      if (!dataset) return [];
+      if (Array.isArray(dataset)) return dataset.filter(Boolean);
+      if (typeof dataset === 'object') return Object.values(dataset).filter(Boolean);
+      return [];
+    };
+
+    const list1 = toList(sourceDataset);
+    const list2 = toList(targetDataset);
+
     const countDuplicates = (array: any[]) => {
       const counts: Record<string, number> = {};
       (array || []).forEach((obj: any) => {
-        if (!obj.wf_code || !obj.task_name) return;
-        const key = `${obj.wf_code.trim()}-${obj.task_name.trim()}`;
+        if (!obj || !obj.wf_code || !obj.task_name) return;
+        const key = `${String(obj.wf_code).trim()}-${String(obj.task_name).trim()}`;
         counts[key] = (counts[key] || 0) + 1;
       });
       return counts;
     };
 
-    const left_counts = countDuplicates(sourceDataset);
-    const right_counts = countDuplicates(targetDataset);
+    const left_counts = countDuplicates(list1);
+    const right_counts = countDuplicates(list2);
 
     const dataDiff: any[] = [];
     const seen = new Set<string>();

@@ -10,13 +10,20 @@ export const templatesConfig = {
   leftDataKey: 'templates',
   rightDataKey: 'templates',
   hasVersionMismatch: false,
-  compare: (sourceDataset: any[], targetDataset: any[]) => {
+  compare: (sourceDataset: any, targetDataset: any) => {
     const dataDiff: any[] = [];
     const onlySource: any[] = [];
     const onlyTarget: any[] = [];
 
-    const map1 = sourceDataset || [];
-    const map2 = targetDataset || [];
+    const toList = (dataset: any): any[] => {
+      if (!dataset) return [];
+      if (Array.isArray(dataset)) return dataset.filter(Boolean);
+      if (typeof dataset === 'object') return Object.values(dataset).filter(Boolean);
+      return [];
+    };
+
+    const map1 = toList(sourceDataset);
+    const map2 = toList(targetDataset);
 
     const tagsIn1 = new Set(map1.map((obj: any) => obj.tag_name?.trim()).filter(Boolean));
     const tagsIn2 = new Set(map2.map((obj: any) => obj.tag_name?.trim()).filter(Boolean));
@@ -83,11 +90,11 @@ export const templatesConfig = {
           bo_type: (record1.business_unit || "").trim(),
           rec1version: record1.version || "",
           rec2version: record2Exact.version || "",
-          msg_diff: hasDiff ? "Diff Changes" : "No diff",
-          excel_diff: hasExcelDiff ? "View Diff" : "No diff",
+          msg_diff: hasDiff ? "Diff Changes" : "No Diff",
+          excel_diff: hasExcelDiff ? "View Diff" : "No Diff",
           excel1,
           excel2,
-          validator_diff: hasValDiff ? "View Diff" : "No diff",
+          validator_diff: hasValDiff ? "View Diff" : "No Diff",
           val1,
           val2,
           raw1: record1,

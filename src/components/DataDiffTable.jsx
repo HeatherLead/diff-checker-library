@@ -27,7 +27,7 @@ export const DataDiffTable = memo(({
   const [showDataDiffFilters, setShowDataDiffFilters] = useState(true);
   const [filterInputs, setFilterInputs] = useState({});
   const [appliedFilters, setAppliedFilters] = useState({});
-  const [dataDiffFilterMode, setDataDiffFilterMode] = useState('only_diff');
+  const [dataDiffFilterMode, setDataDiffFilterMode] = useState('all');
 
   // Load configuration based on the active dropdown page option
   const config = getOptionConfig(activeOption);

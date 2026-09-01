@@ -28,6 +28,7 @@ export const isFilterableColumn = (col) => {
     headerLower === 'other diff' ||
     headerLower === 'custom form diff' ||
     headerLower === 'master config diff' ||
+    headerLower === 'site config diff' ||
     headerLower === 'role diff' ||
     headerLower === 'task entity diff'
   ) {

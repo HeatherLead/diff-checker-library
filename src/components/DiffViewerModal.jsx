@@ -42,24 +42,32 @@ export const parseNestedJsonStrings = (val) => {
 export const formatDiffContent = (val) => {
   if (val === null || val === undefined) return '';
 
-  let parsedVal = val;
-  if (typeof val === 'string') {
-    const trimmed = val.trim();
-    if ((trimmed.startsWith('{') && trimmed.endsWith('}')) || (trimmed.startsWith('[') && trimmed.endsWith(']'))) {
-      try {
-        parsedVal = JSON.parse(trimmed);
-      } catch (e) {
-        parsedVal = val;
+  try {
+    let parsedVal = val;
+    if (typeof val === 'string') {
+      const trimmed = val.trim();
+      if ((trimmed.startsWith('{') && trimmed.endsWith('}')) || (trimmed.startsWith('[') && trimmed.endsWith(']'))) {
+        try {
+          parsedVal = JSON.parse(trimmed);
+        } catch (e) {
+          parsedVal = val;
+        }
       }
     }
-  }
 
-  if (typeof parsedVal === 'object' && parsedVal !== null) {
-    const expandedVal = parseNestedJsonStrings(parsedVal);
-    return JSON.stringify(expandedVal, null, 2);
-  }
+    if (typeof parsedVal === 'object' && parsedVal !== null) {
+      const expandedVal = parseNestedJsonStrings(parsedVal);
+      return JSON.stringify(expandedVal, null, 2);
+    }
 
-  return String(val);
+    return String(val);
+  } catch (err) {
+    try {
+      return JSON.stringify(val, null, 2);
+    } catch {
+      return String(val || '');
+    }
+  }
 };
 
 export const DiffViewerModal = ({
@@ -85,11 +93,25 @@ export const DiffViewerModal = ({
 
   if (!isOpen) return null;
 
-  const leftFormatted = formatDiffContent(leftData);
-  const rightFormatted = formatDiffContent(rightData);
+  let leftFormatted = '';
+  let rightFormatted = '';
+  try {
+    leftFormatted = formatDiffContent(leftData);
+    rightFormatted = formatDiffContent(rightData);
+  } catch (e) {
+    leftFormatted = String(leftData || '');
+    rightFormatted = String(rightData || '');
+  }
 
-  const resolvedLeftUrl = leftEditUrl || getEditPageUrl(baseUrl1, typeSlug || activeOption, leftId || tag);
-  const resolvedRightUrl = rightEditUrl || getEditPageUrl(baseUrl2, typeSlug || activeOption, rightId || tag);
+  let resolvedLeftUrl = '#';
+  let resolvedRightUrl = '#';
+  try {
+    resolvedLeftUrl = leftEditUrl || getEditPageUrl(baseUrl1, typeSlug || activeOption, leftId || tag);
+    resolvedRightUrl = rightEditUrl || getEditPageUrl(baseUrl2, typeSlug || activeOption, rightId || tag);
+  } catch (e) {
+    resolvedLeftUrl = baseUrl1 || '#';
+    resolvedRightUrl = baseUrl2 || '#';
+  }
 
   return (
     <div className="dc-modal-overlay">

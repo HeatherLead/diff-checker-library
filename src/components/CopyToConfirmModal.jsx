@@ -49,10 +49,10 @@ export const CopyToConfirmModal = memo(({
 
   const resolvedSourceUrl =
     (isToRight ? (row.leftEditUrl || row.sourceEditUrl) : (row.rightEditUrl || row.targetEditUrl)) ||
-    getEditPageUrl(sourceUrl, typeSlug || activeOption, itemId || itemTag);
+    getEditPageUrl(sourceUrl, typeSlug || activeOption, rawItem);
   const resolvedTargetUrl =
     (isToRight ? (row.rightEditUrl || row.targetEditUrl) : (row.leftEditUrl || row.sourceEditUrl)) ||
-    getEditPageUrl(targetUrl, typeSlug || activeOption, itemId || itemTag);
+    getEditPageUrl(targetUrl, typeSlug || activeOption, rawItem);
 
   const handleSubmit = async (e) => {
     e.preventDefault();

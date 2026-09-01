@@ -50,8 +50,8 @@ export const SyncConfirmModal = memo(({
   const sourceUrl = baseUrl1;
   const targetUrl = baseUrl2;
 
-  const resolvedSourceUrl = row.sourceEditUrl || row.leftEditUrl || getEditPageUrl(sourceUrl, typeSlug || activeOption, sourceId || sourceTag);
-  const resolvedTargetUrl = row.targetEditUrl || row.rightEditUrl || getEditPageUrl(targetUrl, typeSlug || activeOption, targetId || targetTag);
+  const resolvedSourceUrl = row.sourceEditUrl || row.leftEditUrl || getEditPageUrl(sourceUrl, typeSlug || activeOption, raw1);
+  const resolvedTargetUrl = row.targetEditUrl || row.rightEditUrl || getEditPageUrl(targetUrl, typeSlug || activeOption, raw2);
 
   const handleSubmit = async (e) => {
     e.preventDefault();

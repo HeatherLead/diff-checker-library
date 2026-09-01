@@ -10,14 +10,21 @@ export const customFormConfig = {
   leftDataKey: 'custom_form_field_data',
   rightDataKey: 'custom_form_field_data',
   hasVersionMismatch: true,
-  compare: (sourceDataset: any[], targetDataset: any[]) => {
+  compare: (sourceDataset: any, targetDataset: any) => {
     const dataDiff: any[] = [];
     const versionMismatch: any[] = [];
     const onlySource: any[] = [];
     const onlyTarget: any[] = [];
 
-    const map1 = sourceDataset || [];
-    const map2 = targetDataset || [];
+    const toList = (dataset: any): any[] => {
+      if (!dataset) return [];
+      if (Array.isArray(dataset)) return dataset.filter(Boolean);
+      if (typeof dataset === 'object') return Object.values(dataset).filter(Boolean);
+      return [];
+    };
+
+    const map1 = toList(sourceDataset);
+    const map2 = toList(targetDataset);
 
     map1.forEach((record1: any) => {
       const record2 = map2.find(
@@ -37,8 +44,8 @@ export const customFormConfig = {
           targetVersion: non_matched_versions_rec.version,
           site1Version: record1.version,
           site2Version: non_matched_versions_rec.version,
-          dt_status: record1.custom_form_field_data === non_matched_versions_rec.custom_form_field_data ? "No diff" : "Diff Changes",
-          datatableDiff: record1.custom_form_field_data === non_matched_versions_rec.custom_form_field_data ? "No diff" : "View Diff",
+          dt_status: record1.custom_form_field_data === non_matched_versions_rec.custom_form_field_data ? "No Diff" : "Diff Changes",
+          datatableDiff: record1.custom_form_field_data === non_matched_versions_rec.custom_form_field_data ? "No Diff" : "View Diff",
           raw1: record1,
           raw2: non_matched_versions_rec
         });
@@ -67,9 +74,9 @@ export const customFormConfig = {
           rec2version: record2.version,
           rect1id: record1.id,
           rect2id: record2.id,
-          dt_status: record1.custom_form_field_data === record2.custom_form_field_data ? "No diff" : "Diff Changes",
+          dt_status: record1.custom_form_field_data === record2.custom_form_field_data ? "No Diff" : "Diff Changes",
           datatableDiff: record1.custom_form_field_data === record2.custom_form_field_data ? "No Diff" : "View Diff",
-          other_diff: hasOtherDiff ? "Diff Changes" : "No diff",
+          other_diff: hasOtherDiff ? "Diff Changes" : "No Diff",
           otherDiff: hasOtherDiff ? "View Diff" : "No Diff",
           raw1: record1,
           raw2: record2

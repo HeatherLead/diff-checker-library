@@ -10,13 +10,20 @@ export const workFlowConfigConfig = {
   leftDataKey: 'wf_json',
   rightDataKey: 'wf_json',
   hasVersionMismatch: false,
-  compare: (sourceDataset: any[], targetDataset: any[]) => {
+  compare: (sourceDataset: any, targetDataset: any) => {
     const dataDiff: any[] = [];
     const onlySource: any[] = [];
     const onlyTarget: any[] = [];
 
-    const map1 = sourceDataset || [];
-    const map2 = targetDataset || [];
+    const toList = (dataset: any): any[] => {
+      if (!dataset) return [];
+      if (Array.isArray(dataset)) return dataset.filter(Boolean);
+      if (typeof dataset === 'object') return Object.values(dataset).filter(Boolean);
+      return [];
+    };
+
+    const map1 = toList(sourceDataset);
+    const map2 = toList(targetDataset);
 
     map1.forEach((record1: any) => {
       const record2 = map2.find((r: any) => r.wf_code === record1.wf_code);
@@ -29,7 +36,7 @@ export const workFlowConfigConfig = {
           tag: record1.wf_name,
           rect1id: record1.wf_id,
           rect2id: record2.wf_id,
-          wf_status: hasDiff ? "Diff Changes" : "No diff",
+          wf_status: hasDiff ? "Diff Changes" : "No Diff",
           datatableDiff: hasDiff ? "View Diff" : "No Diff",
           version_source: record1.version,
           version_target: record2.version,

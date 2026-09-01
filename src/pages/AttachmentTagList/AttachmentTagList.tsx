@@ -10,9 +10,16 @@ export const attachmentTagListConfig = {
   leftDataKey: 'attachment',
   rightDataKey: 'attachment',
   hasVersionMismatch: false,
-  compare: (sourceDataset: any[], targetDataset: any[]) => {
-    const map1 = sourceDataset || [];
-    const map2 = targetDataset || [];
+  compare: (sourceDataset: any, targetDataset: any) => {
+    const toList = (dataset: any): any[] => {
+      if (!dataset) return [];
+      if (Array.isArray(dataset)) return dataset.filter(Boolean);
+      if (typeof dataset === 'object') return Object.values(dataset).filter(Boolean);
+      return [];
+    };
+
+    const map1 = toList(sourceDataset);
+    const map2 = toList(targetDataset);
 
     const dataDiff: any[] = [];
     const onlySource: any[] = [];
@@ -45,8 +52,8 @@ export const attachmentTagListConfig = {
           id: record1.id || record2.id || record1.tag_name,
           tag: record1.tag_name?.trim(),
           bo_type: record1.bo_type?.trim() || '',
-          msg_diff: hasDiff ? "Diff Changes" : "No diff",
-          display_msg_diff: hasDiff ? "View Diff" : "No diff",
+          msg_diff: hasDiff ? "Diff Changes" : "No Diff",
+          display_msg_diff: hasDiff ? "View Diff" : "No Diff",
           raw1: record1,
           raw2: record2
         });
@@ -90,7 +97,7 @@ export const attachmentTagListConfig = {
   },
   getColumns: ({ openDiffViewer, openDataViewer, handleSyncConfiguration, handleCloneConfiguration, baseUrl1, baseUrl2 }: any) => {
     const sourceColDefs = [
-      { field: 'tag', headerName: 'TAG', flex: 2, cellRenderer: (params: any) => renderTagLink(baseUrl1, 'attachment-tag-list', params.data.id, params.value) },
+      { field: 'tag', headerName: 'TAG', flex: 2, cellRenderer: (params: any) => renderTagLink(baseUrl1, 'attachment_tag_list', params.data.raw?.tag_id || params.data.id, params.value) },
       { field: 'bo_type', headerName: 'BO TYPE', flex: 1 },
       { field: 'task_names', headerName: 'TASK NAMES', flex: 1.5, cellRenderer: (params: any) => renderTrimTooltip(params.value, 20) },
       {
@@ -112,7 +119,7 @@ export const attachmentTagListConfig = {
     ];
 
     const targetColDefs = [
-      { field: 'tag', headerName: 'TAG', flex: 2, cellRenderer: (params: any) => renderTagLink(baseUrl2, 'attachment-tag-list', params.data.id, params.value) },
+      { field: 'tag', headerName: 'TAG', flex: 2, cellRenderer: (params: any) => renderTagLink(baseUrl2, 'attachment_tag_list', params.data.raw?.tag_id || params.data.id, params.value) },
       { field: 'bo_type', headerName: 'BO TYPE', flex: 1 },
       { field: 'task_names', headerName: 'TASK NAMES', flex: 1.5, cellRenderer: (params: any) => renderTrimTooltip(params.value, 20) },
       {
